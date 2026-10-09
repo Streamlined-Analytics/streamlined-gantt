@@ -132,3 +132,26 @@ jobs:
           0a5224a0a0e289735781ce42460f653a57e13c5d6bd7ab7a76c20de1e01340ea  task-text.xml
           SUMS
       - run: npx vitest run --config vitest.engine.config.js tests/io/mpxj.nightly.test.js
+
+  performance:
+    name: Performance budgets (1,000 tasks, 1,500 links)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Engine benchmarks (tinybench)
+        run: node tests/perf/schedule.bench.js | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Browser budgets (render, scroll, drag, reschedule)
+        run: npx playwright test --project=chromium tests/perf | tee -a "$GITHUB_STEP_SUMMARY"
+        env:
+          SG_PERF: "1"

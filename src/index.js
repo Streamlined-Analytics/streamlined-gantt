@@ -11,7 +11,7 @@ export { VERSION } from "./version.js";
 export { Gantt } from "./ui/gantt.js";
 export { ProgrammeController } from "./model/controller.js";
 export { GanttEvent } from "./model/emitter.js";
-export { EVENT_CATALOGUE } from "./model/event-catalogue.js";
+export { EVENT_NAME_LIST } from "./model/event-names.js";
 export { StreamlinedGanttElement, defineElement, defineConfig } from "./element.js";
 export { trustedHTML } from "./ui/dom.js";
 export { DEFAULT_STRINGS } from "./ui/strings.js";

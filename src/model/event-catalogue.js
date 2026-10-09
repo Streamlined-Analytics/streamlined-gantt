@@ -346,14 +346,4 @@ export const EVENT_CATALOGUE = [
   { name: "destroy", group: "lifecycle", payload: [], description: "The instance was destroyed." },
 ];
 
-/** Every event name. */
-export const EVENT_NAMES = new Set(EVENT_CATALOGUE.map((spec) => spec.name));
-
-/**
- * Only `before-*` events can be vetoed or deferred.
- * @param {string} name
- * @returns {boolean}
- */
-export function isCancelable(name) {
-  return name.startsWith("before-");
-}
+export { EVENT_NAMES, isCancelable } from "./event-names.js";

@@ -38,6 +38,10 @@
       "types": "./dist/types/engine/index.d.ts",
       "default": "./dist/engine.js"
     },
+    "./events": {
+      "types": "./dist/types/events.d.ts",
+      "default": "./dist/events.js"
+    },
     "./io/mspdi": {
       "types": "./dist/types/io/mspdi.d.ts",
       "default": "./dist/io/mspdi.js"

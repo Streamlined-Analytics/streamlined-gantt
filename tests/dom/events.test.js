@@ -3,7 +3,7 @@
 
 import { afterEach, describe, expect, test } from "vitest";
 import flatRoof from "../fixtures/programmes/flat-roof.json";
-import { EVENT_CATALOGUE } from "../../src/index.js";
+import { EVENT_CATALOGUE } from "../../src/events.js";
 import { defineElement } from "../../src/element.js";
 import { FLAT_ROOF_FIELDS } from "../support/fields.js";
 import { cleanup, frame, mount, pointerDrag } from "./support.js";

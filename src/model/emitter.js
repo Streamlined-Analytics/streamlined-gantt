@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Streamlined Analytics Ltd and contributors
 
-import { EVENT_NAMES, isCancelable } from "./event-catalogue.js";
+import { EVENT_NAMES, isCancelable } from "./event-names.js";
 
 /**
  * The event object every handler receives. The same object is passed to

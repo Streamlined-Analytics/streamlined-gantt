@@ -6,7 +6,7 @@
  * /examples/harness.html?fixture=/tests/fixtures/programmes/cpm-n1.json&zoom=day&today=2026-11-09
  * Every emitted event is recorded in window.events.
  */
-import { Gantt, EVENT_CATALOGUE } from "/dist/streamlined-gantt.js";
+import { Gantt, EVENT_NAME_LIST } from "/dist/streamlined-gantt.js";
 import { FLAT_ROOF_FIELDS } from "/examples/fields.js";
 import { generatePerfProgramme } from "/tests/fixtures/perf/generate-perf-fixture.js";
 
@@ -29,7 +29,7 @@ const gantt = new Gantt(document.getElementById("programme"), {
   columns: params.get("columns")?.split(","),
   today: () => today,
   on: Object.fromEntries(
-    EVENT_CATALOGUE.map((spec) => [spec.name, (event) => window.events.push(event)]),
+    EVENT_NAME_LIST.map((name) => [name, (event) => window.events.push(event)]),
   ),
 });
 window.firstRenderMs = performance.now() - started;

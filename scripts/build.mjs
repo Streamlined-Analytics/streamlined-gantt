@@ -37,6 +37,7 @@ const builds = [
     globalName: "StreamlinedGantt",
   },
   { entryPoints: ["src/engine/index.js"], outfile: "dist/engine.js", format: "esm" },
+  { entryPoints: ["src/events.js"], outfile: "dist/events.js", format: "esm" },
   { entryPoints: ["src/io/mspdi.js"], outfile: "dist/io/mspdi.js", format: "esm" },
   {
     entryPoints: ["src/io/mspdi.js"],

@@ -368,6 +368,20 @@ export const EVENT_CATALOGUE = [
     payload: ["action", "taskId", "date"],
     description: "A context-menu item was chosen.",
   },
+  {
+    name: "fullscreen-change",
+    group: "mobile",
+    payload: ["open", "native", "orientation"],
+    description:
+      "The full-screen chart opened or closed (`streamlined-gantt/mobile`). `native` is true when the Fullscreen API is in use; iPhones get a full-viewport dialog instead.",
+  },
+  {
+    name: "layout-change",
+    group: "mobile",
+    payload: ["mode", "previous", "orientation", "width"],
+    description:
+      'The mobile presentation changed: `mode` is `"inline"` (the chart), `"preview"` (the phone summary that replaces it below the breakpoint) or `"fullscreen"`.',
+  },
 ];
 
 export { EVENT_NAMES, isCancelable } from "./event-names.js";

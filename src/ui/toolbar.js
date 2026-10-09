@@ -6,8 +6,9 @@ import { fill } from "./strings.js";
 
 /**
  * The optional built-in toolbar (`toolbar: buildToolbar`, or `toolbar: true` in the script-tag build): zoom, today, undo and redo,
- * baseline and critical-path toggles, lookahead and print. Host pages usually
- * render their own (DaisyUI) toolbar and call the API instead.
+ * baseline and critical-path toggles, lookahead and print. On a narrow chart
+ * (a container query) everything after Today folds behind a "More" button.
+ * Host pages usually render their own (DaisyUI) toolbar and call the API instead.
  *
  * @module ui/toolbar
  */
@@ -62,9 +63,7 @@ export function buildToolbar(gantt) {
     );
     return element;
   };
-  bar.append(
-    zoom,
-    action(s.today, () => gantt.scrollToDate(gantt.todayISO(), { align: "center" })),
+  const extra = html("div", { class: "sg-toolbar-extra", id: `${gantt.uid}-tools` }, [
     action(s.undo, () => gantt.undoWithAnnouncement()),
     action(s.redo, () => gantt.redoWithAnnouncement()),
     toggle(s.showBaseline, Boolean(gantt.baselineId), (on) =>
@@ -72,8 +71,22 @@ export function buildToolbar(gantt) {
     ),
     toggle(s.showCritical, gantt.showCriticalPath, (on) => gantt.setCriticalPathVisible(on)),
     lookahead,
+  ]);
+  const more = action(
+    s.toolbarMore,
+    () => {
+      const open = extra.classList.toggle("sg-open");
+      more.setAttribute("aria-expanded", String(open));
+    },
+    { class: "sg-button sg-toolbar-more", "aria-expanded": "false", "aria-controls": extra.id },
+  );
+  bar.append(
+    zoom,
+    action(s.today, () => gantt.scrollToDate(gantt.todayISO(), { align: "center" })),
+    more,
+    extra,
   );
   const printable = /** @type {any} */ (gantt);
-  if (typeof printable.print === "function") bar.append(action(s.print, () => printable.print()));
+  if (typeof printable.print === "function") extra.append(action(s.print, () => printable.print()));
   return bar;
 }

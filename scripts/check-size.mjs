@@ -3,7 +3,7 @@
 
 /**
  * Enforces the gzip size budgets from the spec (core <= 45 KB, CSS <= 6 KB,
- * each IO module <= 10 KB) and prints the measured sizes for the PR log.
+ * each IO module <= 10 KB, the mobile add-on <= 8 KB) and prints the measured sizes for the PR log.
  */
 import { readFile } from "node:fs/promises";
 import { gzipSync } from "node:zlib";
@@ -18,6 +18,8 @@ const BUDGETS = [
   { file: "dist/io/mspdi.js", limit: 10 * KB },
   { file: "dist/io/csv.js", limit: 10 * KB },
   { file: "dist/print.js", limit: 10 * KB },
+  { file: "dist/mobile.js", limit: 8 * KB },
+  { file: "dist/mobile.iife.min.js", limit: 8 * KB },
 ];
 
 let failed = false;

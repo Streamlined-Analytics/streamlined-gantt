@@ -89,3 +89,22 @@ test("drag handles are at least 24 px on touch screens (WCAG 2.5.8)", async ({ b
   expect(box.height).toBeGreaterThanOrEqual(24);
   await context.close();
 });
+
+test("no axe violations: inline chart with the mobile expand button", async ({ page }) => {
+  await openHarness(page, { layout: "timeline", fit: "width", mobile: true });
+  await expect(page.getByRole("button", { name: "Open the chart full screen" })).toBeVisible();
+  expect(await scan(page)).toEqual([]);
+});
+
+test("no axe violations: the phone summary and the full-screen chart at phone sizes", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openHarness(page, { layout: "timeline", fit: "width", mobile: true });
+  await expect(page.locator(".sg-preview")).toBeVisible();
+  expect(await scan(page)).toEqual([]);
+  await page.setViewportSize({ width: 844, height: 390 });
+  await page.getByRole("button", { name: "Open the chart full screen" }).click();
+  await expect(page.locator(".sg-root.sg-fullscreen")).toBeVisible();
+  expect(await scan(page)).toEqual([]);
+});

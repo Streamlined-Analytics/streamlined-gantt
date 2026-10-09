@@ -6,7 +6,7 @@ import { defineConfig, devices } from "@playwright/test";
 const PORT = Number(process.env.SG_PORT || 4173);
 const onlyChromium = process.env.SG_BROWSERS === "chromium";
 const nightly = process.env.SG_NIGHTLY === "1";
-const touchSpecs = /drag-touch\.spec\.js/;
+const touchSpecs = /(drag-touch|mobile)\.spec\.js/;
 
 export default defineConfig({
   testDir: "tests",
@@ -44,7 +44,10 @@ export default defineConfig({
     { name: "pixel", use: { ...devices["Pixel 7"] }, testMatch: touchSpecs },
     ...(onlyChromium
       ? []
-      : [{ name: "ipad", use: { ...devices["iPad (gen 7)"] }, testMatch: touchSpecs }]),
+      : [
+          { name: "ipad", use: { ...devices["iPad (gen 7)"] }, testMatch: touchSpecs },
+          { name: "iphone", use: { ...devices["iPhone 15"] }, testMatch: touchSpecs },
+        ]),
     ...(nightly
       ? [
           {

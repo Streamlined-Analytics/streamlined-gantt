@@ -67,6 +67,8 @@ export const EVENT_NAME_LIST = Object.freeze([
   "editor-save",
   "editor-close",
   "menu-action",
+  "fullscreen-change",
+  "layout-change",
 ]);
 
 /** Every event name. */

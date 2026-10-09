@@ -314,6 +314,21 @@ These are the base colours. When DaisyUI variables are present, DaisyUI wins.
 | `--sg-backdrop`          | black 35%              | behind dialogs         |
 | `--sg-shadow`            | `0 6px 20px` black 18% | menu, tooltip, dialogs |
 
+### Phone (`streamlined-gantt/mobile`)
+
+The phone summary is its own `.sg-root` element next to the chart, so a host rule such as
+`[data-gantt-host] .sg-root { … }` styles the chart, the summary and the full-screen view alike.
+
+| Token                    | Default                  | Affects                                                 |
+| ------------------------ | ------------------------ | ------------------------------------------------------- |
+| `--sg-cta-bg`            | `--sg-button-primary-bg` | the summary's "Open the chart" button                   |
+| `--sg-cta-fg`            | `--sg-button-primary-fg` | its text                                                |
+| `--sg-cta-radius`        | `--sg-radius`            | its corners (`999px` for a pill)                        |
+| `--sg-preview-track`     | `--sg-fg` 8%             | the track behind each mini bar                          |
+| `--sg-preview-font-size` | `15px`                   | summary text                                            |
+| `--sg-rail-bg`           | `--sg-header-bg`         | the full-screen control rail                            |
+| `--sg-touch-target`      | `44px`                   | rail buttons, summary rows, the call to action on touch |
+
 ### Type
 
 | Token                    | Default     | Affects                  |

@@ -82,3 +82,26 @@ for (const preset of ["light", "dark", "brand"]) {
     await expect(page.locator("#stage")).toHaveScreenshot(`theme-${preset}.png`);
   });
 }
+
+const PHONE_SAMPLE = {
+  fixture: "/tests/fixtures/programmes/office-fit-out-sa446.json",
+  layout: "timeline",
+  fit: "width",
+  height: "420px",
+  mobile: true,
+};
+
+test("phone summary in portrait (mobile view)", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openHarness(page, PHONE_SAMPLE);
+  await expect(page.locator(".sg-preview")).toBeVisible();
+  await expect(page.locator(".sg-preview")).toHaveScreenshot("mobile-portrait-preview.png");
+});
+
+test("full-screen chart in landscape (mobile view)", async ({ page }) => {
+  await page.setViewportSize({ width: 844, height: 390 });
+  await openHarness(page, PHONE_SAMPLE);
+  await page.evaluate(() => window.gantt.mobile.open());
+  await expect(page.locator(".sg-root.sg-fullscreen")).toBeVisible();
+  await expect(page).toHaveScreenshot("mobile-fullscreen-landscape.png");
+});

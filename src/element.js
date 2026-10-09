@@ -121,6 +121,7 @@ export class StreamlinedGanttElement extends HTMLElement {
       ["color-scheme", "colorScheme"],
       ["layout", "layout"],
       ["fit", "fit"],
+      ["mobile", "mobile"],
     ]) {
       const value = this.getAttribute(attribute);
       if (value !== null) options[key] = value;

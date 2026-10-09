@@ -66,6 +66,7 @@ import { TimelineView } from "./timeline-view.js";
  *   tooltip?: false|((task: Readonly<Record<string, any>>, context: object) => unknown),
  *   toolbar?: boolean|((gantt: Gantt) => HTMLElement),
  *   confirmDelete?: boolean,
+ *   mobile?: boolean|import("./mobile.js").MobileOptions,
  * }} GanttOptions
  */
 
@@ -98,6 +99,14 @@ export function setDefaultToolbar(factory) {
 }
 
 export class Gantt extends ProgrammeController {
+  /**
+   * Functions called with every new chart once it has rendered, so add-ons
+   * loaded as separate scripts (`streamlined-gantt/mobile`) can read their
+   * options from `gantt.options`.
+   * @type {((gantt: Gantt) => void)[]}
+   */
+  static extensions = [];
+
   /**
    * @param {HTMLElement} host the element the chart renders into (light DOM)
    * @param {GanttOptions} [options]
@@ -177,6 +186,8 @@ export class Gantt extends ProgrammeController {
     this.editingCell = null;
     /** @type {any} */
     this.lastRejection = null;
+    /** @type {import("./mobile.js").MobileView|undefined} set by `streamlined-gantt/mobile` */
+    this.mobile = undefined;
     if (toolbar) this.root.prepend(toolbar(this));
     this.on("change", (event) => {
       this.lastChange = event;
@@ -185,6 +196,7 @@ export class Gantt extends ProgrammeController {
     this.observeSize();
     if (data) this.load(data);
     else this.render();
+    for (const extend of Gantt.extensions) extend(this);
   }
 
   /* --------------------------------------------------------------- DOM */
@@ -278,6 +290,7 @@ export class Gantt extends ProgrammeController {
         this.readOnly ? "sg-readonly" : "",
         this.timelineOnly ? "sg-layout-timeline" : "",
         this.fitWidth ? "sg-fit" : "",
+        this.isFullscreen ? "sg-fullscreen" : "",
         this.showCriticalPath ? "sg-show-critical" : "",
         this.coarsePointer() ? "sg-coarse" : "",
         this.options.colorScheme === "light" || this.options.colorScheme === "dark"
@@ -295,9 +308,9 @@ export class Gantt extends ProgrammeController {
     return typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
   }
 
-  /** @returns {number} drag-handle hit width; at least 24 px on touch screens (WCAG 2.5.8) */
+  /** @returns {number} drag-handle hit width; 32 px on touch screens (WCAG 2.5.8 asks for 24) */
   handleSize() {
-    return this.coarsePointer() ? 24 : 10;
+    return this.coarsePointer() ? 32 : 10;
   }
 
   /** @returns {number} */
@@ -1389,6 +1402,39 @@ export class Gantt extends ProgrammeController {
     if (this.focus.taskId && this.store.get("tasks", this.focus.taskId))
       this.focusTask(this.focus.taskId);
     return result;
+  }
+
+  /* --------------------------------------------------------- full screen */
+
+  /**
+   * Opens the chart full screen: the Fullscreen API where the browser has it,
+   * else a full-viewport dialog. Needs `streamlined-gantt/mobile` (ADR-0011).
+   * @param {{taskId?: string}} [options]
+   * @returns {Promise<void>}
+   */
+  enterFullscreen(options) {
+    return this.mobile
+      ? this.mobile.open(options)
+      : Promise.reject(new Error("Full screen needs streamlined-gantt/mobile (mobileView)"));
+  }
+
+  exitFullscreen() {
+    this.mobile?.close();
+  }
+
+  /**
+   * @param {{taskId?: string}} [options]
+   * @returns {Promise<void>}
+   */
+  toggleFullscreen(options) {
+    return this.isFullscreen
+      ? Promise.resolve(this.exitFullscreen())
+      : this.enterFullscreen(options);
+  }
+
+  /** @returns {boolean} */
+  get isFullscreen() {
+    return Boolean(this.mobile?.opened);
   }
 
   /* ---------------------------------------------- editor, menu, tooltip */

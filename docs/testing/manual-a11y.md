@@ -33,3 +33,20 @@ On the oldest available iPad (iPadOS 16.4 or later) and an Android phone:
 - [ ] Tap selects a bar; dragging the selected bar moves it; resize handles are easy to hit.
 - [ ] Long-press opens the context menu.
 - [ ] Pinch-zoom of the page does not break dragging.
+
+## Phones (`examples/mobile.html`, ADR-0011)
+
+On an iPhone (Safari) and an Android phone (Chrome), with VoiceOver and TalkBack once each:
+
+- [ ] Held upright, the summary shows instead of the chart and the page scrolls past it with no
+      scroll trapped inside it.
+- [ ] **Open the chart** goes full screen; on Android it turns to landscape; on the iPhone the
+      "turn your phone sideways" hint shows until you do.
+- [ ] Landscape: every row fits without scrolling; nothing sits under the notch or the home
+      indicator.
+- [ ] Tap a bar, then drag it: it moves, the page does not scroll, the summary shows the new dates
+      after closing.
+- [ ] Pinch zooms the chart, not the page; the rail's minus and fit return to the whole programme.
+- [ ] Android's back gesture leaves fullscreen; the close button then returns to the page.
+- [ ] The task editor opens as a bottom sheet and focusing a field does not zoom the page.
+- [ ] VoiceOver / TalkBack read the summary rows, the rail buttons and the dialog's name.

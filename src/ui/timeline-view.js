@@ -412,7 +412,16 @@ export class TimelineView {
         ?.classList.add("sg-custom-color");
     const label = this.labelFor(row);
     if (label) parts.push(this.labelElement(label, row, geometry));
-    if (state.editable) parts.push(...handles(row, geometry, state, this.gantt.handleSize()));
+    if (state.editable)
+      parts.push(
+        ...handles(
+          row,
+          geometry,
+          state,
+          this.gantt.handleSize(),
+          this.gantt.coarsePointer() ? this.gantt.rowHeight : 0,
+        ),
+      );
     group.replaceChildren(...parts);
   }
 
@@ -642,43 +651,50 @@ export function barShape(row, geometry, previewProgress, criticalPattern) {
 }
 
 /**
- * Drag handles: resize at both ends, progress, and link-creation dots.
+ * Drag handles: resize at both ends, progress, and link-creation dots. On
+ * touch screens the move target is the full row height and at least 44 px
+ * wide, and the resize handles reach outwards so a narrow bar keeps its middle
+ * for moving.
  * @param {import("./columns.js").Row} row
  * @param {Geometry} geometry
  * @param {{resizable: boolean}} state
  * @param {number} size hit-target width in pixels
+ * @param {number} touchRow the row height on touch screens, else 0
  * @returns {SVGElement[]}
  */
-function handles(row, geometry, state, size) {
+function handles(row, geometry, state, size, touchRow) {
   const { left, right, top, height, y } = geometry;
+  const tall = Math.max(height + 4, touchRow);
+  const hitTop = y - tall / 2;
+  const width = Math.max(right - left, touchRow ? 44 : 4);
   const parts = [
     svg("rect", {
       class: "sg-hit",
       "data-handle": "move",
-      x: px(left),
-      y: px(top - 2),
-      width: px(Math.max(right - left, 4)),
-      height: height + 4,
+      x: px((left + right - width) / 2),
+      y: px(hitTop),
+      width: px(width),
+      height: tall,
     }),
   ];
   if (state.resizable) {
-    const half = size / 2;
+    const inside = Math.min(size / 2, (right - left) / 4);
     parts.push(
       svg("rect", {
         class: "sg-handle sg-handle-resize",
         "data-handle": "resize-start",
-        x: px(left - half),
-        y: px(top - 2),
+        x: px(left - size + inside),
+        y: px(hitTop),
         width: size,
-        height: height + 4,
+        height: tall,
       }),
       svg("rect", {
         class: "sg-handle sg-handle-resize",
         "data-handle": "resize-end",
-        x: px(right - half),
-        y: px(top - 2),
+        x: px(right - inside),
+        y: px(hitTop),
         width: size,
-        height: height + 4,
+        height: tall,
       }),
     );
     const progressX = left + (right - left) * (row.dates?.progress ?? 0);

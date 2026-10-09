@@ -50,6 +50,13 @@ const builds = [
   { entryPoints: ["src/health.js"], outfile: "dist/health.js", format: "esm" },
   { entryPoints: ["src/toolbar.js"], outfile: "dist/toolbar.js", format: "esm" },
   { entryPoints: ["src/editor.js"], outfile: "dist/editor.js", format: "esm" },
+  { entryPoints: ["src/mobile.js"], outfile: "dist/mobile.js", format: "esm" },
+  {
+    entryPoints: ["src/mobile-iife.js"],
+    outfile: "dist/mobile.iife.min.js",
+    format: "iife",
+    globalName: "StreamlinedGanttMobile",
+  },
   {
     entryPoints: ["src/io/mspdi.js"],
     outfile: "dist/io/mspdi.iife.min.js",

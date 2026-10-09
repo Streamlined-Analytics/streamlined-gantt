@@ -99,6 +99,7 @@ export const DEFAULT_STRINGS = {
   tooltipProgress: "{percent} complete",
   tooltipVariance: "Against baseline: {variance} {days}",
   toolbarLabel: "Programme tools",
+  toolbarMore: "More",
   zoomDay: "Day",
   zoomWeek: "Week",
   zoomMonth: "Month",

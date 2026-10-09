@@ -100,3 +100,35 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx --yes typescript@7.0.2 -p tsconfig.json --noEmit
+
+  mspdi-mpxj-samples:
+    name: MSPDI import of MPXJ sample files (pinned, checksummed)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      MPXJ_SHA: 7ccc95353be81028e074e8b1ce634add8716dd0c
+      SG_MPXJ_DIR: ${{ github.workspace }}/.mpxj
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Fetch MPXJ samples (LGPL, so fetched at test time and never committed; ADR-0008)
+        run: |
+          mkdir -p "$SG_MPXJ_DIR"
+          base="https://raw.githubusercontent.com/joniles/mpxj/$MPXJ_SHA/junit/data/generated"
+          curl -fsSL "$base/task-links/task-links-project2019-mspdi.xml" -o "$SG_MPXJ_DIR/task-links.xml"
+          curl -fsSL "$base/task-text/task-text-project2019-mspdi.xml" -o "$SG_MPXJ_DIR/task-text.xml"
+          curl -fsSL "$base/calendar-recurring-exceptions/calendar-recurring-exceptions-project2016-mspdi.xml" -o "$SG_MPXJ_DIR/recurring.xml"
+          cd "$SG_MPXJ_DIR"
+          sha256sum --check <<'SUMS'
+          c1c38e9187c2433e968d1d8b4989a844d629e518e728816a19a9ec0bac287532  recurring.xml
+          0f62aee93bf52df56b0726151b7e9cfa973fe9f2fcf77b89f52e6dbe81bc7c2d  task-links.xml
+          0a5224a0a0e289735781ce42460f653a57e13c5d6bd7ab7a76c20de1e01340ea  task-text.xml
+          SUMS
+      - run: npx vitest run --config vitest.engine.config.js tests/io/mpxj.nightly.test.js

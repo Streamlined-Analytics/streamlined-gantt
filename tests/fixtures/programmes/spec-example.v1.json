@@ -1,0 +1,93 @@
+{
+  "schema": "streamlined-gantt/1",
+  "id": "job-42",
+  "name": "Flat roof replacement, 14 Mill Lane",
+  "currency": "GBP",
+  "dataDate": "2026-11-09",
+  "contractCompletion": "2026-12-04",
+  "revision": {
+    "code": "B",
+    "date": "2026-11-09",
+    "author": "J Smith",
+    "note": "Strip-out extended 2 days, access delayed by MC"
+  },
+  "revisions": [{ "code": "A", "date": "2026-10-20", "note": "Tender programme" }],
+  "defaultCalendar": "std",
+  "calendars": [
+    {
+      "id": "std",
+      "name": "Mon–Fri, E&W bank holidays",
+      "workWeek": [1, 2, 3, 4, 5],
+      "nonWorking": [
+        { "date": "2026-12-25", "name": "Christmas Day", "kind": "bank-holiday" },
+        { "from": "2026-12-24", "to": "2027-01-01", "name": "Xmas shutdown", "kind": "shutdown" }
+      ],
+      "working": [{ "date": "2026-11-14", "name": "Saturday working" }]
+    }
+  ],
+  "tasks": [
+    { "id": "s2", "wbs": "2", "name": "Roofing works", "type": "summary" },
+    {
+      "id": "t3",
+      "parent": "s2",
+      "wbs": "2.2",
+      "name": "Deck repairs",
+      "start": "2026-11-10",
+      "finish": "2026-11-12",
+      "duration": 3
+    },
+    {
+      "id": "t5",
+      "parent": "s2",
+      "wbs": "2.3",
+      "name": "Insulation and membrane",
+      "type": "task",
+      "start": "2026-11-13",
+      "finish": "2026-11-20",
+      "duration": 6,
+      "calendar": "std",
+      "progress": 0.4,
+      "actualStart": "2026-11-13",
+      "actualFinish": null,
+      "constraint": { "type": "SNET", "date": "2026-11-13" },
+      "value": 900000,
+      "valuePercent": 0.5,
+      "trade": "Roofing",
+      "crew": "Gang 2",
+      "locked": false,
+      "notes": "Single-ply membrane on 120 mm PIR",
+      "fields": { "poRef": "PO-1182", "cost": 600000, "unknownKey": { "nested": [1, 2, 3] } },
+      "x-erp": { "line": 17 }
+    }
+  ],
+  "links": [{ "id": "l4", "from": "t3", "to": "t5", "type": "FS", "lag": 0 }],
+  "baselines": [
+    {
+      "id": "bl1",
+      "name": "Rev A tender",
+      "captured": "2026-10-20",
+      "tasks": { "t5": { "start": "2026-11-10", "finish": "2026-11-17" } }
+    }
+  ],
+  "delayEvents": [
+    {
+      "id": "d1",
+      "kind": "weather",
+      "from": "2026-11-11",
+      "to": "2026-11-12",
+      "taskIds": ["t3"],
+      "title": "High winds, no roof work",
+      "description": "Gusts above 40 mph all day",
+      "evidence": [{ "type": "photo", "url": "/media/d1/1.jpg", "caption": "Anemometer reading" }],
+      "status": "recorded",
+      "recordedAt": "2026-11-11T16:05:00Z",
+      "recordedBy": "J Smith",
+      "fields": {}
+    }
+  ],
+  "markers": [
+    { "id": "kd1", "date": "2026-11-27", "label": "Key Date 1: watertight", "kind": "key-date" }
+  ],
+  "fields": {},
+  "x-source": { "system": "quote-builder", "quoteId": 1182 }
+}

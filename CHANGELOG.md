@@ -9,5 +9,12 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- DOM-free engine (`streamlined-gantt/engine`): day-number date arithmetic, working-day
+  calendars with holidays as data, CPM scheduling (FS/SS/FF/SF with lag and lead, SNET/FNLT,
+  progress and data date, propagate/tight/off modes), total/free/negative float, programme
+  validation with JSON Pointer paths, custom fields with computed values and roll-ups,
+  `projectSummary()` with payment schedule and time-phased series, health check, CSV export,
+  money and date formatting.
+- JSON Schema for the v1 data format (`schema/programme.v1.json`).
 - Repository scaffolding: Apache-2.0 licence, NOTICE, CLA (draft), contribution guide, code of
   conduct, security policy, CI, build pipeline with licence banners and size budgets.

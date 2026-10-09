@@ -1,0 +1,505 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Streamlined-Analytics/streamlined-gantt/schema/programme.v1.json",
+  "title": "streamlined-gantt programme, format version 1",
+  "description": "Dates are ISO calendar dates with no time or zone. A task finish is INCLUSIVE: it is the last working day of the task. duration and lag count working days. Money is integer minor units (pence). The runtime validator also checks cross-references (parents, link ends, calendars), parent and dependency cycles, finish >= start, and custom-field types.",
+  "type": "object",
+  "required": ["tasks"],
+  "properties": {
+    "schema": {
+      "const": "streamlined-gantt/1"
+    },
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "currency": {
+      "type": "string",
+      "description": "ISO 4217 code, e.g. GBP"
+    },
+    "dataDate": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "format": "date",
+      "description": "Status date: remaining work is scheduled from this date"
+    },
+    "contractCompletion": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "format": "date",
+      "description": "Drives the backward pass, so a late programme shows negative float"
+    },
+    "revision": {
+      "$ref": "#/$defs/revision"
+    },
+    "revisions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/revision"
+      }
+    },
+    "defaultCalendar": {
+      "type": "string"
+    },
+    "calendars": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/calendar"
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/task"
+      }
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/link"
+      }
+    },
+    "baselines": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/baseline"
+      }
+    },
+    "delayEvents": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/delayEvent"
+      }
+    },
+    "markers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/marker"
+      }
+    },
+    "fields": {
+      "type": "object",
+      "description": "Programme-level custom data, round-tripped untouched"
+    }
+  },
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "revision": {
+      "type": "object",
+      "required": ["code"],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "format": "date"
+        },
+        "author": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "calendar": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "workWeek": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7
+          },
+          "description": "ISO weekdays, 1 = Monday"
+        },
+        "nonWorking": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "format": "date"
+              },
+              "from": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "format": "date"
+              },
+              "to": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "format": "date"
+              },
+              "name": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              }
+            },
+            "oneOf": [
+              {
+                "required": ["date"]
+              },
+              {
+                "required": ["from", "to"]
+              }
+            ]
+          }
+        },
+        "working": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "format": "date"
+              },
+              "from": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "format": "date"
+              },
+              "to": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "format": "date"
+              },
+              "name": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              }
+            },
+            "oneOf": [
+              {
+                "required": ["date"]
+              },
+              {
+                "required": ["from", "to"]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "constraint": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "enum": ["ASAP", "SNET", "FNLT"]
+        },
+        "date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "format": "date"
+        }
+      }
+    },
+    "task": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "enum": ["task", "summary", "milestone", "payment", "access", "need-by", "reference"]
+        },
+        "parent": {
+          "type": ["string", "null"]
+        },
+        "wbs": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "format": "date",
+          "description": "First working day"
+        },
+        "finish": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "format": "date",
+          "description": "Last working day (inclusive)"
+        },
+        "duration": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Working days; 0 for milestones"
+        },
+        "calendar": {
+          "type": "string"
+        },
+        "progress": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "actualStart": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "actualFinish": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "constraint": {
+          "$ref": "#/$defs/constraint"
+        },
+        "value": {
+          "type": "integer",
+          "description": "Integer minor units (payment milestones)"
+        },
+        "valuePercent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "trade": {
+          "type": "string"
+        },
+        "crew": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "issued": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "format": "date"
+            }
+          }
+        },
+        "style": {
+          "type": "object",
+          "properties": {
+            "color": {
+              "type": "string"
+            }
+          }
+        },
+        "className": {
+          "type": "string"
+        },
+        "collapsed": {
+          "type": "boolean"
+        },
+        "fields": {
+          "type": "object",
+          "description": "Custom field values keyed by field key; unknown keys round-trip"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "link": {
+      "type": "object",
+      "required": ["id", "from", "to"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "type": {
+          "enum": ["FS", "SS", "FF", "SF"]
+        },
+        "lag": {
+          "type": "integer",
+          "description": "Working days; negative is a lead"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "baseline": {
+      "type": "object",
+      "required": ["id", "tasks"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "captured": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "format": "date"
+        },
+        "tasks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["start", "finish"],
+            "properties": {
+              "start": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "format": "date"
+              },
+              "finish": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "format": "date"
+              }
+            }
+          }
+        }
+      }
+    },
+    "delayEvent": {
+      "type": "object",
+      "required": ["id", "from", "to"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": ["weather", "access", "information", "variation", "client", "other"]
+        },
+        "from": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "format": "date"
+        },
+        "to": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "format": "date"
+        },
+        "taskIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["url"],
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "caption": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "status": {
+          "type": "string"
+        },
+        "recordedAt": {
+          "type": "string"
+        },
+        "recordedBy": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "object"
+        }
+      }
+    },
+    "marker": {
+      "type": "object",
+      "required": ["id", "date"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "format": "date"
+        },
+        "label": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

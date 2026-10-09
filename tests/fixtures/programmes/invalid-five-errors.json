@@ -1,0 +1,10 @@
+{
+  "schema": "streamlined-gantt/1",
+  "tasks": [
+    { "id": "a", "name": "A", "start": "2026-11-02", "duration": 3 },
+    { "id": "b", "name": "B", "start": "2026-11-05", "duration": 2, "progress": 1.5 },
+    { "id": "c", "name": "C", "start": "2026-11-09", "finish": "2026-11-06" },
+    { "id": "a", "name": "Duplicate", "start": "2026-11-02", "duration": 1 }
+  ],
+  "links": [{ "id": "l1", "from": "a", "to": "zzz", "type": "XX" }]
+}

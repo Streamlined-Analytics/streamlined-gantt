@@ -7,6 +7,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-09
+
 ### Fixed
 
 - MSPDI export no longer loses text that XML 1.0 cannot hold (#9, ADR-0012). This covers

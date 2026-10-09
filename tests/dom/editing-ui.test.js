@@ -4,6 +4,7 @@
 import { afterEach, describe, expect, test } from "vitest";
 import flatRoof from "../fixtures/programmes/flat-roof.json";
 import { trustedHTML } from "../../src/index.js";
+import { buildToolbar } from "../../src/toolbar.js";
 import { FLAT_ROOF_FIELDS } from "../support/fields.js";
 import { cleanup, frame, mount } from "./support.js";
 
@@ -368,7 +369,7 @@ describe("tooltip", () => {
 
 describe("toolbar", () => {
   test("the optional toolbar drives zoom, toggles and lookahead", () => {
-    const { gantt, host } = mount(structuredClone(flatRoof), { toolbar: true });
+    const { gantt, host } = mount(structuredClone(flatRoof), { toolbar: buildToolbar });
     const toolbar = host.querySelector("[role=toolbar]");
     const zoom = toolbar.querySelector("select");
     zoom.value = "day";

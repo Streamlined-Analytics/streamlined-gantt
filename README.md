@@ -78,6 +78,48 @@ Dates are ISO `YYYY-MM-DD` calendar dates. **`finish` is inclusive** (the last w
 `duration` counts working days. Money is integer pence. See `docs/` for the data format, the
 event catalogue and the integration guides.
 
+### Theming
+
+Every colour, radius, stroke and font size is a `--sg-*` CSS custom property inside
+`@layer streamlined-gantt`, so your own CSS wins without `!important`. The chart follows DaisyUI
+themes and dark mode automatically, and can be coloured from data:
+
+```css
+.sg-root {
+  --sg-bar: #0f766e;
+  --sg-font: "Inter", sans-serif;
+  --sg-bar-radius: 0px;
+}
+```
+
+```js
+new Gantt(host, {
+  data,
+  categories: { roofing: "#c2410c", scaffold: "#334155" }, // task.category: "roofing"
+  theme: { barCritical: "#be123c" },
+});
+gantt.setTheme({ bar: "#7c3aed" });
+```
+
+See [docs/theming.md](docs/theming.md) for every token, and `examples/theme-playground.html` to try
+them.
+
+### Optional entries
+
+The core bundle stays under 45 KB gzip. Everything else is a separate import:
+
+| Import                       | What                                                     |
+| ---------------------------- | -------------------------------------------------------- |
+| `streamlined-gantt/engine`   | Scheduling and calendars without the DOM (Node, workers) |
+| `streamlined-gantt/print`    | A3/A4 print, SVG and PNG export                          |
+| `streamlined-gantt/io/mspdi` | MS Project XML import and export                         |
+| `streamlined-gantt/io/csv`   | `exportCSV(gantt)`                                       |
+| `streamlined-gantt/health`   | `check(gantt)`: SCL/CIOB programme health check          |
+| `streamlined-gantt/toolbar`  | The built-in toolbar (`toolbar: buildToolbar`)           |
+
+The script-tag build (`streamlined-gantt.iife.min.js`) includes the toolbar, so `toolbar: true`
+works there.
+
 ## Licence and attribution
 
 streamlined-gantt is licensed under the [Apache License, Version 2.0](LICENSE).

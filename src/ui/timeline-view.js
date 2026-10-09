@@ -3,6 +3,7 @@
 
 import { toDay } from "../engine/dates.js";
 import { formatMoney } from "../engine/format.js";
+import { categoryKey } from "./theme.js";
 import { html, px, setAttributes, svg } from "./dom.js";
 import { linkPath } from "./link-path.js";
 
@@ -28,6 +29,7 @@ import { linkPath } from "./link-path.js";
  * @property {number} top bar top
  * @property {number} height bar height
  * @property {boolean} point milestone-like
+ * @property {number} [radius] bar corner radius (from --sg-bar-radius)
  */
 
 /**
@@ -79,21 +81,12 @@ export class TimelineView {
     this.arrowId = `${id}-arrow`;
     this.hatchId = `${id}-hatch`;
     this.criticalId = `${id}-critical`;
+    /** @type {Map<string, string>} custom link colour to marker id */
+    this.customArrows = new Map();
     this.defs.append(
-      svg(
-        "marker",
-        {
-          id: this.arrowId,
-          class: "sg-arrow",
-          viewBox: "0 0 8 8",
-          refX: 7,
-          refY: 4,
-          markerWidth: 7,
-          markerHeight: 7,
-          orient: "auto-start-reverse",
-        },
-        [svg("path", { d: "M0 0 L8 4 L0 8 z" })],
-      ),
+      arrowMarker(this.arrowId, "sg-arrow"),
+      arrowMarker(`${this.arrowId}-critical`, "sg-arrow sg-arrow-critical"),
+      arrowMarker(`${this.arrowId}-selected`, "sg-arrow sg-arrow-selected"),
       svg(
         "pattern",
         {
@@ -317,15 +310,19 @@ export class TimelineView {
   geometry(row, index, frame) {
     const { scale, rowHeight } = frame;
     const dates = this.gantt.displayDates(row);
-    const barHeight = Math.round(rowHeight * (row.summary ? 0.3 : 0.56));
+    const metrics = this.gantt.metrics;
+    const barHeight = row.summary
+      ? metrics.summaryHeight || Math.round(rowHeight * 0.3)
+      : metrics.barHeight || Math.round(rowHeight * 0.56);
+    const radius = metrics.barRadius;
     const top = index * rowHeight + Math.round((rowHeight - barHeight) / 2);
     const y = index * rowHeight + rowHeight / 2;
-    if (!dates) return { left: 0, right: 0, y, top, height: barHeight, point: false };
+    if (!dates) return { left: 0, right: 0, y, top, height: barHeight, point: false, radius };
     if (row.milestone) {
       const x = this.gantt.isFinishAnchored(row.id)
         ? scale.x(dates.start + 1)
         : scale.x(dates.start);
-      const size = Math.round(rowHeight * 0.5);
+      const size = metrics.milestoneSize || Math.round(rowHeight * 0.5);
       return {
         left: x - size / 2,
         right: x + size / 2,
@@ -333,6 +330,7 @@ export class TimelineView {
         top: y - size / 2,
         height: size,
         point: true,
+        radius,
       };
     }
     return {
@@ -342,6 +340,7 @@ export class TimelineView {
       top,
       height: barHeight,
       point: false,
+      radius,
     };
   }
 
@@ -354,9 +353,12 @@ export class TimelineView {
       wanted.add(row.id);
       const geometry = this.geometry(row, index, frame);
       const state = this.gantt.taskState(row);
+      const appearance = this.gantt.appearanceOf(row.task);
       const signature = JSON.stringify([
         geometry,
         state,
+        appearance,
+        this.gantt.themeVersion,
         row.task.name,
         row.task.value,
         row.dates?.progress,
@@ -370,7 +372,7 @@ export class TimelineView {
       }
       if (entry.signature === signature) continue;
       entry.signature = signature;
-      this.drawTask(entry.element, row, geometry, state);
+      this.drawTask(entry.element, row, geometry, state, appearance);
     }
     for (const [id, entry] of this.tasks) {
       if (wanted.has(id)) continue;
@@ -384,9 +386,13 @@ export class TimelineView {
    * @param {import("./columns.js").Row} row
    * @param {Geometry} geometry
    * @param {ReturnType<import("./gantt.js").Gantt["taskState"]>} state
+   * @param {import("./theme.js").Appearance} appearance
    */
-  drawTask(group, row, geometry, state) {
-    setAttributes(group, { class: state.classes.join(" ") });
+  drawTask(group, row, geometry, state, appearance) {
+    setAttributes(group, { class: [...state.classes, ...appearance.classes].join(" ") });
+    group.removeAttribute("style");
+    for (const [property, value] of Object.entries(appearance.style))
+      group.style.setProperty(property, value);
     const parts = [];
     const type = row.task.type ?? "task";
     if (row.summary) parts.push(...summaryShape(geometry));
@@ -400,23 +406,40 @@ export class TimelineView {
           state.critical ? this.criticalId : null,
         ),
       );
-    if (row.task.style?.color) parts[0].style.setProperty("--sg-task-color", row.task.style.color);
+    if (appearance.colour)
+      parts
+        .find((part) => part.classList.contains("sg-progress"))
+        ?.classList.add("sg-custom-color");
     const label = this.labelFor(row);
-    if (label)
-      parts.push(
-        svg(
-          "text",
-          {
-            class: "sg-bar-label",
-            x: px(geometry.right + 6),
-            y: px(geometry.y),
-            "dominant-baseline": "central",
-          },
-          [label],
-        ),
-      );
+    if (label) parts.push(this.labelElement(label, row, geometry));
     if (state.editable) parts.push(...handles(row, geometry, state, this.gantt.handleSize()));
     group.replaceChildren(...parts);
+  }
+
+  /**
+   * A bar label: inside the bar when `barLabels: "inside"` and it fits, else after it.
+   * @param {string} label
+   * @param {import("./columns.js").Row} row
+   * @param {Geometry} geometry
+   * @returns {SVGElement}
+   */
+  labelElement(label, row, geometry) {
+    const room = geometry.right - geometry.left - 12;
+    const inside =
+      this.gantt.options.barLabels === "inside" &&
+      !row.milestone &&
+      !row.summary &&
+      label.length * LABEL_CHAR_WIDTH <= room;
+    return svg(
+      "text",
+      {
+        class: inside ? "sg-bar-label sg-inside" : "sg-bar-label",
+        x: px(inside ? geometry.left + 6 : geometry.right + 6),
+        y: px(geometry.y),
+        "dominant-baseline": "central",
+      },
+      [label],
+    );
   }
 
   /**
@@ -452,13 +475,39 @@ export class TimelineView {
       const classes = ["sg-link", `sg-link-${(link.type ?? "FS").toLowerCase()}`];
       if (critical) classes.push("sg-critical");
       if (selectedLink === link.id) classes.push("sg-selected");
+      const colour = linkColour(link);
+      const arrow = this.arrowFor(colour, Boolean(critical), selectedLink === link.id);
       const group = svg("g", { class: classes.join(" "), "data-link-id": link.id }, [
         svg("path", { class: "sg-link-hit", d }),
-        svg("path", { class: "sg-link-line", d, "marker-end": `url(#${this.arrowId})` }),
+        svg("path", { class: "sg-link-line", d, "marker-end": `url(#${arrow})` }),
       ]);
+      if (colour) group.style.setProperty("--sg-link-color", colour);
       children.push(group);
     }
     this.layers.links.replaceChildren(...children);
+  }
+
+  /**
+   * The arrowhead marker for a link: selected and critical links use their
+   * own colours; a custom-coloured link gets a marker in that colour.
+   * @param {string|null} colour
+   * @param {boolean} critical
+   * @param {boolean} selected
+   * @returns {string} marker id
+   */
+  arrowFor(colour, critical, selected) {
+    if (selected) return `${this.arrowId}-selected`;
+    if (critical) return `${this.arrowId}-critical`;
+    if (!colour) return this.arrowId;
+    let id = this.customArrows.get(colour);
+    if (!id) {
+      id = `${this.arrowId}-c${this.customArrows.size}`;
+      this.customArrows.set(colour, id);
+      const marker = arrowMarker(id, "sg-arrow");
+      marker.firstElementChild?.setAttribute("style", `fill: ${colour}`);
+      this.defs.append(marker);
+    }
+    return id;
   }
 
   /**
@@ -553,7 +602,7 @@ export function barShape(row, geometry, previewProgress, criticalPattern) {
       y: px(top),
       width: px(width),
       height,
-      rx: 3,
+      rx: geometry.radius ?? 3,
     }),
   ];
   if (progress > 0)
@@ -564,7 +613,7 @@ export function barShape(row, geometry, previewProgress, criticalPattern) {
         y: px(top),
         width: px(width * Math.min(progress, 1)),
         height,
-        rx: 3,
+        rx: geometry.radius ?? 3,
       }),
     );
   if (criticalPattern)
@@ -575,7 +624,7 @@ export function barShape(row, geometry, previewProgress, criticalPattern) {
         y: px(top),
         width: px(width),
         height,
-        rx: 3,
+        rx: geometry.radius ?? 3,
         fill: `url(#${criticalPattern})`,
       }),
     );
@@ -649,4 +698,40 @@ function handles(row, geometry, state, size) {
     }),
   );
   return parts;
+}
+
+/** Approximate width of one 11 px label character, to decide whether a label fits inside its bar. */
+const LABEL_CHAR_WIDTH = 6.5;
+
+/**
+ * @param {string} id
+ * @param {string} className
+ * @returns {SVGElement}
+ */
+function arrowMarker(id, className) {
+  return svg(
+    "marker",
+    {
+      id,
+      class: className,
+      viewBox: "0 0 8 8",
+      refX: 7,
+      refY: 4,
+      markerWidth: 7,
+      markerHeight: 7,
+      orient: "auto-start-reverse",
+    },
+    [svg("path", { d: "M0 0 L8 4 L0 8 z" })],
+  );
+}
+
+/**
+ * A link's custom colour: `style.color`, else its category's colour.
+ * @param {Readonly<Record<string, any>>} link
+ * @returns {string|null}
+ */
+export function linkColour(link) {
+  if (link.style?.color) return String(link.style.color);
+  const key = categoryKey(link.category);
+  return key ? `var(--sg-category-${key}, var(--sg-link))` : null;
 }

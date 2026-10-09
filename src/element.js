@@ -114,6 +114,7 @@ export class StreamlinedGanttElement extends HTMLElement {
       ["edit-mode", "editMode"],
       ["auto-schedule", "autoSchedule"],
       ["height", "height"],
+      ["color-scheme", "colorScheme"],
     ]) {
       const value = this.getAttribute(attribute);
       if (value !== null) options[key] = value;

@@ -43,6 +43,21 @@ test("no axe violations: forced colours", async ({ page }) => {
   expect(await scan(page)).toEqual([]);
 });
 
+for (const preset of ["dark", "brand", "daisyui"]) {
+  test(`no axe violations, colour contrast included: ${preset} theme`, async ({ page }) => {
+    await page.goto(`/examples/theme-playground.html?preset=${preset}&bare`);
+    await expect(page.locator("body")).toHaveAttribute("data-ready", "true");
+    expect(await scan(page)).toEqual([]);
+  });
+}
+
+test("no axe violations: dark mode from the operating system", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await openHarness(page, { fields: true });
+  expect(await page.evaluate(() => getComputedStyle(window.gantt.root).colorScheme)).toBe("dark");
+  expect(await scan(page)).toEqual([]);
+});
+
 test("exactly one tab stop and treegrid ARIA", async ({ page }) => {
   await openHarness(page);
   await expect(page.locator(".sg-root [tabindex='0']")).toHaveCount(1);

@@ -143,7 +143,10 @@ export class GridView {
       this.rows.set(row.id, entry);
     }
     entry.element.style.setProperty("top", `${index * rowHeight}px`);
-    if (entry.signature === signature) return entry.element;
+    if (entry.signature === signature) {
+      entry.element.classList.toggle("sg-row-alt", index % 2 === 1);
+      return entry.element;
+    }
     entry.signature = signature;
     const element = entry.element;
     setAttributes(element, {
@@ -154,6 +157,7 @@ export class GridView {
       "aria-selected": String(selected),
       "aria-busy": pending ? "true" : null,
     });
+    element.classList.toggle("sg-row-alt", index % 2 === 1);
     element.replaceChildren(
       ...columns.map((column, columnIndex) =>
         this.renderCell(row, column, columnIndex, texts[columnIndex]),

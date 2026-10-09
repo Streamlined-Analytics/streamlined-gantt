@@ -7,7 +7,7 @@ import { buildColumns } from "../ui/columns.js";
 import { SVG_NS, px, svg } from "../ui/dom.js";
 import { linkPath } from "../ui/link-path.js";
 import { TimeScale } from "../ui/scale.js";
-import { barShape, milestoneShape, summaryShape } from "../ui/timeline-view.js";
+import { barShape, linkColour, milestoneShape, summaryShape } from "../ui/timeline-view.js";
 
 /**
  * Print and export (`streamlined-gantt/print`): a non-virtualised document
@@ -69,13 +69,17 @@ const TOKENS = [
   "--sg-reference",
   "--sg-baseline",
   "--sg-link",
-  "--sg-nonworking",
+  "--sg-weekend",
   "--sg-holiday",
   "--sg-today",
   "--sg-data-date",
   "--sg-completion",
   "--sg-key-date",
   "--sg-delay",
+  "--sg-progress-overlay",
+  "--sg-bar-critical-stroke",
+  "--sg-payment-stroke",
+  "--sg-bar-label",
 ];
 const HEADER = 44;
 const FOOTER = 120;
@@ -87,16 +91,34 @@ const CHAR_WIDTH = 6.3;
  * @returns {Record<string, string>}
  */
 export function resolveColours(root) {
-  const probe = document.createElement("span");
-  root.append(probe);
+  const resolve = colourResolver(root);
   /** @type {Record<string, string>} */
   const colours = {};
-  for (const token of TOKENS) {
-    probe.style.setProperty("color", `var(${token})`);
-    colours[token] = getComputedStyle(probe).color;
-  }
-  probe.remove();
+  for (const token of TOKENS) colours[token] = resolve(`var(${token})`);
+  colours.font = getComputedStyle(root).fontFamily || "sans-serif";
   return colours;
+}
+
+/**
+ * A function resolving any CSS colour expression (tokens, `color-mix()`,
+ * category colours) in the chart's context to a literal colour, so the
+ * exported SVG stands alone. Results are cached.
+ * @param {HTMLElement} root
+ * @returns {(expression: string) => string}
+ */
+export function colourResolver(root) {
+  /** @type {Map<string, string>} */
+  const cache = new Map();
+  return (expression) => {
+    if (!cache.has(expression)) {
+      const probe = document.createElement("span");
+      probe.style.setProperty("color", expression);
+      root.append(probe);
+      cache.set(expression, getComputedStyle(probe).color);
+      probe.remove();
+    }
+    return /** @type {string} */ (cache.get(expression));
+  };
 }
 
 /**
@@ -105,18 +127,18 @@ export function resolveColours(root) {
  */
 function stylesheet(c) {
   return `
-text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:11px;fill:${c["--sg-fg"]}}
+text{font-family:${c.font};font-size:11px;fill:${c["--sg-fg"]}}
 .h{font-weight:600}.m{fill:${c["--sg-muted"]}}.s{font-size:9px}
 .bg{fill:${c["--sg-bg"]}}.hdr{fill:${c["--sg-header-bg"]}}
 .line{stroke:${c["--sg-grid-line"]};stroke-width:1}
-.sg-nonworking{fill:${c["--sg-nonworking"]}}.sg-nonworking-bank-holiday,.sg-nonworking-shutdown{fill:${c["--sg-holiday"]}}
+.sg-nonworking{fill:${c["--sg-weekend"]}}.sg-nonworking-bank-holiday,.sg-nonworking-shutdown{fill:${c["--sg-holiday"]}}
 .sg-bar{fill:${c["--sg-bar"]}}.sg-progress{fill:${c["--sg-bar-progress"]}}
-.sg-critical .sg-bar{fill:${c["--sg-bar-critical"]};stroke:${c["--sg-fg"]};stroke-width:1;stroke-dasharray:5 2}
+.sg-critical .sg-bar{fill:${c["--sg-bar-critical"]};stroke:${c["--sg-bar-critical-stroke"]};stroke-width:1;stroke-dasharray:5 2}
 .sg-summary-shape{fill:${c["--sg-summary"]}}.sg-milestone{fill:${c["--sg-milestone"]}}
-.sg-milestone.sg-payment{fill:${c["--sg-payment"]}}.sg-flag{fill:${c["--sg-access"]};stroke:${c["--sg-access"]};stroke-width:1.5}
+.sg-milestone.sg-payment{fill:${c["--sg-payment"]};stroke:${c["--sg-payment-stroke"]}}.sg-flag{fill:${c["--sg-access"]};stroke:${c["--sg-access"]};stroke-width:1.5}
 .sg-flag.sg-need-by{fill:${c["--sg-need-by"]};stroke:${c["--sg-need-by"]}}.sg-bar.sg-reference{fill:${c["--sg-reference"]}}
 .sg-baseline{fill:${c["--sg-baseline"]}}.sg-link-line{fill:none;stroke:${c["--sg-link"]};stroke-width:1}
-.arrow{fill:${c["--sg-link"]}}.sg-critical-pattern rect{fill:rgba(255,255,255,0.3)}
+.arrow{fill:${c["--sg-link"]}}.sg-critical-pattern rect{fill:${c["--sg-progress-overlay"]}}
 .mk-today{stroke:${c["--sg-today"]};stroke-dasharray:4 3}.mk-data-date{stroke:${c["--sg-data-date"]}}
 .mk-completion{stroke:${c["--sg-completion"]};stroke-width:2}.mk-key-date{stroke:${c["--sg-key-date"]};stroke-dasharray:2 2}
 .sg-delay{fill:${c["--sg-delay"]};opacity:.3}`;
@@ -176,7 +198,8 @@ export function buildDocument(gantt, options = {}) {
     })
   );
   const style = svg("style");
-  style.textContent = stylesheet(resolveColours(gantt.root));
+  const colours = resolveColours(gantt.root);
+  style.textContent = stylesheet(colours);
   root.append(
     style,
     svg("defs", {}, [
@@ -208,7 +231,8 @@ export function buildDocument(gantt, options = {}) {
     ]),
     svg("rect", { class: "bg", x: 0, y: 0, width: px(width), height }),
   );
-  const context = { gantt, rows, rowHeight, columns, scale, gridWidth, width, bodyHeight };
+  const resolve = colourResolver(gantt.root);
+  const context = { gantt, rows, rowHeight, columns, scale, gridWidth, width, bodyHeight, resolve };
   drawGrid(root, context);
   drawTimeline(root, context);
   const footerTop = HEADER + bodyHeight + 16;
@@ -363,7 +387,10 @@ function drawTimeline(root, context) {
       rowHeight,
       stub: 6,
     });
-    body.append(svg("path", { class: "sg-link-line", d, "marker-end": "url(#doc-arrow)" }));
+    const line = svg("path", { class: "sg-link-line", d, "marker-end": "url(#doc-arrow)" });
+    const colour = linkColour(link);
+    if (colour) line.setAttribute("style", `stroke:${context.resolve(colour)}`);
+    body.append(line);
   }
   const baseline = gantt.visibleBaseline();
   rows.forEach((row, position) => {
@@ -385,6 +412,7 @@ function drawTimeline(root, context) {
     if (row.summary) group.append(...summaryShape(shape));
     else if (row.milestone) group.append(milestoneShape(row.task.type ?? "milestone", shape));
     else group.append(...barShape(row, shape, undefined, critical ? "doc-critical" : null));
+    if (!critical) paintCustomColour(group, gantt.appearanceOf(row.task).colour, context.resolve);
     const label =
       row.task.type === "payment" && typeof row.task.value === "number"
         ? `${row.task.name} · ${formatMoney(row.task.value, { locale: gantt.options.locale, currency: gantt.currency })}`
@@ -514,6 +542,27 @@ function titleBlock(gantt, block, width, top) {
 }
 
 /**
+ * Gives a task's shapes its custom colour (category, `style.color` or
+ * `taskStyle`) as literal fills, as the screen does with `--sg-task-color`.
+ * @param {SVGElement} group
+ * @param {string|null} colour
+ * @param {(expression: string) => string} resolve
+ */
+function paintCustomColour(group, colour, resolve) {
+  if (!colour) return;
+  const fill = resolve(colour);
+  for (const shape of group.querySelectorAll(".sg-bar, .sg-milestone, .sg-summary-shape")) {
+    shape.setAttribute("style", `fill:${fill}`);
+  }
+  for (const flag of group.querySelectorAll(".sg-flag")) {
+    flag.setAttribute("style", `fill:${fill};stroke:${fill}`);
+  }
+  const progress = resolve(`color-mix(in oklab, ${colour} 62%, var(--sg-shade))`);
+  for (const bar of group.querySelectorAll(".sg-progress"))
+    bar.setAttribute("style", `fill:${progress}`);
+}
+
+/**
  * The programme as a standalone SVG string.
  * @param {import("../ui/gantt.js").Gantt} gantt
  * @param {DocumentOptions} [options]
@@ -546,7 +595,7 @@ export async function exportPNG(gantt, options = {}) {
     canvas.height = Math.ceil(height * scale);
     const context = canvas.getContext("2d");
     context.scale(scale, scale);
-    context.fillStyle = "#ffffff";
+    context.fillStyle = colourResolver(gantt.root)("var(--sg-bg)");
     context.fillRect(0, 0, width, height);
     context.drawImage(image, 0, 0, width, height);
     return await new Promise((resolve, reject) =>
@@ -575,7 +624,7 @@ export function printDocumentHTML(gantt, options = {}) {
     /[&<>]/g,
     (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[character],
   );
-  return `<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><title>${escapedTitle}</title><style>@page{size:${paper} ${orientation};margin:8mm}html,body{margin:0;background:#fff}svg{display:block;width:100%;height:auto}</style></head><body>${toSVG(gantt, options)}</body></html>`;
+  return `<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><title>${escapedTitle}</title><style>@page{size:${paper} ${orientation};margin:8mm}html,body{margin:0;background:${colourResolver(gantt.root)("var(--sg-bg)")}}svg{display:block;width:100%;height:auto}</style></head><body>${toSVG(gantt, options)}</body></html>`;
 }
 
 /**

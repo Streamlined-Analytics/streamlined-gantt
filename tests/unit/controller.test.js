@@ -3,6 +3,8 @@
 
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { ProgrammeController } from "../../src/model/controller.js";
+import { exportCSV } from "../../src/io/csv.js";
+import { check } from "../../src/health.js";
 import { GanttValidationError } from "../../src/engine/index.js";
 import { ewCalendar, loadFixture, scheduledProgramme } from "../support/builders.js";
 import { FLAT_ROOF_FIELDS } from "../support/fields.js";
@@ -759,8 +761,8 @@ describe("dirty tracking", () => {
 describe("other API", () => {
   test("check, CSV and whenIdle", async () => {
     const controller = new ProgrammeController({ data: loadFixture("programmes/flat-roof.json") });
-    expect(controller.check().map((finding) => finding.code)).toEqual(["open-end"]);
-    expect(controller.exportCSV().split("\r\n")[0]).toMatch(/^id,wbs,name/);
+    expect(check(controller).map((finding) => finding.code)).toEqual(["open-end"]);
+    expect(exportCSV(controller).split("\r\n")[0]).toMatch(/^id,wbs,name/);
     await expect(controller.whenIdle()).resolves.toBeUndefined();
   });
 

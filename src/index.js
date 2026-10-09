@@ -5,7 +5,9 @@
  * streamlined-gantt: framework-free Gantt and construction programme library.
  *
  * The core entry re-exports the engine API that integrations commonly need
- * (scheduling, calendars, dates, validation, formatting, summaries, CSV). The
+ * (scheduling, calendars, dates, validation, formatting, summaries). CSV
+ * export (`streamlined-gantt/io/csv`) and the health check
+ * (`streamlined-gantt/health`) are optional entries. The
  * complete engine, including rarer helpers such as `fromGovUkBankHolidays`,
  * `paymentSchedule` and the calendar-argument wrappers like
  * `addWorkingDays(date, n, calendar)`, is the `streamlined-gantt/engine`
@@ -48,8 +50,6 @@ export {
 export { FieldRegistry } from "./engine/fields.js";
 export { analyse } from "./engine/analysis.js";
 export { projectSummary } from "./engine/summary.js";
-export { checkProgramme, MAX_ACTIVITY_DAYS } from "./engine/health.js";
-export { programmeToCSV, csvCell, minorToDecimal } from "./engine/csv.js";
 export {
   formatDate,
   formatLongDate,

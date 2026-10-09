@@ -69,3 +69,11 @@ test("forced colours", async ({ page }) => {
   await openHarness(page, { columns: "name" });
   await expect(chart(page)).toHaveScreenshot("forced-colours.png");
 });
+
+for (const preset of ["light", "dark", "brand"]) {
+  test(`theme: ${preset}`, async ({ page }) => {
+    await page.goto(`/examples/theme-playground.html?preset=${preset}&trades&bare`);
+    await expect(page.locator("body")).toHaveAttribute("data-ready", "true");
+    await expect(page.locator("#stage")).toHaveScreenshot(`theme-${preset}.png`);
+  });
+}

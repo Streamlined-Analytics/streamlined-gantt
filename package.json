@@ -46,6 +46,18 @@
       "types": "./dist/types/print/index.d.ts",
       "default": "./dist/print.js"
     },
+    "./toolbar": {
+      "types": "./dist/types/toolbar.d.ts",
+      "default": "./dist/toolbar.js"
+    },
+    "./health": {
+      "types": "./dist/types/health.d.ts",
+      "default": "./dist/health.js"
+    },
+    "./io/csv": {
+      "types": "./dist/types/io/csv.d.ts",
+      "default": "./dist/io/csv.js"
+    },
     "./io/mspdi": {
       "types": "./dist/types/io/mspdi.d.ts",
       "default": "./dist/io/mspdi.js"

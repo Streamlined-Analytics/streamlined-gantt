@@ -20,8 +20,8 @@ import { confirmDialog } from "./dialog.js";
 import { openTaskEditor } from "./editor.js";
 import { ContextMenu } from "./menu.js";
 import { openLinkPicker } from "./picker.js";
-import { buildToolbar } from "./toolbar.js";
 import { Tooltip } from "./tooltip.js";
+import { applyTheme, categoryTokens, lengthToken, taskAppearance } from "./theme.js";
 import { TimelineView } from "./timeline-view.js";
 
 /**
@@ -49,19 +49,38 @@ import { TimelineView } from "./timeline-view.js";
  *   showCriticalPath?: boolean,
  *   showBaseline?: string|null,
  *   markers?: {today?: boolean, dataDate?: boolean, contractCompletion?: boolean},
- *   barLabels?: boolean,
+ *   barLabels?: boolean|"inside",
+ *   theme?: Record<string, string|number|null>,
+ *   categories?: Record<string, import("./theme.js").CategoryColour>,
+ *   categoryOf?: (task: Readonly<Record<string, any>>) => unknown,
+ *   taskClass?: (task: Readonly<Record<string, any>>) => string|string[]|null|undefined,
+ *   taskStyle?: (task: Readonly<Record<string, any>>) => Record<string, string>|null|undefined,
+ *   colorScheme?: "auto"|"light"|"dark",
  *   scrollTo?: "start"|"today"|string,
  *   height?: string,
  *   gridWidth?: number,
  *   editor?: "builtin"|"none"|((task: Readonly<Record<string, any>>, context: object) => void),
  *   contextMenu?: false|{items?: object[]},
  *   tooltip?: false|((task: Readonly<Record<string, any>>, context: object) => unknown),
- *   toolbar?: boolean|HTMLElement,
+ *   toolbar?: boolean|((gantt: Gantt) => HTMLElement),
  *   confirmDelete?: boolean,
  * }} GanttOptions
  */
 
 let instanceCounter = 0;
+
+/** @type {((gantt: Gantt) => HTMLElement)|null} */
+let defaultToolbar = null;
+
+/**
+ * Makes `toolbar: true` use this toolbar. The script-tag build registers the
+ * built-in one; ES module users pass `toolbar: buildToolbar` instead, so the
+ * core bundle does not carry a toolbar most hosts replace with their own.
+ * @param {(gantt: Gantt) => HTMLElement} factory
+ */
+export function setDefaultToolbar(factory) {
+  defaultToolbar = factory;
+}
 
 export class Gantt extends ProgrammeController {
   /**
@@ -133,7 +152,12 @@ export class Gantt extends ProgrammeController {
     this.editingCell = null;
     /** @type {any} */
     this.lastRejection = null;
-    if (this.options.toolbar === true) this.root.prepend(buildToolbar(this));
+    const toolbar = this.options.toolbar === true ? defaultToolbar : this.options.toolbar;
+    if (this.options.toolbar && typeof toolbar !== "function")
+      throw new TypeError(
+        'toolbar: true needs the built-in toolbar: pass toolbar: buildToolbar from "streamlined-gantt/toolbar"',
+      );
+    if (toolbar) this.root.prepend(toolbar(this));
     this.on("change", (event) => {
       this.lastChange = event;
     });
@@ -148,8 +172,7 @@ export class Gantt extends ProgrammeController {
   buildDom() {
     this.root = html("div", { class: "sg-root", "data-zoom": this.zoom, id: this.uid });
     if (this.options.height) this.root.style.setProperty("--sg-height", this.options.height);
-    if (this.options.rowHeight)
-      this.root.style.setProperty("--sg-row-height", `${this.options.rowHeight}px`);
+    applyTheme(this.root, { ...categoryTokens(this.options.categories), ...this.options.theme });
     this.scroller = html("div", { class: "sg-scroller" });
     this.canvas = html("div", { class: "sg-canvas" });
     this.scroller.append(this.canvas);
@@ -167,6 +190,59 @@ export class Gantt extends ProgrammeController {
     };
     this.scroller.addEventListener("scroll", this.onScroll, { passive: true });
     this.updateRootState();
+    this.readMetrics();
+  }
+
+  /* ------------------------------------------------------------ theming */
+
+  /**
+   * Sets theme tokens on this chart: `{bar: "#0f766e", barRadius: "0px"}`,
+   * `{"--sg-bar": …}` or `{"bar-critical": …}` all work; `null` removes a
+   * token so the stylesheet default (or the host's CSS) applies again.
+   * @param {Record<string, string|number|null>} theme
+   */
+  setTheme(theme) {
+    applyTheme(this.root, theme);
+    this.refreshTheme();
+  }
+
+  /**
+   * Sets category colours, `{roofing: "#c2410c", scaffold: {color: "#334155", text: "#ffffff"}}`.
+   * Tasks pick a category from `task.category`, or from `options.categoryOf(task)`.
+   * @param {Record<string, import("./theme.js").CategoryColour|null>} categories
+   */
+  setCategories(categories) {
+    this.setTheme(categoryTokens(categories));
+  }
+
+  /** Re-reads geometry tokens after CSS changed outside {@link setTheme}, and redraws. */
+  refreshTheme() {
+    this.readMetrics();
+    this.themeVersion = (this.themeVersion ?? 0) + 1;
+    this.rowCache = null;
+    this.render();
+  }
+
+  /** Reads the geometry tokens the renderer needs as numbers. */
+  readMetrics() {
+    const computed = getComputedStyle(this.root);
+    this.metrics = {
+      rowHeight: lengthToken(computed, "--sg-row-height", 0),
+      barHeight: lengthToken(computed, "--sg-bar-height", 0),
+      summaryHeight: lengthToken(computed, "--sg-summary-height", 0),
+      milestoneSize: lengthToken(computed, "--sg-milestone-size", 0),
+      barRadius: lengthToken(computed, "--sg-bar-radius", 3),
+    };
+  }
+
+  /**
+   * Classes, styles and custom colour for a task (category, `style.color`,
+   * `taskClass`, `taskStyle`).
+   * @param {Readonly<Record<string, any>>} task
+   * @returns {import("./theme.js").Appearance}
+   */
+  appearanceOf(task) {
+    return taskAppearance(task, this.options);
   }
 
   observeSize() {
@@ -182,6 +258,9 @@ export class Gantt extends ProgrammeController {
         this.readOnly ? "sg-readonly" : "",
         this.showCriticalPath ? "sg-show-critical" : "",
         this.coarsePointer() ? "sg-coarse" : "",
+        this.options.colorScheme === "light" || this.options.colorScheme === "dark"
+          ? `sg-scheme-${this.options.colorScheme}`
+          : "",
       ]
         .filter(Boolean)
         .join(" "),
@@ -202,6 +281,7 @@ export class Gantt extends ProgrammeController {
   /** @returns {number} */
   get rowHeight() {
     if (this.options.rowHeight) return this.options.rowHeight;
+    if (this.metrics?.rowHeight) return this.metrics.rowHeight;
     return this.coarsePointer() ? 40 : 32;
   }
 
@@ -502,7 +582,7 @@ export class Gantt extends ProgrammeController {
     const rowHeight = this.rowHeight;
     const gridWidth = this.gridWidth();
     this.canvas.style.setProperty("width", `${gridWidth + scale.width}px`);
-    this.root.style.setProperty("--sg-row-height", `${rowHeight}px`);
+    this.root.style.setProperty("--sg-row-px", `${rowHeight}px`);
     this.root.classList.toggle("sg-has-markers", this.markerLines(scale).length > 0);
     const scrollTop = this.scroller.scrollTop;
     const viewportHeight = Math.max(this.scroller.clientHeight - this.headerHeight, rowHeight);

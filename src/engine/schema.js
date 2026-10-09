@@ -71,11 +71,12 @@ const TASK_KEYS = new Set([
   "source",
   "style",
   "className",
+  "category",
   "collapsed",
   "fields",
 ]);
 
-const LINK_KEYS = new Set(["id", "from", "to", "type", "lag"]);
+const LINK_KEYS = new Set(["id", "from", "to", "type", "lag", "style", "category"]);
 
 /**
  * Thrown by `load()` and `validateProgramme()` with every problem found.
@@ -297,6 +298,7 @@ function validateTask(task, path, context, problems) {
   validateTaskDates(task, path, problems);
   validateTaskRelations(task, path, context, problems);
   validateTaskNumbers(task, path, problems);
+  validateAppearance(task, path, problems);
   if (task.fields !== undefined) {
     if (!isPlainObject(task.fields)) problems.add(`${path}.fields`, "must be an object");
     else context.fieldValidator?.(task, `${path}.fields`, problems);
@@ -420,6 +422,23 @@ function validateLink(link, path, taskIds, problems) {
       `must be a whole number of working days, at most ${MAX_WORKING_DAYS} either way`,
     );
   }
+  validateAppearance(link, path, problems);
+}
+
+/**
+ * `style` (colour overrides as CSS colour strings) and `category` on a task or link.
+ * @param {any} item
+ * @param {string} path
+ * @param {ProblemList} problems
+ */
+function validateAppearance(item, path, problems) {
+  const style = item.style ?? {};
+  const valid =
+    isPlainObject(style) &&
+    [style.color, style.textColor, item.category].every(
+      (value) => value === undefined || typeof value === "string",
+    );
+  problems.require(valid, path, "style must be an object of CSS colour strings; category a string");
 }
 
 /**

@@ -2,8 +2,6 @@
 // Copyright 2026 Streamlined Analytics Ltd and contributors
 
 import { analyse } from "../engine/analysis.js";
-import { checkProgramme } from "../engine/health.js";
-import { programmeToCSV } from "../engine/csv.js";
 import { FieldRegistry } from "../engine/fields.js";
 import { formatMoney } from "../engine/format.js";
 import { wouldCreateCycle } from "../engine/graph.js";
@@ -486,19 +484,6 @@ export class ProgrammeController {
 
   get currency() {
     return this.options.currency ?? this.store.data.currency ?? "GBP";
-  }
-
-  /** @returns {import("../engine/health.js").HealthFinding[]} */
-  check() {
-    return checkProgramme(this.analysis, this.store.data);
-  }
-
-  /**
-   * @param {{ids?: string[]}} [options]
-   * @returns {string}
-   */
-  exportCSV(options) {
-    return programmeToCSV(this.analysis, this.store.data, options);
   }
 
   /* --------------------------------------------------------- dirty tracking */

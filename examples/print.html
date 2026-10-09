@@ -35,13 +35,14 @@
     <script type="module">
       import { Gantt } from "/dist/streamlined-gantt.js";
       import { installPrint } from "/dist/print.js";
+      import { buildToolbar } from "/dist/toolbar.js";
 
       installPrint(Gantt);
       const data = await (await fetch("/examples/data/flat-roof.json")).json();
       const gantt = new Gantt(document.getElementById("programme"), {
         data,
         height: "420px",
-        toolbar: true,
+        toolbar: buildToolbar,
       });
       const titleBlock = {
         client: "Mill Lane Management Co",

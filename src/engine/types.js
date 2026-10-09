@@ -49,8 +49,9 @@
  * @property {boolean} [locked]
  * @property {string} [notes]
  * @property {{name?: string, issued?: string}} [source] origin of a reference task
- * @property {{color?: string}} [style]
+ * @property {{color?: string, textColor?: string}} [style] CSS colour overrides
  * @property {string} [className]
+ * @property {string} [category] colour key mapped to `--sg-category-<key>`
  * @property {boolean} [collapsed]
  * @property {Record<string, unknown>} [fields] custom field values
  */
@@ -62,6 +63,8 @@
  * @property {string} to successor task id
  * @property {LinkType} [type] default "FS"
  * @property {number} [lag] working days; negative is a lead
+ * @property {{color?: string}} [style] CSS colour override
+ * @property {string} [category] colour key mapped to `--sg-category-<key>`
  */
 
 /**

@@ -46,6 +46,9 @@ const builds = [
     globalName: "StreamlinedGanttPrint",
   },
   { entryPoints: ["src/io/mspdi.js"], outfile: "dist/io/mspdi.js", format: "esm" },
+  { entryPoints: ["src/io/csv.js"], outfile: "dist/io/csv.js", format: "esm" },
+  { entryPoints: ["src/health.js"], outfile: "dist/health.js", format: "esm" },
+  { entryPoints: ["src/toolbar.js"], outfile: "dist/toolbar.js", format: "esm" },
   {
     entryPoints: ["src/io/mspdi.js"],
     outfile: "dist/io/mspdi.iife.min.js",

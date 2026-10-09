@@ -15,6 +15,7 @@ const BUDGETS = [
   { file: "dist/streamlined-gantt.css", limit: 6 * KB },
   { file: "dist/engine.js", limit: 15 * KB },
   { file: "dist/io/mspdi.js", limit: 10 * KB },
+  { file: "dist/io/csv.js", limit: 10 * KB },
   { file: "dist/print.js", limit: 10 * KB },
 ];
 

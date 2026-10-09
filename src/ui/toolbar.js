@@ -5,7 +5,7 @@ import { html } from "./dom.js";
 import { fill } from "./strings.js";
 
 /**
- * The optional built-in toolbar (`toolbar: true`): zoom, today, undo and redo,
+ * The optional built-in toolbar (`toolbar: buildToolbar`, or `toolbar: true` in the script-tag build): zoom, today, undo and redo,
  * baseline and critical-path toggles, lookahead and print. Host pages usually
  * render their own (DaisyUI) toolbar and call the API instead.
  *

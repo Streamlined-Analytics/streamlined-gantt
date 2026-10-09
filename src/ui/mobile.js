@@ -389,15 +389,24 @@ export class MobileView {
       "aria-modal": "true",
       "aria-label": this.strings.mobileDialogLabel,
     });
-    return this.stage.requestFullscreen({ navigationUI: "hide" }).then(
-      () => {
-        if (!this.isOpen) return;
-        this.native = true;
-        this.lockOrientation();
-        this.show(options.taskId);
-      },
-      () => this.showOverlay(options.taskId),
-    );
+    this.opening = this.stage
+      .requestFullscreen({ navigationUI: "hide" })
+      .then(
+        () => {
+          if (!this.isOpen) {
+            this.exitNativeFullscreen();
+            return;
+          }
+          this.native = true;
+          this.lockOrientation();
+          this.show(options.taskId);
+        },
+        () => this.showOverlay(options.taskId),
+      )
+      .finally(() => {
+        this.opening = null;
+      });
+    return this.opening;
   }
 
   /** @returns {boolean} */
@@ -480,11 +489,14 @@ export class MobileView {
   }
 
   /**
-   * Opens or closes the full-screen chart.
+   * Opens or closes the full-screen chart. While a fullscreen request is still
+   * pending it waits for it, then closes, so a quick second press never
+   * leaves an empty stage fullscreen.
    * @param {{taskId?: string}} [options]
    * @returns {Promise<void>}
    */
   toggle(options) {
+    if (this.opening) return this.opening.then(() => this.close());
     if (!this.isOpen) return this.open(options);
     this.close();
     return Promise.resolve();

@@ -408,6 +408,30 @@ describe("native fullscreen (the Fullscreen API on the stage)", () => {
     expect(events).toEqual([true, false]);
   });
 
+  test("a second toggle while the request is pending closes once it settles", async () => {
+    const { gantt } = mountSample({ width: "900px" });
+    const mobile = mobileView(gantt);
+    const state = fakeFullscreenApi(mobile);
+    let grant;
+    mobile.stage.requestFullscreen = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          grant = () => {
+            state.element = mobile.stage;
+            resolve(undefined);
+          };
+        }),
+    );
+    const opening = mobile.toggle();
+    const closing = mobile.toggle();
+    grant();
+    await opening;
+    await closing;
+    expect(mobile.opened).toBe(false);
+    expect(state.element).toBeNull();
+    expect(gantt.root.classList.contains("sg-fullscreen")).toBe(false);
+  });
+
   test("the landscape lock is asked for only on touch screens", async () => {
     const { gantt } = mountSample({ width: "900px" });
     const mobile = mobileView(gantt);
@@ -436,9 +460,9 @@ describe("the F shortcut and the Gantt API", () => {
     const mobile = mobileView(gantt);
     const cell = gantt.root.querySelector(".sg-grid [role=gridcell]");
     press(cell);
-    await vi.waitFor(() => expect(mobile.opened).toBe(true));
+    await vi.waitFor(() => expect(mobile.sheet.open).toBe(true));
     press(mobile.closeButton, "F");
-    expect(mobile.opened).toBe(false);
+    await vi.waitFor(() => expect(mobile.opened).toBe(false));
     const input = document.createElement("input");
     gantt.root.append(input);
     press(input);

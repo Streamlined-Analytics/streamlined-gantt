@@ -77,6 +77,7 @@ test("F toggles full screen from the chart's keyboard focus", async ({ page }) =
   await page.keyboard.press("Tab");
   await page.keyboard.press("f");
   await expect(page.locator(".sg-root.sg-fullscreen")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Close the chart" })).toBeFocused();
   await page.keyboard.press("f");
   await expect(page.locator(".sg-root.sg-fullscreen")).toHaveCount(0);
 });

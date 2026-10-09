@@ -65,26 +65,49 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "node --test --test-reporter=spec \"tests/unit/**/*.test.js\"",
-    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/**\" \"tests/unit/**/*.test.js\"",
+    "test": "vitest run --config vitest.engine.config.js",
+    "test:coverage": "vitest run --config vitest.engine.config.js --coverage",
     "test:e2e": "playwright test",
     "check:banner": "node scripts/check-banner.mjs",
     "check:size": "node scripts/check-size.mjs",
     "check:spdx": "node scripts/check-spdx.mjs",
-    "check": "npm run lint && npm run typecheck && npm run check:spdx && npm test && npm run build && npm run check:banner && npm run check:size",
-    "serve": "node examples/server.mjs"
+    "check": "npm run lint && npm run typecheck && npm run check:spdx && npm run test:coverage && npm run build && npm run check:banner && npm run check:size",
+    "serve": "node examples/server.mjs",
+    "test:dom": "vitest run --project dom",
+    "test:watch": "vitest",
+    "test:mutation": "stryker run"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
     "@axe-core/playwright": "4.13.0",
     "@eslint/js": "10.0.1",
+    "@fast-check/vitest": "0.5.0",
     "@playwright/test": "1.63.0",
+    "@stryker-mutator/core": "10.0.0",
+    "@stryker-mutator/vitest-runner": "10.0.0",
+    "@vitest/browser-playwright": "5.0.1",
+    "@vitest/coverage-v8": "5.0.1",
     "echarts": "6.1.0",
     "esbuild": "0.28.2",
     "eslint": "10.11.0",
+    "eslint-plugin-playwright": "2.12.0",
     "fast-check": "4.10.2",
     "globals": "17.12.0",
     "htmx.org": "2.0.11",
+    "pdf-lib": "1.17.1",
+    "pdfjs-dist": "6.3.289",
+    "playwright": "1.63.0",
     "prettier": "3.9.9",
-    "typescript": "6.0.3"
+    "publint": "0.3.24",
+    "tinybench": "6.2.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.1",
+    "xmllint-wasm": "5.3.0"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=22.12"
+    }
   }
 }

@@ -44,11 +44,26 @@ Requirements: Node.js 20 or later.
 
 ```sh
 npm ci
-npm run check          # lint, type-check, SPDX headers, unit tests, build, banner, size
+npm run check          # lint, type-check, SPDX headers, engine tests + coverage floors, build, banner, size
 npx playwright install chromium webkit
-npm run test:e2e       # browser tests (set SG_BROWSERS=chromium to skip WebKit)
+npm run test:dom       # Vitest browser-mode component tests (Chromium)
+npm run test:e2e       # Playwright end-to-end tests (set SG_BROWSERS=chromium to skip WebKit)
+npm run test:mutation  # Stryker on the engine (slow; runs weekly in CI)
 npm run serve          # examples at http://127.0.0.1:4173/
 ```
+
+### Tests
+
+The test architecture follows `docs/testing/` (see the flake policy there):
+
+- `tests/unit`, `tests/property`: the DOM-free engine in Node, with known-answer fixtures and
+  fast-check properties against the naive oracles in `tests/support/`. `SG_FC_RUNS` sets the
+  number of property runs (1,000 on PRs, 10,000 nightly). CI runs them in six time zones.
+- `tests/dom`: Vitest browser mode in real browsers. jsdom and happy-dom are not used.
+- `tests/e2e`, `tests/a11y`, `tests/visual`, `tests/print`, `tests/memory`, `tests/perf`:
+  Playwright. Visual baselines are generated only in the pinned Playwright Docker image.
+- Build engine fixtures lazily (`tests/support/lazy.js`), never at module or `describe` scope, so
+  mutation testing can see them.
 
 ### Code rules
 

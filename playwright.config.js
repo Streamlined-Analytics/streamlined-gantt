@@ -5,12 +5,13 @@ import { defineConfig, devices } from "@playwright/test";
 
 const PORT = Number(process.env.SG_PORT || 4173);
 const onlyChromium = process.env.SG_BROWSERS === "chromium";
+const nightly = process.env.SG_NIGHTLY === "1";
 
 export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
-  retries: 0,
+  retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   timeout: 30_000,
@@ -24,6 +25,7 @@ export default defineConfig({
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     ...(onlyChromium ? [] : [{ name: "webkit", use: { ...devices["Desktop Safari"] } }]),
+    ...(nightly ? [{ name: "firefox", use: { ...devices["Desktop Firefox"] } }] : []),
   ],
   webServer: {
     command: `node examples/server.mjs --port ${PORT}`,

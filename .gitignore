@@ -8,3 +8,6 @@ blob-report/
 *.log
 .DS_Store
 .idea/
+.stryker-tmp/
+reports/
+.cache/

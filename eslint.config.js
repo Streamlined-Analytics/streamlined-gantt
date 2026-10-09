@@ -3,9 +3,19 @@
 
 import js from "@eslint/js";
 import globals from "globals";
+import playwright from "eslint-plugin-playwright";
 
 export default [
-  { ignores: ["dist/**", "coverage/**", "test-results/**", "playwright-report/**"] },
+  {
+    ignores: [
+      "dist/**",
+      "coverage/**",
+      "test-results/**",
+      "playwright-report/**",
+      "reports/**",
+      ".stryker-tmp/**",
+    ],
+  },
   js.configs.recommended,
   {
     languageOptions: {
@@ -17,7 +27,10 @@ export default [
       "max-depth": ["error", 3],
       complexity: ["error", 20],
       "no-else-return": ["error", { allowElseIf: false }],
-      "no-unused-vars": ["error", { argsIgnorePattern: "^_", caughtErrors: "none" }],
+      "no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrors: "none" },
+      ],
       "no-implicit-coercion": "error",
       "prefer-const": "error",
       eqeqeq: ["error", "always", { null: "ignore" }],
@@ -43,5 +56,22 @@ export default [
     files: ["scripts/**", "tests/**", "examples/**/*.mjs", "playwright.config.js", "*.config.js"],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
     rules: { "no-restricted-syntax": "off", complexity: "off" },
+  },
+  {
+    ...playwright.configs["flat/recommended"],
+    files: [
+      "tests/e2e/**",
+      "tests/a11y/**",
+      "tests/visual/**",
+      "tests/print/**",
+      "tests/memory/**",
+      "tests/perf/**",
+    ],
+    rules: {
+      ...playwright.configs["flat/recommended"].rules,
+      "playwright/no-wait-for-timeout": "error",
+      "playwright/no-force-option": "error",
+      "playwright/no-skipped-test": "warn",
+    },
   },
 ];

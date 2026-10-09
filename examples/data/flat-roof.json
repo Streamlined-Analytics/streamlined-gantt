@@ -1,0 +1,464 @@
+{
+  "schema": "streamlined-gantt/1",
+  "id": "job-42",
+  "name": "Flat roof replacement, 14 Mill Lane",
+  "currency": "GBP",
+  "dataDate": "2026-11-09",
+  "contractCompletion": "2026-12-04",
+  "revision": {
+    "code": "B",
+    "date": "2026-11-09",
+    "author": "J Smith",
+    "note": "Strip-out extended by one day"
+  },
+  "revisions": [
+    {
+      "code": "A",
+      "date": "2026-10-20",
+      "author": "J Smith",
+      "note": "Tender programme"
+    }
+  ],
+  "defaultCalendar": "std",
+  "calendars": [
+    {
+      "id": "std",
+      "name": "Mon-Fri, England and Wales bank holidays",
+      "workWeek": [1, 2, 3, 4, 5],
+      "nonWorking": [
+        {
+          "date": "2026-01-01",
+          "name": "New Year’s Day",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2026-04-03",
+          "name": "Good Friday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2026-04-06",
+          "name": "Easter Monday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2026-05-04",
+          "name": "Early May bank holiday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2026-05-25",
+          "name": "Spring bank holiday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2026-08-31",
+          "name": "Summer bank holiday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2026-12-25",
+          "name": "Christmas Day",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2026-12-28",
+          "name": "Boxing Day",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-01-01",
+          "name": "New Year’s Day",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-03-26",
+          "name": "Good Friday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-03-29",
+          "name": "Easter Monday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-05-03",
+          "name": "Early May bank holiday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-05-31",
+          "name": "Spring bank holiday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-08-30",
+          "name": "Summer bank holiday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-12-27",
+          "name": "Christmas Day",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-12-28",
+          "name": "Boxing Day",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2028-01-03",
+          "name": "New Year’s Day",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2028-04-14",
+          "name": "Good Friday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2028-04-17",
+          "name": "Easter Monday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2028-05-01",
+          "name": "Early May bank holiday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2028-05-29",
+          "name": "Spring bank holiday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2028-08-28",
+          "name": "Summer bank holiday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2028-12-25",
+          "name": "Christmas Day",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2028-12-26",
+          "name": "Boxing Day",
+          "kind": "bank-holiday"
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "s1",
+      "wbs": "1",
+      "name": "Preliminaries",
+      "type": "summary"
+    },
+    {
+      "id": "a1",
+      "parent": "s1",
+      "wbs": "1.1",
+      "name": "MC access to roof",
+      "type": "access",
+      "start": "2026-11-02",
+      "finish": "2026-11-02",
+      "duration": 0,
+      "locked": true,
+      "source": {
+        "name": "MC programme Rev D",
+        "issued": "2026-10-12"
+      },
+      "progress": 1,
+      "actualFinish": "2026-11-02"
+    },
+    {
+      "id": "t1",
+      "parent": "s1",
+      "wbs": "1.2",
+      "name": "Site set-up and scaffold",
+      "start": "2026-11-02",
+      "finish": "2026-11-04",
+      "duration": 3,
+      "progress": 1,
+      "actualStart": "2026-11-02",
+      "actualFinish": "2026-11-04",
+      "trade": "Scaffolding",
+      "crew": "Scaffold sub",
+      "fields": {
+        "cost": 120000,
+        "charge": 180000
+      }
+    },
+    {
+      "id": "s2",
+      "wbs": "2",
+      "name": "Roofing works",
+      "type": "summary"
+    },
+    {
+      "id": "t2",
+      "parent": "s2",
+      "wbs": "2.1",
+      "name": "Strip existing covering",
+      "start": "2026-11-05",
+      "finish": "2026-11-09",
+      "duration": 3,
+      "progress": 0.6,
+      "actualStart": "2026-11-05",
+      "trade": "Roofing",
+      "crew": "Gang 1",
+      "fields": {
+        "cost": 168000,
+        "charge": 240000,
+        "qty": 120
+      }
+    },
+    {
+      "id": "t3",
+      "parent": "s2",
+      "wbs": "2.2",
+      "name": "Deck repairs",
+      "start": "2026-11-10",
+      "finish": "2026-11-12",
+      "duration": 3,
+      "trade": "Carpentry",
+      "crew": "Gang 1",
+      "fields": {
+        "cost": 110000,
+        "charge": 150000,
+        "qty": 18
+      }
+    },
+    {
+      "id": "p1",
+      "parent": "s2",
+      "wbs": "2.3",
+      "name": "Stage payment 1: strip-out complete (30%)",
+      "type": "payment",
+      "start": "2026-11-12",
+      "finish": "2026-11-12",
+      "duration": 0,
+      "value": 540000,
+      "valuePercent": 0.3
+    },
+    {
+      "id": "t5",
+      "parent": "s2",
+      "wbs": "2.4",
+      "name": "Insulation and membrane",
+      "start": "2026-11-13",
+      "finish": "2026-11-20",
+      "duration": 6,
+      "trade": "Roofing",
+      "crew": "Gang 2",
+      "notes": "Single-ply membrane on 120 mm PIR",
+      "fields": {
+        "cost": 600000,
+        "charge": 900000,
+        "qty": 120,
+        "poRef": "PO-1182"
+      }
+    },
+    {
+      "id": "t6",
+      "parent": "s2",
+      "wbs": "2.5",
+      "name": "Edge trims and outlets",
+      "start": "2026-11-23",
+      "finish": "2026-11-25",
+      "duration": 3,
+      "trade": "Roofing",
+      "crew": "Gang 2",
+      "fields": {
+        "cost": 190000,
+        "charge": 210000
+      }
+    },
+    {
+      "id": "p2",
+      "parent": "s2",
+      "wbs": "2.6",
+      "name": "Stage payment 2: watertight (50%)",
+      "type": "payment",
+      "start": "2026-11-25",
+      "finish": "2026-11-25",
+      "duration": 0,
+      "value": 900000,
+      "valuePercent": 0.5
+    },
+    {
+      "id": "s3",
+      "wbs": "3",
+      "name": "Completion",
+      "type": "summary"
+    },
+    {
+      "id": "t8",
+      "parent": "s3",
+      "wbs": "3.1",
+      "name": "Snagging and handover",
+      "start": "2026-11-26",
+      "finish": "2026-11-27",
+      "duration": 2,
+      "trade": "Roofing",
+      "crew": "Gang 1",
+      "fields": {
+        "cost": 80000,
+        "charge": 120000
+      }
+    },
+    {
+      "id": "p3",
+      "parent": "s3",
+      "wbs": "3.2",
+      "name": "Final payment on handover (20%)",
+      "type": "payment",
+      "start": "2026-11-27",
+      "finish": "2026-11-27",
+      "duration": 0,
+      "value": 360000,
+      "valuePercent": 0.2
+    }
+  ],
+  "links": [
+    {
+      "id": "l1",
+      "from": "a1",
+      "to": "t1",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "l2",
+      "from": "t1",
+      "to": "t2",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "l3",
+      "from": "t2",
+      "to": "t3",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "l4",
+      "from": "t3",
+      "to": "p1",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "l5",
+      "from": "t3",
+      "to": "t5",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "l6",
+      "from": "t5",
+      "to": "t6",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "l7",
+      "from": "t6",
+      "to": "p2",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "l8",
+      "from": "p2",
+      "to": "t8",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "l9",
+      "from": "t8",
+      "to": "p3",
+      "type": "FS",
+      "lag": 0
+    }
+  ],
+  "baselines": [
+    {
+      "id": "bl1",
+      "name": "Rev A tender",
+      "captured": "2026-10-20",
+      "tasks": {
+        "a1": {
+          "start": "2026-11-02",
+          "finish": "2026-11-02"
+        },
+        "t1": {
+          "start": "2026-11-02",
+          "finish": "2026-11-04"
+        },
+        "t2": {
+          "start": "2026-11-05",
+          "finish": "2026-11-06"
+        },
+        "t3": {
+          "start": "2026-11-09",
+          "finish": "2026-11-11"
+        },
+        "p1": {
+          "start": "2026-11-11",
+          "finish": "2026-11-11"
+        },
+        "t5": {
+          "start": "2026-11-12",
+          "finish": "2026-11-19"
+        },
+        "t6": {
+          "start": "2026-11-20",
+          "finish": "2026-11-24"
+        },
+        "p2": {
+          "start": "2026-11-24",
+          "finish": "2026-11-24"
+        },
+        "t8": {
+          "start": "2026-11-25",
+          "finish": "2026-11-26"
+        },
+        "p3": {
+          "start": "2026-11-26",
+          "finish": "2026-11-26"
+        }
+      }
+    }
+  ],
+  "delayEvents": [
+    {
+      "id": "d1",
+      "kind": "weather",
+      "from": "2026-11-06",
+      "to": "2026-11-06",
+      "taskIds": ["t2"],
+      "title": "High winds, no roof work",
+      "status": "recorded",
+      "recordedAt": "2026-11-06T16:05:00Z",
+      "recordedBy": "J Smith",
+      "evidence": []
+    }
+  ],
+  "markers": [
+    {
+      "id": "kd1",
+      "date": "2026-11-25",
+      "label": "Key Date 1: watertight",
+      "kind": "key-date"
+    }
+  ],
+  "fields": {
+    "client": "Mill Lane Management Co"
+  }
+}

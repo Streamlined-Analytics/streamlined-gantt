@@ -1,0 +1,37 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Streamlined Analytics Ltd and contributors -->
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>htmx swaps · streamlined-gantt</title>
+    <link rel="stylesheet" href="/dist/streamlined-gantt.css" />
+    <link rel="stylesheet" href="/examples/examples.css" />
+    <script src="/vendor/htmx.min.js"></script>
+    <script src="/dist/streamlined-gantt.iife.min.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>htmx swaps</h1>
+      <p>
+        The chart initialises when htmx swaps it in and destroys itself when it is swapped out. No
+        <code>htmx:afterSwap</code> hooks are needed.
+      </p>
+      <div class="toolbar">
+        <button
+          type="button"
+          hx-get="/examples/partials/programme.html"
+          hx-target="#panel"
+          id="show"
+        >
+          Show programme
+        </button>
+        <button type="button" hx-get="/examples/partials/empty.html" hx-target="#panel" id="hide">
+          Show something else
+        </button>
+      </div>
+      <div id="panel" hx-get="/examples/partials/programme.html" hx-trigger="load"></div>
+    </main>
+  </body>
+</html>

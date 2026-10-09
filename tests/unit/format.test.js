@@ -4,6 +4,7 @@
 import { describe, expect, test } from "vitest";
 import {
   formatDate,
+  formatLongDate,
   formatMoney,
   formatPercent,
   minorUnitScale,
@@ -18,6 +19,14 @@ describe("formatting", () => {
       formatDate(toDay("2026-03-29"), "en-GB", { weekday: "long", day: "numeric", month: "long" }),
     ).toBe("Sunday 29 March");
     expect(formatDate(toDay("2026-10-25"), "en-US")).toBe("10/25/2026");
+  });
+
+  test("long dates are built from parts, with or without the year", () => {
+    expect(formatLongDate(toDay("2026-11-13"))).toBe("Friday 13 November 2026");
+    expect(formatLongDate(toDay("2026-11-13"), "en-GB", { year: false })).toBe(
+      "Friday 13 November",
+    );
+    expect(formatLongDate(toDay("2026-11-13"), "en-US")).toBe("Friday November 13 2026");
   });
 
   test("money is formatted from integer minor units", () => {
@@ -37,6 +46,9 @@ describe("formatting", () => {
     expect(parseMoney("0.005")).toBe(1);
     expect(parseMoney("-£3.10")).toBe(-310);
     expect(parseMoney("")).toBeNull();
+    expect(parseMoney("   ")).toBeNull();
+    for (const typo of ["£", " £ ", "abc", "-", ".", "-."])
+      expect(parseMoney(typo), typo).toBeNaN();
     expect(parseMoney("1.2.3")).toBeNaN();
     expect(parseMoney("1000", { currency: "JPY" })).toBe(1000);
     expect(parseMoney(".5")).toBe(50);

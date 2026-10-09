@@ -53,6 +53,10 @@ export default [
     },
   },
   {
+    files: ["src/ui/dom.js"],
+    rules: { "no-restricted-syntax": "off" },
+  },
+  {
     files: ["scripts/**", "tests/**", "examples/**/*.mjs", "playwright.config.js", "*.config.js"],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
     rules: { "no-restricted-syntax": "off", complexity: "off" },

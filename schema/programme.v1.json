@@ -333,14 +333,22 @@
         },
         "style": {
           "type": "object",
+          "description": "Colour overrides as CSS colour strings; textColor is chosen for contrast when omitted",
           "properties": {
             "color": {
+              "type": "string"
+            },
+            "textColor": {
               "type": "string"
             }
           }
         },
         "className": {
           "type": "string"
+        },
+        "category": {
+          "type": "string",
+          "description": "Colour key: the bar uses --sg-category-<key> (e.g. a trade, phase or subcontractor)"
         },
         "collapsed": {
           "type": "boolean"
@@ -377,6 +385,18 @@
           "minimum": -10000,
           "maximum": 10000,
           "description": "Working days; negative is a lead"
+        },
+        "style": {
+          "type": "object",
+          "properties": {
+            "color": {
+              "type": "string"
+            }
+          }
+        },
+        "category": {
+          "type": "string",
+          "description": "Colour key: the link uses --sg-category-<key>"
         }
       },
       "patternProperties": {

@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Streamlined Analytics Ltd and contributors -->
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Strict CSP · streamlined-gantt</title>
+    <link rel="stylesheet" href="/dist/streamlined-gantt.css" />
+    <link rel="stylesheet" href="/examples/examples.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Strict Content Security Policy</h1>
+      <p>
+        This page is served with <code>script-src 'self'; style-src 'self'</code>: no inline
+        scripts, no inline style attributes, no <code>eval</code>. The chart, its theming, editor,
+        menu and tooltip all work, and any violation is listed below.
+      </p>
+      <div id="programme"></div>
+      <h2>Violations</h2>
+      <ol id="violations"></ol>
+    </main>
+    <script type="module" src="/examples/strict-csp.js"></script>
+  </body>
+</html>

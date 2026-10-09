@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Streamlined Analytics Ltd and contributors -->
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Server approval with fetch · streamlined-gantt</title>
+    <link rel="stylesheet" href="/dist/streamlined-gantt.css" />
+    <link rel="stylesheet" href="/examples/examples.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Server approval with fetch</h1>
+      <p>
+        Each edit waits for the server before it is committed (<code>event.waitUntil</code>). The
+        mock server <strong>approves</strong> (204), <strong>rejects</strong> anything finishing
+        after the Christmas shutdown (409, the edit is undone), or <strong>corrects</strong> a
+        Friday start to the Monday and returns the rescheduled tasks as a changeset.
+      </p>
+      <p role="status" id="save-status" aria-live="polite">Make an edit.</p>
+      <div id="programme"></div>
+    </main>
+    <script type="module" src="/examples/fetch-approval.js"></script>
+  </body>
+</html>

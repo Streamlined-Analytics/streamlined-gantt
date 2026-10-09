@@ -13,5 +13,5 @@
     "skipLibCheck": true,
     "types": []
   },
-  "include": ["src/**/*.js", "src/globals.d.ts", "tests/types/**/*.ts"]
+  "include": ["src/**/*.js", "src/globals.d.ts"]
 }

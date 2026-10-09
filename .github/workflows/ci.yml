@@ -35,6 +35,8 @@ jobs:
       - run: npx prettier --check .
       - name: SPDX headers
         run: npm run check:spdx
+      - name: Events reference is generated from the catalogue
+        run: node scripts/generate-events-doc.mjs --check
 
   typecheck:
     name: Type check (JSDoc) and declarations
@@ -132,6 +134,10 @@ jobs:
         run: npm run check:banner
       - name: Bundle size budget
         run: npm run check:size | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Declarations work for a TypeScript consumer
+        run: npx tsc -p tests/types/tsconfig.json
+      - name: Pack smoke (file list, publint, attw, no runtime dependencies)
+        run: npm run check:pack
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist
@@ -139,12 +145,18 @@ jobs:
           retention-days: 7
 
   e2e:
-    name: Browser tests (${{ matrix.browser }})
+    name: Browser tests (${{ matrix.name }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, webkit]
+        include:
+          - name: chromium + Pixel touch
+            browser: chromium
+            projects: --project=chromium --project=pixel
+          - name: webkit + iPad touch
+            browser: webkit
+            projects: --project=webkit --project=ipad
     permissions:
       contents: read
     steps:
@@ -158,7 +170,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npm run build
-      - run: npx playwright test --project=${{ matrix.browser }}
+      - run: npx playwright test ${{ matrix.projects }}
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
@@ -167,3 +179,49 @@ jobs:
             playwright-report
             test-results
           retention-days: 7
+
+  visual:
+    name: Visual regression (pinned Playwright container)
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27 # v1.63.0-noble
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright test -c playwright.visual.config.js
+        env:
+          HOME: /root
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: visual-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
+  burn-in:
+    name: Burn-in of changed browser tests
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Repeat changed specs ten times with no retries
+        run: npx playwright test --project=chromium --only-changed=origin/${{ github.base_ref }} --repeat-each=10 --retries=0

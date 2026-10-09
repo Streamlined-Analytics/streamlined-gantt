@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Streamlined Analytics Ltd and contributors -->
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>htmx save-back · streamlined-gantt</title>
+    <link rel="stylesheet" href="/dist/streamlined-gantt.css" />
+    <link rel="stylesheet" href="/examples/examples.css" />
+    <script src="/vendor/htmx.min.js"></script>
+    <script src="/dist/streamlined-gantt.iife.min.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>htmx save-back</h1>
+      <p>
+        Every edit is shown at once and posted to the server with htmx. The mock server has two
+        rules: nothing may finish after the Christmas shutdown (18 December), so such edits are
+        <strong>reverted</strong>; and nothing may start on a Friday, so the server
+        <strong>corrects</strong> it to the Monday and reschedules. It replies with an
+        <code>HX-Trigger</code> header carrying a <code>gantt:patch</code>, which the element
+        applies. No JavaScript is needed on this page.
+      </p>
+      <p role="status" id="save-status" aria-live="polite">Nothing saved yet.</p>
+      <streamlined-gantt
+        id="job"
+        src="/api/jobs/htmx-demo/programme"
+        listen-patch
+        toolbar
+        height="440px"
+        hx-post="/api/jobs/htmx-demo/changes"
+        hx-trigger="gantt:change[detail.source=='local']"
+        hx-vals='js:{changes: JSON.stringify(event.detail.changes), target: "#job"}'
+        hx-swap="none"
+      ></streamlined-gantt>
+    </main>
+    <script>
+      document.body.addEventListener("save-status", function showSaveStatus(event) {
+        const status = document.getElementById("save-status");
+        status.textContent = event.detail.message;
+        status.dataset.outcome = event.detail.outcome;
+      });
+    </script>
+  </body>
+</html>

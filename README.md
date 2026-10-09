@@ -14,6 +14,126 @@ A framework-free JavaScript Gantt and construction programme library by
 
 > **Status:** pre-release (0.x), private repository. Not yet published to npm.
 
+## Quick start
+
+### ES module
+
+```html
+<link rel="stylesheet" href="/static/streamlined-gantt/streamlined-gantt.css" />
+<div id="programme"></div>
+<script type="module">
+  import { Gantt } from "/static/streamlined-gantt/streamlined-gantt.js";
+  import { builtinEditor } from "/static/streamlined-gantt/editor.js"; // optional task dialog
+
+  const data = await (await fetch("/jobs/42/programme.json")).json();
+  const gantt = new Gantt(document.getElementById("programme"), {
+    data,
+    zoom: "week",
+    editor: builtinEditor,
+    fields: [
+      { key: "cost", label: "Cost", type: "currency", rollup: "sum", column: true },
+      { key: "charge", label: "Charge", type: "currency", rollup: "sum", column: true },
+    ],
+  });
+
+  // One event per committed edit (a drag and its cascade, an editor save, undo…).
+  gantt.on("change", (event) => console.log(event.cause, event.changes));
+</script>
+```
+
+### Script tag and htmx
+
+```html
+<link rel="stylesheet" href="/static/streamlined-gantt/streamlined-gantt.css" />
+<script src="/static/streamlined-gantt/streamlined-gantt.iife.min.js"></script>
+
+<streamlined-gantt src="/jobs/42/programme.json" zoom="week"></streamlined-gantt>
+```
+
+The element initialises when htmx swaps it in and destroys itself when it is swapped out. No
+`htmx:afterSwap` hook is needed. Events bubble as DOM `CustomEvent`s named `gantt:<event>`:
+
+```html
+<streamlined-gantt
+  id="job"
+  src="/jobs/42/programme.json"
+  listen-patch
+  hx-post="/jobs/42/programme/changes/"
+  hx-trigger="gantt:change[detail.source=='local']"
+  hx-vals='js:{changes: JSON.stringify(event.detail.changes), target: "#job"}'
+  hx-swap="none"
+></streamlined-gantt>
+```
+
+To revert or correct an edit, the server replies with
+`HX-Trigger: {"gantt:patch": {"target": "#job", "changes": {"tasks": {"update": [...]}}}}`.
+See `examples/htmx-save-back.html` and [docs/integration.md](docs/integration.md).
+
+### Server approval
+
+```js
+gantt.on("before-task-update", (event) => {
+  event.waitUntil(
+    fetch(`/jobs/42/tasks/${event.id}/`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+      body: JSON.stringify({ task: event.new }),
+    }).then((response) => {
+      if (response.status === 204) return undefined; // approved as made
+      if (response.status === 409) return false; // rejected: the edit is undone
+      return response.json(); // a changeset corrects the edit
+    }),
+  );
+});
+```
+
+Dates are ISO `YYYY-MM-DD` calendar dates. **`finish` is inclusive** (the last working day) and
+`duration` counts working days. Money is integer pence. See `docs/` for the data format, the
+event catalogue and the integration guides.
+
+### Theming
+
+Every colour, radius, stroke and font size is a `--sg-*` CSS custom property inside
+`@layer streamlined-gantt`, so your own CSS wins without `!important`. The chart follows DaisyUI
+themes and dark mode automatically, and can be coloured from data:
+
+```css
+.sg-root {
+  --sg-bar: #0f766e;
+  --sg-font: "Inter", sans-serif;
+  --sg-bar-radius: 0px;
+}
+```
+
+```js
+new Gantt(host, {
+  data,
+  categories: { roofing: "#c2410c", scaffold: "#334155" }, // task.category: "roofing"
+  theme: { barCritical: "#be123c" },
+});
+gantt.setTheme({ bar: "#7c3aed" });
+```
+
+See [docs/theming.md](docs/theming.md) for every token, and `examples/theme-playground.html` to try
+them.
+
+### Optional entries
+
+The core bundle stays under 45 KB gzip. Everything else is a separate import:
+
+| Import                       | What                                                     |
+| ---------------------------- | -------------------------------------------------------- |
+| `streamlined-gantt/engine`   | Scheduling and calendars without the DOM (Node, workers) |
+| `streamlined-gantt/print`    | A3/A4 print, SVG and PNG export                          |
+| `streamlined-gantt/io/mspdi` | MS Project XML import and export                         |
+| `streamlined-gantt/io/csv`   | `exportCSV(gantt)`                                       |
+| `streamlined-gantt/health`   | `check(gantt)`: SCL/CIOB programme health check          |
+| `streamlined-gantt/toolbar`  | The built-in toolbar (`toolbar: buildToolbar`)           |
+| `streamlined-gantt/editor`   | The built-in task dialog (`editor: builtinEditor`)       |
+
+The script-tag build (`streamlined-gantt.iife.min.js`) includes the toolbar and the editor dialog,
+so `toolbar: true` and the default `editor: "builtin"` work there and on `<streamlined-gantt>`.
+
 ## Licence and attribution
 
 streamlined-gantt is licensed under the [Apache License, Version 2.0](LICENSE).

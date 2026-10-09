@@ -1,0 +1,131 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Streamlined Analytics Ltd and contributors -->
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Theme playground · streamlined-gantt</title>
+    <link rel="stylesheet" href="/dist/streamlined-gantt.css" />
+    <link rel="stylesheet" href="/examples/examples.css" />
+    <style>
+      .playground {
+        display: grid;
+        grid-template-columns: minmax(220px, 280px) 1fr;
+        gap: 16px;
+        align-items: start;
+      }
+
+      .controls {
+        display: grid;
+        gap: 10px;
+      }
+
+      .controls fieldset {
+        display: grid;
+        gap: 6px;
+        margin: 0;
+        padding: 8px 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+      }
+
+      .controls label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 13px;
+      }
+
+      #css-out {
+        overflow: auto;
+        max-height: 220px;
+        padding: 8px;
+        border-radius: 6px;
+        background: #0f172a;
+        color: #e2e8f0;
+        font-size: 12px;
+      }
+
+      .stage {
+        padding: 12px;
+        border-radius: 8px;
+      }
+
+      .stage[data-theme="dark"],
+      .stage.daisy-dracula {
+        background: #0b1120;
+      }
+
+      .daisy-dracula {
+        --color-base-100: #282a36;
+        --color-base-200: #21222c;
+        --color-base-300: #44475a;
+        --color-base-content: #f8f8f2;
+        --color-primary: #ff79c6;
+        --color-primary-content: #282a36;
+        --color-secondary: #bd93f9;
+        --color-accent: #ffb86c;
+        --color-info: #8be9fd;
+        --color-success: #50fa7b;
+        --color-warning: #f1fa8c;
+        --color-error: #ff5555;
+        --color-error-content: #282a36;
+      }
+
+      .bare .controls {
+        display: none;
+      }
+
+      .bare .playground {
+        grid-template-columns: 1fr;
+      }
+
+      @media (max-width: 760px) {
+        .playground {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Theme playground</h1>
+      <p>
+        Pick a preset or change a token. The chart updates live through
+        <code>gantt.setTheme()</code>, and the CSS to reproduce the theme is shown below the
+        controls. Every token is listed in <code>docs/theming.md</code>.
+      </p>
+      <div class="playground">
+        <form class="controls" id="controls">
+          <fieldset>
+            <legend>Preset</legend>
+            <label
+              >Theme
+              <select id="preset" name="preset">
+                <option value="light">Light (default)</option>
+                <option value="dark">Dark</option>
+                <option value="brand">Northfield Roofing (brand)</option>
+                <option value="daisyui">DaisyUI variables (Dracula)</option>
+              </select>
+            </label>
+            <label>Colour bars by trade <input type="checkbox" id="by-trade" /></label>
+          </fieldset>
+          <fieldset id="colours">
+            <legend>Colours</legend>
+          </fieldset>
+          <fieldset id="shape">
+            <legend>Shape</legend>
+          </fieldset>
+          <button type="button" id="reset">Reset overrides</button>
+          <pre id="css-out" aria-label="CSS for this theme"></pre>
+        </form>
+        <div class="stage" id="stage">
+          <div id="programme"></div>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="/examples/theme-playground.js"></script>
+  </body>
+</html>

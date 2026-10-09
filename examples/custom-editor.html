@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Streamlined Analytics Ltd and contributors -->
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Custom editor · streamlined-gantt</title>
+    <link rel="stylesheet" href="/dist/streamlined-gantt.css" />
+    <link rel="stylesheet" href="/examples/examples.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Your own editor</h1>
+      <p>
+        Double-click a bar (or press Enter on a row). Instead of the built-in dialog, the chart
+        calls <code>editor(task, {gantt})</code>, and this page opens its own form. It could equally
+        load a server-rendered form with htmx. Saving goes through <code>gantt.updateTask()</code>,
+        so validation, cascades, events and undo work as usual.
+      </p>
+      <div id="programme"></div>
+      <dialog id="task-dialog" aria-labelledby="task-dialog-title">
+        <form method="dialog" id="task-form">
+          <h2 id="task-dialog-title">Edit task</h2>
+          <p>
+            <label>Name <input name="name" required /></label>
+          </p>
+          <p>
+            <label>Start <input name="start" type="date" required /></label>
+            <label>Working days <input name="duration" type="number" min="1" required /></label>
+          </p>
+          <p>
+            <label>Trade <input name="trade" /></label>
+          </p>
+          <p role="alert" id="task-error"></p>
+          <button value="cancel" formnovalidate>Cancel</button>
+          <button value="save">Save</button>
+        </form>
+      </dialog>
+    </main>
+    <script type="module" src="/examples/custom-editor.js"></script>
+  </body>
+</html>

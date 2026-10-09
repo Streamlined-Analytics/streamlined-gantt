@@ -11,3 +11,4 @@ blob-report/
 .stryker-tmp/
 reports/
 .cache/
+.vitest/

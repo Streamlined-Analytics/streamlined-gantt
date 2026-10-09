@@ -1,0 +1,63 @@
+{
+  "schema": "streamlined-gantt/1",
+  "name": "Link routing FF",
+  "calendars": [
+    {
+      "id": "mf",
+      "workWeek": [1, 2, 3, 4, 5]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "U",
+      "name": "Above",
+      "start": "2026-11-04",
+      "finish": "2026-11-06",
+      "duration": 3
+    },
+    {
+      "id": "A",
+      "name": "Predecessor",
+      "start": "2026-11-02",
+      "finish": "2026-11-06",
+      "duration": 5
+    },
+    {
+      "id": "B",
+      "name": "Successor",
+      "start": "2026-11-04",
+      "finish": "2026-11-10",
+      "duration": 5
+    },
+    {
+      "id": "C",
+      "name": "Close successor",
+      "start": "2026-11-05",
+      "finish": "2026-11-05",
+      "duration": 1
+    }
+  ],
+  "links": [
+    {
+      "id": "down",
+      "from": "A",
+      "to": "B",
+      "type": "FF",
+      "lag": 0
+    },
+    {
+      "id": "up",
+      "from": "A",
+      "to": "U",
+      "type": "FF",
+      "lag": 0
+    },
+    {
+      "id": "close",
+      "from": "A",
+      "to": "C",
+      "type": "FF",
+      "lag": 0
+    }
+  ]
+}

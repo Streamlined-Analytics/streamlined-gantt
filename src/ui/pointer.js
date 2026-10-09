@@ -505,7 +505,7 @@ export class PointerController {
     const gantt = this.gantt;
     if (taskId) {
       gantt.select([taskId], { additive: event.ctrlKey || event.metaKey });
-      gantt.focusTask(taskId, { scroll: false, focus: false });
+      gantt.focusTask(taskId, { scroll: false, focus: gantt.timelineOnly });
       const task = gantt.getTask(taskId);
       gantt.emit("task-click", { taskId, task, originalEvent: event });
       if (gantt.rowById(taskId)?.milestone)

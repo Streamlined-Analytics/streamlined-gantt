@@ -35,6 +35,15 @@ export const ZOOM_LEVELS = {
 export const ZOOM_ORDER = /** @type {ZoomLevel[]} */ (["day", "week", "month", "quarter"]);
 
 /**
+ * The zoom whose header tiers suit a day width (for fit-to-width scales).
+ * @param {number} dayWidth
+ * @returns {ZoomLevel}
+ */
+export function zoomForDayWidth(dayWidth) {
+  return ZOOM_ORDER.find((level) => dayWidth >= ZOOM_LEVELS[level].dayWidth * 0.75) ?? "quarter";
+}
+
+/**
  * @param {number} day
  * @param {string} unit
  * @returns {number}
@@ -63,7 +72,9 @@ function nextUnit(day, unit) {
 
 export class TimeScale {
   /**
-   * @param {{zoom?: ZoomLevel, start: number, finish: number, locale?: string, strings?: Record<string, string>, dayWidth?: number, padDays?: number}} options
+   * With `lead` the range is exact: it starts `lead` days before `start` and
+   * ends `trail` days after `finish`, without rounding to whole weeks or months.
+   * @param {{zoom?: ZoomLevel, start: number, finish: number, locale?: string, strings?: Record<string, string>, dayWidth?: number, padDays?: number, lead?: number, trail?: number}} options
    */
   constructor(options) {
     this.zoom = options.zoom ?? "week";
@@ -72,6 +83,11 @@ export class TimeScale {
     this.locale = options.locale ?? "en-GB";
     this.strings = options.strings ?? {};
     const pad = options.padDays ?? this.config.padDays;
+    if (options.lead !== undefined) {
+      this.start = options.start - options.lead;
+      this.end = options.finish + 1 + (options.trail ?? pad);
+      return;
+    }
     this.start = unitStart(options.start - pad, this.config.top === "year" ? "month" : "week");
     const paddedFinish = options.finish + pad;
     let end = unitStart(paddedFinish, this.config.bottom);

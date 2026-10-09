@@ -144,4 +144,13 @@ describe("<streamlined-gantt>", () => {
     const element = host.querySelector("streamlined-gantt");
     expect(element.querySelector(".sg-root").classList.contains("sg-scheme-dark")).toBe(true);
   });
+
+  test("the layout and fit attributes map to the options", async () => {
+    const host = container();
+    host.innerHTML = inlineElement('layout="timeline" fit="width"');
+    await settle();
+    const root = host.querySelector("streamlined-gantt .sg-root");
+    expect(root.classList.contains("sg-layout-timeline")).toBe(true);
+    expect(root.classList.contains("sg-fit")).toBe(true);
+  });
 });

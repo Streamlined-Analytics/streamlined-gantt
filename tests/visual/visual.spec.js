@@ -33,6 +33,11 @@ test("flat roof: milestones, payments with values, baseline ghost bars and varia
   await expect(chart(page)).toHaveScreenshot("flat-roof-week.png");
 });
 
+test("timeline layout fitted to the width (light theme)", async ({ page }) => {
+  await openHarness(page, { layout: "timeline", fit: "width", height: "520px" });
+  await expect(chart(page)).toHaveScreenshot("timeline-fit-width.png");
+});
+
 test("critical path styling", async ({ page }) => {
   await openHarness(page, {
     fixture: "/tests/fixtures/programmes/cpm-n1.json",

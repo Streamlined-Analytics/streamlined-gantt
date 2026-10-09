@@ -204,6 +204,26 @@
     outline: none;
   }
 
+  .sg-layout-timeline .sg-grid {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    min-height: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    border: 0;
+  }
+
+  .sg-fit .sg-timeline {
+    overflow-x: clip;
+  }
+
+  .sg-layout-timeline .sg-canvas:has(.sg-grid :focus-visible) .sg-task.sg-focused .sg-shape {
+    stroke: var(--sg-focus);
+    stroke-width: calc(var(--sg-focus-width) + 1px);
+    stroke-dasharray: 4 2;
+  }
+
   .sg-grid:focus-visible {
     outline: var(--sg-focus-width) solid var(--sg-focus);
     outline-offset: -2px;

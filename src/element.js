@@ -119,6 +119,8 @@ export class StreamlinedGanttElement extends HTMLElement {
       ["auto-schedule", "autoSchedule"],
       ["height", "height"],
       ["color-scheme", "colorScheme"],
+      ["layout", "layout"],
+      ["fit", "fit"],
     ]) {
       const value = this.getAttribute(attribute);
       if (value !== null) options[key] = value;

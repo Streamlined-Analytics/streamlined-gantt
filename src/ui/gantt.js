@@ -13,7 +13,7 @@ import { html, setAttributes } from "./dom.js";
 import { GridView } from "./grid-view.js";
 import { KeyboardController } from "./keyboard.js";
 import { PointerController } from "./pointer.js";
-import { TimeScale, ZOOM_LEVELS, ZOOM_ORDER } from "./scale.js";
+import { TimeScale, ZOOM_LEVELS, ZOOM_ORDER, zoomForDayWidth } from "./scale.js";
 import { DEFAULT_STRINGS, fill } from "./strings.js";
 import { startCellEdit } from "./cell-editor.js";
 import { confirmDialog } from "./dialog.js";
@@ -39,6 +39,9 @@ import { TimelineView } from "./timeline-view.js";
 /**
  * @typedef {import("../model/controller.js").ControllerOptions & {
  *   zoom?: import("./scale.js").ZoomLevel,
+ *   layout?: "grid"|"timeline",
+ *   fit?: "width"|null,
+ *   minDayWidth?: number,
  *   readOnly?: boolean,
  *   columns?: (import("./columns.js").ColumnConfig|string)[],
  *   hiddenColumns?: string[],
@@ -122,8 +125,12 @@ export class Gantt extends ProgrammeController {
       scrollTo: "start",
       editor: "builtin",
       confirmDelete: true,
+      minDayWidth: 4,
       ...this.options,
     };
+    this.timelineOnly = this.options.layout === "timeline";
+    this.options.barLabels ??= this.timelineOnly ? "inside" : true;
+    this.fitWidth = this.options.fit === "width";
     this.strings = { ...DEFAULT_STRINGS, ...(options.strings ?? {}) };
     /** @type {import("./scale.js").ZoomLevel} */
     this.zoom = ZOOM_LEVELS[this.options.zoom] ? this.options.zoom : "week";
@@ -153,6 +160,7 @@ export class Gantt extends ProgrammeController {
     this.scrollTimer = 0;
     this.focusAfterRender = false;
     this.firstRenderDone = false;
+    this.scrollShift = 0;
     /** @type {any} */
     this.lastChange = null;
     this.buildDom();
@@ -268,6 +276,8 @@ export class Gantt extends ProgrammeController {
       class: [
         "sg-root",
         this.readOnly ? "sg-readonly" : "",
+        this.timelineOnly ? "sg-layout-timeline" : "",
+        this.fitWidth ? "sg-fit" : "",
         this.showCriticalPath ? "sg-show-critical" : "",
         this.coarsePointer() ? "sg-coarse" : "",
         this.options.colorScheme === "light" || this.options.colorScheme === "dark"
@@ -506,7 +516,7 @@ export class Gantt extends ProgrammeController {
 
   /** @returns {import("./columns.js").Column[]} */
   get columns() {
-    const compact = this.isCompact();
+    const compact = this.isCompact() || this.timelineOnly;
     const width = this.scroller?.clientWidth ?? 0;
     const key = `${this.options.locale}|${this.currency}|${this.readOnly}|${compact}|${compact ? width : 0}`;
     if (this.columnCache?.key === key) return this.columnCache.columns;
@@ -517,7 +527,7 @@ export class Gantt extends ProgrammeController {
       fields: this.fields,
       hidden: this.options.hiddenColumns,
     });
-    if (compact)
+    if (compact && !this.timelineOnly)
       for (const column of columns)
         column.width = Math.round(Math.min(220, Math.max(120, width * 0.42)));
     this.columnCache = { key, columns };
@@ -526,6 +536,7 @@ export class Gantt extends ProgrammeController {
 
   /** @returns {number} */
   gridWidth() {
+    if (this.timelineOnly) return 0;
     if (this.isCompact()) return this.grid.width(this.columns);
     return this.options.gridWidth ?? this.grid.width(this.columns);
   }
@@ -550,18 +561,76 @@ export class Gantt extends ProgrammeController {
     const start = Math.min(...days);
     const finish = Math.max(...days);
     const cached = this.scaleCache;
+    const fitted = this.fittedScale(start, finish, cached);
+    if (fitted) return fitted;
     const fits =
-      cached && cached.zoom === this.zoom && start >= cached.start + 7 && finish <= cached.end - 7;
+      cached &&
+      !cached.fitKey &&
+      cached.zoom === this.zoom &&
+      start >= cached.from &&
+      finish <= cached.end - 7;
     if (fits && cached.locale === this.options.locale) return cached;
-    this.scaleCache = new TimeScale({
-      zoom: this.zoom,
+    const dayWidth = ZOOM_LEVELS[this.zoom].dayWidth;
+    const scale = this.useScale(
       start,
+      { zoom: this.zoom, lead: Math.max(2, Math.ceil(24 / dayWidth)) },
       finish,
-      locale: this.options.locale,
-      strings: this.strings,
-    });
+    );
+    if (cached?.dayWidth === dayWidth) this.scrollShift += (cached.start - scale.start) * dayWidth;
+    return scale;
+  }
+
+  /**
+   * The fit-to-width scale (`fit: "width"`): the programme from first start to
+   * last finish, plus a 2% margin, across the visible timeline width, at no
+   * less than `minDayWidth` (below that the timeline scrolls). Kept as it is
+   * during a drag so bars do not jump; refitted after the drop.
+   * @param {number} start
+   * @param {number} finish
+   * @param {any} cached
+   * @returns {TimeScale|null} null when not fitting or the chart has no width yet
+   */
+  fittedScale(start, finish, cached) {
+    if (!this.fitWidth) return null;
+    if (this.preview && cached?.fitKey) return cached;
+    const available = this.scroller.clientWidth - this.gridWidth() - 1;
+    if (available <= 0) return null;
+    const key = `${available}|${start}|${finish}|${this.options.locale}`;
+    if (cached?.fitKey === key) return cached;
+    const margin = Math.max(1, Math.round((finish - start + 1) * 0.02));
+    const dayWidth = Math.max(
+      this.options.minDayWidth,
+      available / (finish - start + 1 + 2 * margin),
+    );
+    const scale = this.useScale(
+      start,
+      { zoom: zoomForDayWidth(dayWidth), dayWidth, lead: margin, trail: margin },
+      finish,
+    );
+    scale.fitKey = key;
+    return scale;
+  }
+
+  /**
+   * @param {number} start
+   * @param {Record<string, any>} options
+   * @param {number} finish
+   * @returns {TimeScale & Record<string, any>}
+   */
+  useScale(start, options, finish) {
+    const scale = /** @type {any} */ (
+      new TimeScale({
+        start,
+        finish,
+        locale: this.options.locale,
+        strings: this.strings,
+        ...options,
+      })
+    );
+    scale.from = start;
+    this.scaleCache = scale;
     this.timeline?.invalidate();
-    return this.scaleCache;
+    return scale;
   }
 
   /** @returns {{scale: TimeScale, rowHeight: number}} */
@@ -595,6 +664,10 @@ export class Gantt extends ProgrammeController {
     const gridWidth = this.gridWidth();
     this.canvas.style.setProperty("width", `${gridWidth + scale.width}px`);
     this.root.style.setProperty("--sg-row-px", `${rowHeight}px`);
+    if (this.scrollShift) {
+      this.scroller.scrollLeft += this.scrollShift;
+      this.scrollShift = 0;
+    }
     this.root.classList.toggle("sg-has-markers", this.markerLines(scale).length > 0);
     const scrollTop = this.scroller.scrollTop;
     const viewportHeight = Math.max(this.scroller.clientHeight - this.headerHeight, rowHeight);
@@ -732,6 +805,7 @@ export class Gantt extends ProgrammeController {
     if (row.milestone) classes.push("sg-is-milestone");
     if (critical) classes.push("sg-critical");
     if (this.selection.has(row.id)) classes.push("sg-selected");
+    if (this.timelineOnly && this.focus.taskId === row.id) classes.push("sg-focused");
     if (this.pending.has(row.id)) classes.push("sg-pending");
     if (locked) classes.push("sg-locked");
     if (isComplete(row.task)) classes.push("sg-complete");
@@ -1025,15 +1099,29 @@ export class Gantt extends ProgrammeController {
    * @param {import("./scale.js").ZoomLevel} zoom
    */
   setZoom(zoom) {
-    if (!ZOOM_LEVELS[zoom] || zoom === this.zoom) return;
+    if (!ZOOM_LEVELS[zoom] || (zoom === this.zoom && !this.fitWidth)) return;
     const previous = this.zoom;
     const centre = this.centreDay();
     this.zoom = zoom;
+    this.fitWidth = false;
     this.scaleCache = null;
     this.updateRootState();
     this.render();
     this.scrollToDate(toISO(centre), { align: "center" });
     this.emit("zoom-change", { zoom, previous });
+  }
+
+  /**
+   * Turns fit-to-width on (`"width"`) or off (`null`, back to the zoom level).
+   * @param {"width"|null} fit
+   */
+  setFit(fit) {
+    this.fitWidth = fit === "width";
+    this.scaleCache = null;
+    this.updateRootState();
+    this.render();
+    this.scroller.scrollLeft = 0;
+    this.scrollToInitialPosition();
   }
 
   zoomIn() {
@@ -1424,6 +1512,7 @@ export class Gantt extends ProgrammeController {
    * @returns {boolean}
    */
   startCellEdit(taskId, column) {
+    if (this.timelineOnly) return this.openEditor(taskId);
     return startCellEdit(this, taskId, column);
   }
 

@@ -30,7 +30,7 @@ for (const name of pages) {
   test(`example ${name} loads without errors`, async ({ page }) => {
     const { assertClean } = watchErrors(page);
     await page.goto(`/examples/${name}`);
-    await expect(page.locator(READY[name] ?? ".sg-root").first()).toBeVisible();
+    await expect(page.locator(READY[name] ?? ".sg-root:not([hidden])").first()).toBeVisible();
     assertClean();
   });
 }

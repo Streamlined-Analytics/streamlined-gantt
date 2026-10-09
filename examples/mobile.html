@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Streamlined Analytics Ltd and contributors -->
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Phone experience · streamlined-gantt</title>
+    <link rel="stylesheet" href="/dist/streamlined-gantt.css" />
+    <link rel="stylesheet" href="/examples/examples.css" />
+    <style>
+      [data-gantt-host] .sg-root {
+        --sg-bar: #0f766e;
+        --sg-bar-critical: #c2410c;
+        --sg-cta-bg: #c2410c;
+        --sg-cta-fg: #ffffff;
+        --sg-cta-radius: 999px;
+        --sg-radius: 12px;
+        --sg-bar-radius: 5px;
+        --sg-height: 500px;
+      }
+
+      @media (max-width: 767px) {
+        [data-gantt-host] .sg-root {
+          --sg-height: 420px;
+        }
+      }
+    </style>
+    <script src="/dist/streamlined-gantt.iife.min.js" defer></script>
+    <script src="/dist/mobile.iife.min.js" defer></script>
+    <script type="module" src="/examples/mobile.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>Office fit-out: the phone experience</h1>
+      <p>
+        On a phone held upright the chart is replaced by a readable summary with an
+        <strong>Open the chart</strong> button. The chart opens full screen (landscape where the
+        browser allows it), with every row fitted to the height, zoom and fit controls, and pinch
+        zoom. On wider screens the chart shows inline with an expand button.
+      </p>
+      <div id="programme" data-gantt-host></div>
+      <p id="mobile-state" aria-live="polite"></p>
+    </main>
+  </body>
+</html>

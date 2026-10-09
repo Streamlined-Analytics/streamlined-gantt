@@ -111,3 +111,10 @@ accept `preventDefault()` and `waitUntil(promise)`; see [integration.md](integra
 | `editor-save` |  | `taskId`, `values` | The built-in editor saved; `values` is the patch it sent. |
 | `editor-close` |  | `taskId`, `saved` | The built-in editor closed. |
 | `menu-action` |  | `action`, `taskId`, `date` | A context-menu item was chosen. |
+
+## mobile
+
+| Event | Cancelable | Payload | When |
+| --- | --- | --- | --- |
+| `fullscreen-change` |  | `open`, `native`, `orientation` | The full-screen chart opened or closed (`streamlined-gantt/mobile`). `native` is true while the Fullscreen API is active; iPhones get a full-viewport overlay instead. |
+| `layout-change` |  | `mode`, `previous`, `orientation`, `width` | The mobile presentation changed: `mode` is `"inline"` (the chart), `"preview"` (the phone summary that replaces it below the breakpoint) or `"fullscreen"`. |

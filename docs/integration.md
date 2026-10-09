@@ -114,6 +114,86 @@ send it in an `HX-Trigger` header.
   Most sites build their own toolbar and call `setZoom`, `undo`, `redo`, `scrollToDate`,
   `setCriticalPathVisible` and so on.
 
+## Phones
+
+`streamlined-gantt/mobile` (ADR-0011) makes the chart work on a phone:
+
+- **Held upright** (the host narrower than `breakpoint`, 600 px by default), the chart is replaced
+  by a summary: the programme's dates, an **Open the chart** button and one row per task with its
+  dates and a mini bar on a shared track. It has no inner scroll; the page scrolls. Tapping a row
+  opens the chart at that task.
+- **Open the chart** shows it full screen in a modal dialog: rows shrink (down to 24 px) so the
+  whole programme fits the height, a rail holds close, zoom in, zoom out and fit, and two fingers
+  pinch to zoom. On Android it also enters fullscreen and locks to landscape; iPhones have no
+  element fullscreen, so they get the same full-viewport dialog and a "turn your phone sideways"
+  hint while upright. Escape, the close button or the back gesture (out of fullscreen) return.
+- **Wider** (a phone on its side, tablets, desktops), the chart shows as usual with an expand
+  button in its top-right corner.
+
+### ES modules
+
+```js
+import { Gantt } from "streamlined-gantt";
+import { mobileView } from "streamlined-gantt/mobile";
+
+const gantt = new Gantt(host, { data, layout: "timeline", fit: "width" });
+const mobile = mobileView(gantt, { breakpoint: 600 }); // also gantt.mobile
+myOwnButton.addEventListener("click", () => mobile.open()); // open() from a tap, for fullscreen
+```
+
+### Script tag and the element
+
+```html
+<link rel="stylesheet" href="/static/streamlined-gantt/streamlined-gantt.css" />
+<script src="/static/streamlined-gantt/streamlined-gantt.iife.min.js" defer></script>
+<script src="/static/streamlined-gantt/mobile.iife.min.js" defer></script>
+
+<streamlined-gantt src="/jobs/42/programme.json" layout="timeline" fit="width" mobile>
+</streamlined-gantt>
+```
+
+The add-on installs itself on `StreamlinedGantt.Gantt`, so `new StreamlinedGantt.Gantt(host,
+{data, mobile: {breakpoint: 600}})` works too, as does `StreamlinedGanttMobile.mobileView(gantt)`.
+
+### Options
+
+| Option         | Default       | Meaning                                                                   |
+| -------------- | ------------- | ------------------------------------------------------------------------- |
+| `breakpoint`   | `600`         | Host width (px) below which the summary replaces the chart                |
+| `preview`      | `true`        | `false` keeps the chart on narrow hosts (the expand button still works)   |
+| `expandButton` | `true`        | `false` hides the expand button; call `mobile.open()` from your own       |
+| `fullscreen`   | `"auto"`      | Fullscreen API on touch devices (`"auto"`), `"always"` or `"never"`       |
+| `orientation`  | `"landscape"` | Lock to landscape while full screen where supported, or `"any"`           |
+| `minRowHeight` | `24`          | Smallest row when fitting the rows to the screen (WCAG 2.5.8 target size) |
+| `maxRowHeight` | `44`          | Largest fitted row                                                        |
+| `pinchZoom`    | `true`        | Two-finger pinch zooms the full-screen chart                              |
+| `strings`      | English       | `MOBILE_STRINGS` keys, e.g. `{mobileOpen: "View the programme"}`          |
+
+Methods: `open({taskId})` (returns a promise), `close()`, `opened`, `mode` (`"inline"`,
+`"preview"` or `"fullscreen"`) and `destroy()` (also called by `gantt.destroy()`).
+
+### Events
+
+`layout-change` (`mode`, `previous`, `orientation`, `width`) fires when the presentation changes,
+and `fullscreen-change` (`open`, `native`, `orientation`) when the full-screen chart opens or
+closes, or the browser leaves native fullscreen. Like every event they bubble from the host as
+`gantt:layout-change` and `gantt:fullscreen-change`, so a page can, for example, hide its own
+table while the summary is showing, or pause a live chart while the full-screen one is open.
+
+### Styling
+
+The summary is its own `.sg-root` next to the chart, and the full-screen dialog stays inside the
+host element (in the browser's top layer), so a host rule such as
+`[data-gantt-host] .sg-root { --sg-bar: …; }` themes all three. The call to action has its own
+tokens (`--sg-cta-bg`, `--sg-cta-fg`, `--sg-cta-radius`); see the phone section of
+[theming.md](theming.md). Add `viewport-fit=cover` to the page's viewport meta so the full-screen
+chart can pad itself clear of the notch and home indicator (`env(safe-area-inset-*)`).
+
+The built-in editor becomes a full-width bottom sheet below 600 px, and on touch screens every
+input and button is at least 44 px tall with 16 px text, so iOS does not zoom into a field. The
+built-in toolbar folds everything after Today behind a **More** button when it is narrower than
+560 px.
+
 ## Content Security Policy
 
 The chart works under a strict policy (`script-src 'self'; style-src 'self'`, no `eval`): it sets

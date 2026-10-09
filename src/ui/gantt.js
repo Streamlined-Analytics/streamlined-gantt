@@ -66,6 +66,7 @@ import { TimelineView } from "./timeline-view.js";
  *   tooltip?: false|((task: Readonly<Record<string, any>>, context: object) => unknown),
  *   toolbar?: boolean|((gantt: Gantt) => HTMLElement),
  *   confirmDelete?: boolean,
+ *   mobile?: boolean|import("./mobile.js").MobileOptions,
  * }} GanttOptions
  */
 
@@ -98,6 +99,14 @@ export function setDefaultToolbar(factory) {
 }
 
 export class Gantt extends ProgrammeController {
+  /**
+   * Functions called with every new chart once it has rendered, so add-ons
+   * loaded as separate scripts (`streamlined-gantt/mobile`) can read their
+   * options from `gantt.options`.
+   * @type {((gantt: Gantt) => void)[]}
+   */
+  static extensions = [];
+
   /**
    * @param {HTMLElement} host the element the chart renders into (light DOM)
    * @param {GanttOptions} [options]
@@ -185,6 +194,7 @@ export class Gantt extends ProgrammeController {
     this.observeSize();
     if (data) this.load(data);
     else this.render();
+    for (const extend of Gantt.extensions) extend(this);
   }
 
   /* --------------------------------------------------------------- DOM */
@@ -295,9 +305,9 @@ export class Gantt extends ProgrammeController {
     return typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
   }
 
-  /** @returns {number} drag-handle hit width; at least 24 px on touch screens (WCAG 2.5.8) */
+  /** @returns {number} drag-handle hit width; 32 px on touch screens (WCAG 2.5.8 asks for 24) */
   handleSize() {
-    return this.coarsePointer() ? 24 : 10;
+    return this.coarsePointer() ? 32 : 10;
   }
 
   /** @returns {number} */

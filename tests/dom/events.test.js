@@ -5,6 +5,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import flatRoof from "../fixtures/programmes/flat-roof.json";
 import { EVENT_CATALOGUE } from "../../src/events.js";
 import { defineElement } from "../../src/element.js";
+import { mobileView } from "../../src/mobile.js";
 import { FLAT_ROOF_FIELDS } from "../support/fields.js";
 import { cleanup, frame, mount, pointerDrag } from "./support.js";
 
@@ -127,6 +128,17 @@ const TRIGGERS = {
   "menu-action": ({ gantt, host }) => {
     gantt.openContextMenu("t5", {});
     host.querySelector('[data-action="edit"]').click();
+  },
+  "fullscreen-change": async ({ gantt }) => {
+    const mobile = mobileView(gantt);
+    await mobile.open();
+    mobile.close();
+  },
+  "layout-change": async ({ gantt, host }) => {
+    mobileView(gantt);
+    host.style.width = "400px";
+    await frame();
+    await frame();
   },
 };
 

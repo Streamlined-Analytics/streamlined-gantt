@@ -1,0 +1,335 @@
+{
+  "schema": "streamlined-gantt/1",
+  "id": "sample-office-fit-out",
+  "name": "Office fit-out package, ground and first floor",
+  "currency": "GBP",
+  "defaultCalendar": "std",
+  "calendars": [
+    {
+      "id": "std",
+      "name": "Monday to Friday, England and Wales bank holidays",
+      "workWeek": [1, 2, 3, 4, 5],
+      "nonWorking": [
+        {
+          "date": "2027-01-01",
+          "name": "New Year's Day",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-03-26",
+          "name": "Good Friday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-03-29",
+          "name": "Easter Monday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-05-03",
+          "name": "Early May bank holiday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-05-31",
+          "name": "Spring bank holiday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-08-30",
+          "name": "Summer bank holiday",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-12-27",
+          "name": "Christmas Day (substitute day)",
+          "kind": "bank-holiday"
+        },
+        {
+          "date": "2027-12-28",
+          "name": "Boxing Day (substitute day)",
+          "kind": "bank-holiday"
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "setup",
+      "name": "Site set-up and protection",
+      "type": "task",
+      "start": "2027-03-01",
+      "finish": "2027-03-02",
+      "duration": 2,
+      "trade": "Preliminaries",
+      "fields": {
+        "cost": 240000,
+        "charge": 320000
+      }
+    },
+    {
+      "id": "strip",
+      "name": "Soft strip-out",
+      "type": "task",
+      "start": "2027-03-03",
+      "finish": "2027-03-09",
+      "duration": 5,
+      "trade": "Strip-out",
+      "fields": {
+        "cost": 785000,
+        "charge": 980000
+      }
+    },
+    {
+      "id": "partitions",
+      "name": "Metal stud partitions and boarding",
+      "type": "task",
+      "start": "2027-03-10",
+      "finish": "2027-03-23",
+      "duration": 10,
+      "trade": "Drylining",
+      "fields": {
+        "cost": 3860000,
+        "charge": 4750000
+      }
+    },
+    {
+      "id": "me-first",
+      "name": "M&E first fix (subcontract)",
+      "type": "task",
+      "start": "2027-03-16",
+      "finish": "2027-03-25",
+      "duration": 8,
+      "trade": "M&E",
+      "fields": {
+        "cost": 2430000,
+        "charge": 2720000
+      }
+    },
+    {
+      "id": "ceilings",
+      "name": "Suspended ceilings",
+      "type": "task",
+      "start": "2027-03-30",
+      "finish": "2027-04-06",
+      "duration": 6,
+      "trade": "Ceilings",
+      "fields": {
+        "cost": 1875000,
+        "charge": 2340000
+      }
+    },
+    {
+      "id": "me-second",
+      "name": "M&E second fix (subcontract)",
+      "type": "task",
+      "start": "2027-04-07",
+      "finish": "2027-04-14",
+      "duration": 6,
+      "trade": "M&E",
+      "fields": {
+        "cost": 1620000,
+        "charge": 1810000
+      }
+    },
+    {
+      "id": "joinery",
+      "name": "Doors, frames and joinery",
+      "type": "task",
+      "start": "2027-03-24",
+      "finish": "2027-04-02",
+      "duration": 6,
+      "trade": "Joinery",
+      "fields": {
+        "cost": 1490000,
+        "charge": 1935000
+      }
+    },
+    {
+      "id": "decoration",
+      "name": "Decoration",
+      "type": "task",
+      "start": "2027-04-15",
+      "finish": "2027-04-26",
+      "duration": 8,
+      "trade": "Decorating",
+      "fields": {
+        "cost": 961248,
+        "charge": 1345000
+      }
+    },
+    {
+      "id": "flooring",
+      "name": "Floor finishes (carpet tiles and LVT)",
+      "type": "task",
+      "start": "2027-04-27",
+      "finish": "2027-05-04",
+      "duration": 5,
+      "trade": "Flooring",
+      "fields": {
+        "cost": 1745000,
+        "charge": 2130000
+      }
+    },
+    {
+      "id": "snagging",
+      "name": "Snagging, clean and handover",
+      "type": "task",
+      "start": "2027-05-05",
+      "finish": "2027-05-07",
+      "duration": 3,
+      "trade": "Preliminaries",
+      "fields": {
+        "cost": 195000,
+        "charge": 260000
+      }
+    },
+    {
+      "id": "pay-strip",
+      "name": "Stage 1: strip-out complete",
+      "type": "payment",
+      "start": "2027-03-09",
+      "finish": "2027-03-09",
+      "duration": 0,
+      "value": 1859000,
+      "valuePercent": 0.1
+    },
+    {
+      "id": "pay-partitions",
+      "name": "Stage 2: partitions boarded",
+      "type": "payment",
+      "start": "2027-03-23",
+      "finish": "2027-03-23",
+      "duration": 0,
+      "value": 4647500,
+      "valuePercent": 0.25
+    },
+    {
+      "id": "pay-second-fix",
+      "name": "Stage 3: ceilings and M&E second fix complete",
+      "type": "payment",
+      "start": "2027-04-14",
+      "finish": "2027-04-14",
+      "duration": 0,
+      "value": 5577000,
+      "valuePercent": 0.3
+    },
+    {
+      "id": "pay-handover",
+      "name": "Stage 4: practical completion and handover",
+      "type": "payment",
+      "start": "2027-05-07",
+      "finish": "2027-05-07",
+      "duration": 0,
+      "value": 6506500,
+      "valuePercent": 0.35
+    }
+  ],
+  "links": [
+    {
+      "id": "setup-strip",
+      "from": "setup",
+      "to": "strip",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "strip-partitions",
+      "from": "strip",
+      "to": "partitions",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "partitions-me-first",
+      "from": "partitions",
+      "to": "me-first",
+      "type": "SS",
+      "lag": 4
+    },
+    {
+      "id": "partitions-ceilings",
+      "from": "partitions",
+      "to": "ceilings",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "me-first-ceilings",
+      "from": "me-first",
+      "to": "ceilings",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "ceilings-me-second",
+      "from": "ceilings",
+      "to": "me-second",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "partitions-joinery",
+      "from": "partitions",
+      "to": "joinery",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "me-second-decoration",
+      "from": "me-second",
+      "to": "decoration",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "joinery-decoration",
+      "from": "joinery",
+      "to": "decoration",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "decoration-flooring",
+      "from": "decoration",
+      "to": "flooring",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "flooring-snagging",
+      "from": "flooring",
+      "to": "snagging",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "strip-pay-strip",
+      "from": "strip",
+      "to": "pay-strip",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "partitions-pay-partitions",
+      "from": "partitions",
+      "to": "pay-partitions",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "me-second-pay-second-fix",
+      "from": "me-second",
+      "to": "pay-second-fix",
+      "type": "FS",
+      "lag": 0
+    },
+    {
+      "id": "snagging-pay-handover",
+      "from": "snagging",
+      "to": "pay-handover",
+      "type": "FS",
+      "lag": 0
+    }
+  ]
+}

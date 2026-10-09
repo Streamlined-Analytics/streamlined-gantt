@@ -22,6 +22,7 @@ import { exportCSV } from "streamlined-gantt/io/csv";
 import { fromMSPDI, toMSPDI, MspdiParseError } from "streamlined-gantt/io/mspdi";
 import { exportPNG, printProgramme } from "streamlined-gantt/print";
 import { EVENT_NAMES } from "streamlined-gantt/events";
+import { installMobile, mobileView, type MobileOptions } from "streamlined-gantt/mobile";
 
 declare const host: HTMLElement;
 
@@ -42,6 +43,13 @@ gantt.setTheme({ barCritical: "#be123c", rowAlt: null });
 gantt.setCategories({ roofing: null });
 gantt.on("change", (event) => event.type);
 new Gantt(host, { layout: "timeline", fit: "width", minDayWidth: 3 }).setFit(null);
+installMobile(Gantt);
+const phone: MobileOptions = { breakpoint: 640, fullscreen: "auto", orientation: "landscape" };
+const mobile = mobileView(gantt, phone);
+const shown: Promise<void> = mobile.open({ taskId: "t1" });
+mobile.close();
+new Gantt(host, { mobile: { minRowHeight: 26 } });
+void shown;
 
 const csv: string = exportCSV(gantt);
 const findings = check(gantt).map((finding) => finding.code);
@@ -72,3 +80,5 @@ new Gantt(host, { colorScheme: "sepia" });
 new Gantt(host, { layout: "below" });
 // @ts-expect-error toolbar takes a factory, not an element
 new Gantt(host, { toolbar: document.createElement("div") });
+// @ts-expect-error fullscreen is "auto", "always" or "never"
+mobileView(gantt, { fullscreen: "sometimes" });

@@ -154,9 +154,9 @@ jobs:
           - name: chromium + Pixel touch
             browser: chromium
             projects: --project=chromium --project=pixel
-          - name: webkit + iPad touch
+          - name: webkit + iPad and iPhone touch
             browser: webkit
-            projects: --project=webkit --project=ipad
+            projects: --project=webkit --project=ipad --project=iphone
     permissions:
       contents: read
     steps:

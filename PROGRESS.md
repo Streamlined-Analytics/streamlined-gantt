@@ -14,7 +14,8 @@ Status of the streamlined-gantt MVP against the spec (§3.11) and the testing gu
 | M5 Print              | A3/A4 print, SVG and PNG export, title block, legend                                                                                                                           | Merged (#5) |
 | M6 MSPDI              | Lossless import and export, recurring calendars, XXE-safe parser, nightly MPXJ samples (ADR-0008)                                                                              | Merged (#5) |
 | Theming               | Tokens for every visual value, dark mode, per-item colour, JS theme API, playground (ADR-0009)                                                                                 | Merged (#5) |
-| Timeline layout       | `layout: "timeline"`, `fit: "width"`, exact scale start (opens at the first task) (ADR-0010)                                                                                   | PR open     |
+| Timeline layout       | `layout: "timeline"`, `fit: "width"`, exact scale start (opens at the first task) (ADR-0010)                                                                                   | Merged (#7) |
+| Phones                | Summary in place of the chart, full-screen landscape chart, fitted rows, touch targets, editor sheet, compact toolbar (ADR-0011)                                               | PR open     |
 | Integration           | htmx save-back, fetch approval, mock backend, custom editor, read-only view, strict CSP                                                                                        | Merged (#5) |
 
 ## Acceptance criteria
@@ -22,6 +23,14 @@ Status of the streamlined-gantt MVP against the spec (§3.11) and the testing gu
 Each line is checked by the tests named.
 
 ### Editing and integration
+
+- On a phone held upright a summary replaces the chart with no inner scroll; it opens a
+  full-screen chart (Fullscreen API and landscape lock where supported, a dialog on iPhone) whose
+  rows fit the height; a task can be dragged there and the chart closes back to the page; the
+  editor is a bottom sheet with 16 px inputs; axe passes on the summary, the full-screen chart
+  and the sheet: `tests/dom/mobile.test.js`, `tests/e2e/mobile.spec.js` (Pixel 7, iPhone 15,
+  iPad), `tests/a11y/axe.spec.js`, `tests/visual/visual.spec.js`
+  (`mobile-portrait-preview.png`, `mobile-fullscreen-landscape.png`).
 
 - The timeline layout fills the width with labelled bars, keeps the keyboard model and passes
   axe; fit-to-width refits on resize and after a drop, never mid-drag; every chart opens at the
@@ -73,18 +82,20 @@ Each line is checked by the tests named.
 ## Tests
 
 - Engine and IO (Node): 508, plus 6 nightly-only MPXJ checks.
-- Browser components (Vitest, Chromium): 186.
-- End-to-end, a11y, memory and print (Playwright, Chromium): 54. WebKit, iPad and Pixel run in CI.
-- Visual: 14 snapshots in the pinned Playwright image.
+- Browser components (Vitest, Chromium): 207.
+- End-to-end, a11y, memory and print (Playwright, Chromium): 56, plus 7 touch tests each on Pixel 7,
+  iPhone 15 and iPad (some phone- or tablet-only). WebKit, iPad and iPhone run in CI.
+- Visual: 16 snapshots in the pinned Playwright image.
 - Property tests run 1,000 times per property on PRs and 10,000 nightly. Mutation testing (Stryker) runs weekly.
 
 ## Measured
 
 |                                           | Value                            | Budget |
 | ----------------------------------------- | -------------------------------- | ------ |
-| Core ESM bundle                           | 44.15 KB gzip                    | 45 KB  |
-| Script-tag bundle (core, editor, toolbar) | 46.63 KB gzip                    | 48 KB  |
-| CSS                                       | 4.02 KB gzip                     | 6 KB   |
+| Core ESM bundle                           | 44.27 KB gzip                    | 45 KB  |
+| Script-tag bundle (core, editor, toolbar) | 46.83 KB gzip                    | 48 KB  |
+| Mobile module (ESM / script-tag add-on)   | 4.87 / 5.12 KB gzip              | 8 KB   |
+| CSS                                       | 5.06 KB gzip                     | 6 KB   |
 | MSPDI module                              | 9.98 KB gzip                     | 10 KB  |
 | First render, 1,000 tasks / 1,500 links   | 71 ms                            | 250 ms |
 | Scroll frame (p90)                        | 17.6 ms (about 57 fps)           | 55 fps |
@@ -93,8 +104,10 @@ Each line is checked by the tests named.
 
 ## Remaining
 
-- The core is at 44.15 of 45 KB after the timeline layout (ADR-0010). Larger core features
-  will need a budget decision.
+- The core is at 44.27 of 45 KB after the mobile hook (ADR-0011). Larger core features will need
+  a budget decision; new UI should be an optional entry, as the mobile view is.
+- Phones: real-device checks on an iPhone and an Android phone (rotation, the notch, the back
+  gesture out of fullscreen) are on the manual checklist; CI emulates them.
 - Lookahead print layout and the warnings panel for `check()` (UI), which the spec lists after
   drag editing.
 - Solicitor review of `CLA.md`; confirm the code-of-conduct contact address.

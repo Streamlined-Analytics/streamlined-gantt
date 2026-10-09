@@ -4,10 +4,12 @@
 /**
  * Query-driven page for end-to-end and visual tests, e.g.
  * /examples/harness.html?fixture=/tests/fixtures/programmes/cpm-n1.json&zoom=day&today=2026-11-09
+ * (add `mobile` for the phone experience, or `mobile={"breakpoint":700}` with options).
  * Every emitted event is recorded in window.events.
  */
 import { Gantt, EVENT_NAME_LIST } from "/dist/streamlined-gantt.js";
 import { builtinEditor } from "/dist/editor.js";
+import { mobileView } from "/dist/mobile.js";
 import { FLAT_ROOF_FIELDS } from "/examples/fields.js";
 import { generatePerfProgramme } from "/tests/fixtures/perf/generate-perf-fixture.js";
 
@@ -38,4 +40,6 @@ const gantt = new Gantt(document.getElementById("programme"), {
 });
 window.firstRenderMs = performance.now() - started;
 window.gantt = gantt;
+if (params.has("mobile"))
+  mobileView(gantt, params.get("mobile") ? JSON.parse(params.get("mobile")) : {});
 document.body.dataset.ready = "true";

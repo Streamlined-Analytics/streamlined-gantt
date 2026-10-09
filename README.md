@@ -121,18 +121,22 @@ them.
 
 The core bundle stays under 45 KB gzip. Everything else is a separate import:
 
-| Import                       | What                                                     |
-| ---------------------------- | -------------------------------------------------------- |
-| `streamlined-gantt/engine`   | Scheduling and calendars without the DOM (Node, workers) |
-| `streamlined-gantt/print`    | A3/A4 print, SVG and PNG export                          |
-| `streamlined-gantt/io/mspdi` | MS Project XML import and export                         |
-| `streamlined-gantt/io/csv`   | `exportCSV(gantt)`                                       |
-| `streamlined-gantt/health`   | `check(gantt)`: SCL/CIOB programme health check          |
-| `streamlined-gantt/toolbar`  | The built-in toolbar (`toolbar: buildToolbar`)           |
-| `streamlined-gantt/editor`   | The built-in task dialog (`editor: builtinEditor`)       |
+| Import                       | What                                                      |
+| ---------------------------- | --------------------------------------------------------- |
+| `streamlined-gantt/engine`   | Scheduling and calendars without the DOM (Node, workers)  |
+| `streamlined-gantt/print`    | A3/A4 print, SVG and PNG export                           |
+| `streamlined-gantt/io/mspdi` | MS Project XML import and export                          |
+| `streamlined-gantt/io/csv`   | `exportCSV(gantt)`                                        |
+| `streamlined-gantt/health`   | `check(gantt)`: SCL/CIOB programme health check           |
+| `streamlined-gantt/toolbar`  | The built-in toolbar (`toolbar: buildToolbar`)            |
+| `streamlined-gantt/editor`   | The built-in task dialog (`editor: builtinEditor`)        |
+| `streamlined-gantt/mobile`   | Phone summary, full-screen landscape chart (`mobileView`) |
 
 The script-tag build (`streamlined-gantt.iife.min.js`) includes the toolbar and the editor dialog,
 so `toolbar: true` and the default `editor: "builtin"` work there and on `<streamlined-gantt>`.
+The phone experience is a separate script, `mobile.iife.min.js`, loaded after it; then
+`mobile: true` (or the element's `mobile` attribute) turns it on. See
+[docs/integration.md](docs/integration.md#phones).
 
 ## Licence and attribution
 

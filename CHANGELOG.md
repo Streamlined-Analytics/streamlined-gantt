@@ -7,6 +7,35 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-09
+
+### Added
+
+- `streamlined-gantt/mobile` and the script-tag add-on `mobile.iife.min.js` (ADR-0011):
+  - below 600 px of width (a phone held upright) a readable summary replaces the chart: the
+    programme's dates, an "Open the chart" button, and each task's dates with a mini bar; no
+    inner scroll, and tapping a task opens the chart at it;
+  - a full-screen chart in a modal dialog inside the host (top layer, focus trap, Escape, scroll
+    lock, safe-area insets), with the Fullscreen API and a landscape lock on Android, and the
+    same full-viewport dialog on iPhone; rows fit the height (24 to 44 px); a rail with close,
+    zoom in, zoom out and fit; pinch to zoom;
+  - an expand button on the inline chart;
+  - `mobileView()`, `installMobile()`, the `mobile` option and the element's `mobile` attribute;
+  - `layout-change` and `fullscreen-change` events;
+  - tokens `--sg-cta-bg`, `--sg-cta-fg`, `--sg-cta-radius`, `--sg-preview-track`,
+    `--sg-preview-font-size`, `--sg-rail-bg` and `--sg-touch-target`.
+- `Gantt.extensions`, functions called with every new chart (for add-ons).
+- An iPhone 15 (WebKit) Playwright project alongside Pixel 7 and iPad.
+
+### Changed
+
+- Touch targets: on touch screens a bar's move target is the full row height and at least 44 px
+  wide, and resize handles are 32 px (were 24) and reach outwards on short bars.
+- The built-in editor is a full-width bottom sheet below 600 px; on touch screens its inputs and
+  buttons are at least 44 px tall with 16 px text (no iOS zoom on focus).
+- The built-in toolbar folds everything after Today behind a "More" button when narrower than
+  560 px.
+
 ## [0.2.0] - 2026-10-09
 
 ### Added

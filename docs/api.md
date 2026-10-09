@@ -12,7 +12,7 @@ const gantt = new Gantt(hostElement, { data, zoom: "week" });
 
 Or, with no JavaScript: `<streamlined-gantt src="/jobs/42/programme.json"></streamlined-gantt>`.
 Its attributes are `src`, `zoom`, `read-only`, `critical-path`, `show-baseline`, `locale`,
-`edit-mode`, `auto-schedule`, `height`, `color-scheme`, `layout`, `fit`, `toolbar`, `listen-patch`
+`edit-mode`, `auto-schedule`, `height`, `color-scheme`, `layout`, `fit`, `toolbar`, `mobile`, `listen-patch`
 and `config`
 (the name of options registered with `defineConfig(name, options)`). The instance is
 `element.gantt`.
@@ -56,6 +56,7 @@ and `config`
 | `contextMenu`                                                                | built-in                                   | `false` or `{items: [...]}`                                                                                                                                                                                                                                                                    |
 | `toolbar`                                                                    | none                                       | `buildToolbar` from `streamlined-gantt/toolbar` (`true` in the script-tag build)                                                                                                                                                                                                               |
 | `confirmDelete`                                                              | `true`                                     | Ask before removing a task from the UI                                                                                                                                                                                                                                                         |
+| `mobile`                                                                     | none                                       | `true` or [mobile options](integration.md#phones) once `installMobile(Gantt)` has run (the `mobile.iife.min.js` add-on runs it); ES module users can call `mobileView(gantt, options)` instead                                                                                                 |
 | `strings`                                                                    | English                                    | UI text and ARIA labels, for translation                                                                                                                                                                                                                                                       |
 | `theme`, `categories`, `categoryOf`, `taskClass`, `taskStyle`, `colorScheme` | none                                       | See [theming.md](theming.md)                                                                                                                                                                                                                                                                   |
 
@@ -104,6 +105,7 @@ emit `edit-rejected` with a `reason`: `vetoed`, `error`, `timeout`, `locked`, `c
 | `openEditor(id)`, `openContextMenu(id)`, `openLinkPicker(id)`                    | UI                                             |
 | `setTheme(theme)`, `setCategories(map)`, `refreshTheme()`                        | Theming                                        |
 | `refresh()`, `destroy()`                                                         | Re-render, and release everything (idempotent) |
+| `Gantt.extensions`                                                               | Functions called with each new chart (add-ons) |
 
 ## Optional entries
 
@@ -117,6 +119,7 @@ emit `edit-rejected` with a `reason`: `vetoed`, `error`, `timeout`, `locked`, `c
 | `streamlined-gantt/health`   | `check(gantt)`: SCL/CIOB programme health findings                                                                                                                             |
 | `streamlined-gantt/toolbar`  | `buildToolbar`                                                                                                                                                                 |
 | `streamlined-gantt/editor`   | `builtinEditor`, `openTaskEditor`, `defaultEditorFields`                                                                                                                       |
+| `streamlined-gantt/mobile`   | `mobileView(gantt, options)`, `installMobile(Gantt)`, `MobileView`, `MOBILE_STRINGS`: the phone summary and full-screen chart (see [integration.md](integration.md#phones))    |
 
 ## Keyboard
 
@@ -130,4 +133,4 @@ emit `edit-rejected` with a `reason`: `vetoed`, `error`, `timeout`, `locked`, `c
 | Shift + F10 or the Menu key        | Context menu                                                                           |
 | Delete                             | Remove the task (with confirmation)                                                    |
 | Ctrl + Z, Ctrl + Y                 | Undo and redo                                                                          |
-| Escape                             | Cancel a drag or close a dialog                                                        |
+| Escape                             | Cancel a drag, close a dialog, or leave the full-screen chart                          |

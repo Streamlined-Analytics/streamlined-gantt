@@ -1,0 +1,30 @@
+name: Bug report
+description: Something renders, schedules or behaves incorrectly.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: fixture
+    attributes:
+      label: Minimal programme JSON that reproduces it
+      description: Paste the smallest programme (from `gantt.toJSON()`) that shows the problem.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser, version and streamlined-gantt version
+    validations:
+      required: true

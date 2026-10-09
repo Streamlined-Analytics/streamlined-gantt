@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest a feature. Please read the non-goals in CONTRIBUTING.md first.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Which construction or project workflow does this serve?
+      description: For example "subcontractor sends a 3-week lookahead to the main contractor every Friday".
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like the library to do?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: How do you work around it today?

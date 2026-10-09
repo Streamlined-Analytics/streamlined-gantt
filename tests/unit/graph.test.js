@@ -6,6 +6,7 @@ import {
   buildHierarchy,
   expandLinks,
   findCycle,
+  toDay,
   wouldCreateCycle,
 } from "../../src/engine/index.js";
 import { ancestorsOf, estimatedDates, leavesOf, topologicalOrder } from "../../src/engine/graph.js";

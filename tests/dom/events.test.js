@@ -126,7 +126,7 @@ const TRIGGERS = {
   },
   "menu-action": ({ gantt, host }) => {
     gantt.openContextMenu("t5", {});
-    host.querySelector('[data-action="copy-id"]').click();
+    host.querySelector('[data-action="edit"]').click();
   },
 };
 

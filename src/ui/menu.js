@@ -95,7 +95,7 @@ export function defaultMenuItems(gantt) {
     {
       id: "copy-id",
       label: s.menuCopyId,
-      action: (context) => globalThis.navigator?.clipboard?.writeText(context.taskId),
+      action: (context) => copyTaskId(context),
     },
     {
       id: "delete",
@@ -235,5 +235,21 @@ export class ContextMenu {
 
   destroy() {
     this.close();
+  }
+}
+
+/**
+ * Copies a task id, announcing the outcome; the clipboard can be refused
+ * (permissions, insecure context), which must not become an unhandled rejection.
+ * @param {{gantt: import("./gantt.js").Gantt, taskId: string}} context
+ * @returns {Promise<void>}
+ */
+async function copyTaskId(context) {
+  const s = context.gantt.strings;
+  try {
+    await globalThis.navigator.clipboard.writeText(context.taskId);
+    context.gantt.announce(s.copiedId);
+  } catch {
+    context.gantt.announce(s.copyFailed);
   }
 }

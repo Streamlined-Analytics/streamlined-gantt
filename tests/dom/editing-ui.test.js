@@ -367,6 +367,41 @@ describe("tooltip", () => {
   });
 });
 
+describe("copy ID from the context menu", () => {
+  /** Replaces navigator.clipboard for one test. */
+  function stubClipboard(writeText) {
+    const original = Object.getOwnPropertyDescriptor(Navigator.prototype, "clipboard");
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    return () => {
+      delete navigator.clipboard;
+      if (original) Object.defineProperty(Navigator.prototype, "clipboard", original);
+    };
+  }
+
+  test.each([
+    ["copied", () => Promise.resolve(), "Task ID copied"],
+    [
+      "refused by the browser",
+      () => Promise.reject(new DOMException("denied", "NotAllowedError")),
+      "Could not copy: the browser blocked the clipboard",
+    ],
+  ])(
+    "%s: the outcome is announced, never an unhandled rejection",
+    async (_label, writeText, message) => {
+      const restore = stubClipboard(writeText);
+      try {
+        const { gantt, host } = mount(structuredClone(flatRoof));
+        gantt.openContextMenu("t5", {});
+        host.querySelector('[data-action="copy-id"]').click();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        await expect.poll(() => gantt.live.textContent).toContain(message);
+      } finally {
+        restore();
+      }
+    },
+  );
+});
+
 describe("optional built-in editor", () => {
   test('in the ES module build, editor: "builtin" opens nothing until the editor is registered', () => {
     const { gantt, host } = mount(structuredClone(flatRoof), { editor: "builtin" });

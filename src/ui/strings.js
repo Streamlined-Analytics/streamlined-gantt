@@ -79,6 +79,8 @@ export const DEFAULT_STRINGS = {
   menuDelete: "Delete…",
   menuDelay: "Record delay here",
   menuCopyId: "Copy ID",
+  copiedId: "Task ID copied",
+  copyFailed: "Could not copy: the browser blocked the clipboard",
   menuLabel: "Task actions",
   newTask: "New task",
   newMilestone: "New milestone",

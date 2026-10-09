@@ -103,8 +103,8 @@ test("no axe violations: the phone summary and the full-screen chart at phone si
   await openHarness(page, { layout: "timeline", fit: "width", mobile: true });
   await expect(page.locator(".sg-preview")).toBeVisible();
   expect(await scan(page)).toEqual([]);
-  await page.getByRole("button", { name: "Open the chart" }).click();
   await page.setViewportSize({ width: 844, height: 390 });
-  await expect(page.locator("dialog.sg-sheet")).toBeVisible();
+  await page.getByRole("button", { name: "Open the chart full screen" }).click();
+  await expect(page.locator(".sg-root.sg-fullscreen")).toBeVisible();
   expect(await scan(page)).toEqual([]);
 });

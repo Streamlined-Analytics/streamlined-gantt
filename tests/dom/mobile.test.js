@@ -225,6 +225,7 @@ describe("full screen", () => {
     const fitted = gantt.scale.dayWidth;
     mobile.zoomInButton.click();
     expect(gantt.fitWidth).toBe(false);
+    expect(gantt.root.classList.contains("sg-fullscreen")).toBe(true);
     expect(gantt.scale.dayWidth).toBeGreaterThan(fitted);
     expect(mobile.fitButton.getAttribute("aria-pressed")).toBe("false");
     mobile.zoomInButton.click();
@@ -269,40 +270,36 @@ describe("full screen", () => {
     expect(gantt.fitWidth).toBe(false);
   });
 
-  test("uses the Fullscreen API and a landscape lock where asked, and survives refusal", async () => {
+  test("falls back to the full-viewport dialog when the Fullscreen API refuses", async () => {
     const { gantt } = mountSample({ width: "900px" });
-    const element = document.documentElement;
-    const lock = vi.fn(() => Promise.resolve());
-    const request = vi.fn(() => Promise.resolve());
-    element.requestFullscreen = request;
-    screen.orientation.lock = lock;
-    try {
-      const mobile = mobileView(gantt, { fullscreen: "always" });
-      await mobile.open();
-      expect(request).toHaveBeenCalledWith({ navigationUI: "hide" });
-      expect(lock).toHaveBeenCalledWith("landscape");
-      expect(mobile.sheet.open).toBe(true);
-      mobile.close();
-      request.mockImplementation(() => Promise.reject(new TypeError("refused")));
-      await mobile.open();
-      expect(mobile.sheet.open).toBe(true);
-      mobile.close();
-    } finally {
-      delete element.requestFullscreen;
-      delete screen.orientation.lock;
-    }
+    const mobile = mobileView(gantt);
+    const request = vi.fn(() => Promise.reject(new TypeError("no user gesture")));
+    mobile.stage.requestFullscreen = request;
+    await mobile.open();
+    expect(request).toHaveBeenCalledWith({ navigationUI: "hide" });
+    expect(mobile.sheet.open).toBe(true);
+    expect(mobile.sheet.contains(gantt.root)).toBe(true);
+    expect(mobile.stage.hasAttribute("role")).toBe(false);
   });
 
-  test("does not request the Fullscreen API on a desktop by default", async () => {
+  test('fullscreen: "overlay" never calls the Fullscreen API', async () => {
     const { gantt } = mountSample({ width: "900px" });
+    const mobile = mobileView(gantt, { fullscreen: "overlay" });
     const request = vi.fn(() => Promise.resolve());
-    document.documentElement.requestFullscreen = request;
-    try {
-      await mobileView(gantt).open();
-      expect(request).not.toHaveBeenCalled();
-    } finally {
-      delete document.documentElement.requestFullscreen;
-    }
+    mobile.stage.requestFullscreen = request;
+    await mobile.open();
+    expect(request).not.toHaveBeenCalled();
+    expect(mobile.sheet.open).toBe(true);
+  });
+
+  test("closing a zoomed chart restores its zoom, and fit-to-width is used while open", async () => {
+    const { gantt } = mountSample({ width: "900px", fit: null, zoom: "day" });
+    const mobile = mobileView(gantt);
+    await mobile.open();
+    expect(gantt.fitWidth).toBe(true);
+    mobile.close();
+    expect(gantt.fitWidth).toBe(false);
+    expect(gantt.zoom).toBe("day");
   });
 
   test("destroying the mobile view while open restores the chart", async () => {
@@ -330,6 +327,156 @@ describe("full screen", () => {
     expect(document.documentElement.style.overflow).toBe("");
     expect(/** @type {any} */ (gantt).mobile).toBeUndefined();
     mobile.destroy();
+  });
+});
+
+describe("native fullscreen (the Fullscreen API on the stage)", () => {
+  /** Fakes an element-fullscreen browser: request, document.fullscreenElement and exit. */
+  function fakeFullscreenApi(mobile) {
+    const state = { element: null };
+    Object.defineProperty(document, "fullscreenElement", {
+      configurable: true,
+      get: () => state.element,
+    });
+    mobile.stage.requestFullscreen = vi.fn(() => {
+      state.element = mobile.stage;
+      document.dispatchEvent(new Event("fullscreenchange"));
+      return Promise.resolve();
+    });
+    document.exitFullscreen = vi.fn(() => {
+      state.element = null;
+      document.dispatchEvent(new Event("fullscreenchange"));
+      return Promise.resolve();
+    });
+    return state;
+  }
+
+  afterEach(() => {
+    delete document.fullscreenElement;
+    delete document.exitFullscreen;
+  });
+
+  test("the stage goes fullscreen as a labelled modal dialog, with the chart fitted", async () => {
+    const { gantt, host } = mountSample({ width: "900px", fit: null });
+    const events = [];
+    gantt.on("fullscreen-change", (event) => events.push(event));
+    const mobile = mobileView(gantt);
+    fakeFullscreenApi(mobile);
+    await mobile.open();
+    expect(mobile.stage.requestFullscreen).toHaveBeenCalled();
+    expect(mobile.sheet.open).toBe(false);
+    expect(mobile.stage.parentElement).toBe(host);
+    expect(mobile.stage.contains(gantt.root)).toBe(true);
+    expect(mobile.stage.getAttribute("role")).toBe("dialog");
+    expect(mobile.stage.getAttribute("aria-modal")).toBe("true");
+    expect(mobile.stage.getAttribute("aria-label")).toBe("Programme chart");
+    expect(gantt.fitWidth).toBe(true);
+    expect(gantt.root.classList.contains("sg-fullscreen")).toBe(true);
+    expect(events.at(-1)).toMatchObject({ open: true, native: true });
+    expect(gantt.isFullscreen).toBe(true);
+  });
+
+  test("focus stays inside, and Escape closes and leaves fullscreen", async () => {
+    const { gantt, host } = mountSample({ width: "900px" });
+    const outside = document.createElement("button");
+    document.body.append(outside);
+    const mobile = mobileView(gantt);
+    fakeFullscreenApi(mobile);
+    await mobile.open();
+    outside.focus();
+    expect(document.activeElement).toBe(mobile.closeButton);
+    mobile.closeButton.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
+    );
+    expect(mobile.opened).toBe(false);
+    expect(document.exitFullscreen).toHaveBeenCalled();
+    expect(gantt.root.parentElement).toBe(host);
+    expect(mobile.stage.hidden).toBe(true);
+    outside.remove();
+  });
+
+  test("leaving fullscreen from the browser closes the chart", async () => {
+    const { gantt } = mountSample({ width: "900px" });
+    const events = [];
+    gantt.on("fullscreen-change", (event) => events.push(event.open));
+    const mobile = mobileView(gantt);
+    const state = fakeFullscreenApi(mobile);
+    await mobile.open();
+    state.element = null;
+    document.dispatchEvent(new Event("fullscreenchange"));
+    expect(mobile.opened).toBe(false);
+    expect(events).toEqual([true, false]);
+  });
+
+  test("the landscape lock is asked for only on touch screens", async () => {
+    const { gantt } = mountSample({ width: "900px" });
+    const mobile = mobileView(gantt);
+    fakeFullscreenApi(mobile);
+    const lock = vi.fn(() => Promise.resolve());
+    screen.orientation.lock = lock;
+    try {
+      await mobile.open();
+      expect(lock).not.toHaveBeenCalled();
+      mobile.close();
+      vi.spyOn(gantt, "coarsePointer").mockReturnValue(true);
+      await mobile.open();
+      expect(lock).toHaveBeenCalledWith("landscape");
+    } finally {
+      delete screen.orientation.lock;
+    }
+  });
+});
+
+describe("the F shortcut and the Gantt API", () => {
+  const press = (target, key = "f") =>
+    target.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
+
+  test("F toggles full screen from the chart, but not while typing in a field", async () => {
+    const { gantt } = mountSample({ width: "900px" });
+    const mobile = mobileView(gantt);
+    const cell = gantt.root.querySelector(".sg-grid [role=gridcell]");
+    press(cell);
+    await vi.waitFor(() => expect(mobile.opened).toBe(true));
+    press(mobile.closeButton, "F");
+    expect(mobile.opened).toBe(false);
+    const input = document.createElement("input");
+    gantt.root.append(input);
+    press(input);
+    expect(mobile.opened).toBe(false);
+    mobileView(mountSample({ width: "900px" }).gantt, { shortcut: false });
+  });
+
+  test("shortcut: false leaves F alone", () => {
+    const { gantt } = mountSample({ width: "900px" });
+    const mobile = mobileView(gantt, { shortcut: false });
+    press(gantt.root.querySelector(".sg-grid [role=gridcell]"));
+    expect(mobile.opened).toBe(false);
+    expect(mobile.expand.hasAttribute("aria-keyshortcuts")).toBe(false);
+  });
+
+  test("enterFullscreen, exitFullscreen, toggleFullscreen and isFullscreen", async () => {
+    const { gantt } = mountSample({ width: "900px" });
+    await expect(gantt.enterFullscreen()).rejects.toThrow(/streamlined-gantt\/mobile/);
+    mobileView(gantt);
+    await gantt.enterFullscreen({ taskId: "joinery" });
+    expect(gantt.isFullscreen).toBe(true);
+    expect(gantt.getSelection()).toEqual(["joinery"]);
+    gantt.exitFullscreen();
+    expect(gantt.isFullscreen).toBe(false);
+    await gantt.toggleFullscreen();
+    expect(gantt.isFullscreen).toBe(true);
+    await gantt.toggleFullscreen();
+    expect(gantt.isFullscreen).toBe(false);
+  });
+
+  test("with the built-in toolbar, the button is a labelled Full screen button in it", () => {
+    const { gantt } = mountSample({ width: "1100px", toolbar: buildToolbar });
+    const mobile = mobileView(gantt);
+    const button = gantt.root.querySelector(".sg-toolbar .sg-toolbar-fullscreen");
+    expect(button).toBe(mobile.expand);
+    expect(button.textContent).toBe("Full screen");
+    expect(button.getAttribute("aria-keyshortcuts")).toBe("F");
+    expect(gantt.root.querySelector(".sg-expand")).toBeNull();
   });
 });
 

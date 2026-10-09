@@ -102,6 +102,6 @@ test("full-screen chart in landscape (mobile view)", async ({ page }) => {
   await page.setViewportSize({ width: 844, height: 390 });
   await openHarness(page, PHONE_SAMPLE);
   await page.evaluate(() => window.gantt.mobile.open());
-  await expect(page.locator("dialog.sg-sheet")).toBeVisible();
+  await expect(page.locator(".sg-root.sg-fullscreen")).toBeVisible();
   await expect(page).toHaveScreenshot("mobile-fullscreen-landscape.png");
 });

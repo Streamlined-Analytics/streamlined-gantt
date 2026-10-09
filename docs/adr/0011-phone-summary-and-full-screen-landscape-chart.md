@@ -1,4 +1,4 @@
-# 0011. A phone summary in place of the chart, and a full-screen landscape chart
+# 0011. A phone summary in place of the chart, and full screen on every screen size
 
 - **Status:** Accepted
 - **Date:** 2026-10-09
@@ -71,25 +71,50 @@ Keeps the theme, but any ancestor with a `transform`, `filter` or `contain` (com
 builders) turns `fixed` into "relative to that ancestor", and `z-index` fights with sticky
 headers.
 
-### Full screen, attempt 3: a modal `<dialog>` inside the host ✅ chosen
+### Full screen, attempt 3: a modal `<dialog>` inside the host, plus document fullscreen ⚠️ replaced
 
-`open()` moves the chart into a `<dialog>` that stays inside the host, and calls `showModal()`.
-The dialog is in the browser's top layer, so no ancestor can clip it or stack above it, while
-it is still a DOM descendant of the host, so theme selectors keep matching. The modal dialog
-also makes the rest of the page inert (a focus trap) and turns Escape into a `cancel` event,
-which we use to close. The page's scroll is locked (`overflow: hidden` on `<html>`) while it is
-open, and the chart's scroller has `overscroll-behavior: contain`.
+`open()` moved the chart into a `<dialog>` inside the host and called `showModal()`. The top
+layer meant no ancestor could clip it, it stayed a DOM descendant of the host so theme selectors
+kept matching, and the modal gave a focus trap and Escape. On touch screens it also asked for
+fullscreen on `<html>`, showing the dialog only after the request settled (shown earlier, the
+fullscreen `<html>` entered the top layer after it and painted over it). This was the first
+version of this PR.
 
-On touch devices (`fullscreen: "auto"`) it also asks for document fullscreen and then
-`screen.orientation.lock("landscape")`, both inside the tap. The dialog is shown only once the
-fullscreen request settles: shown earlier, the fullscreen `<html>` element would enter the top
-layer after it and paint over it. Refusals are ignored, so iPhones, desktops and browsers that
-refuse simply get the dialog. On a phone held upright, a short "Turn your phone sideways for a
-wider chart" hint shows in the rail (CSS only: portrait and a coarse pointer). If the user
-leaves native fullscreen with the back gesture, the dialog stays open and `fullscreen-change`
-reports `native: false`.
+Ben then asked for full screen as a general feature on every screen size, using the Fullscreen
+API on the component, with a keyboard shortcut and a JavaScript API. Two findings changed the
+design: Chromium refuses fullscreen on a `<dialog>` ("Dialog elements are invalid"), so the
+dialog cannot itself be the fullscreen element; and fullscreening `<html>` on a desktop takes
+the whole page, not the chart.
 
-In the dialog, rows are fitted to the height: `floor((height − header) / rows)`, between
+### Full screen, attempt 4: the Fullscreen API on a stage element, the dialog as fallback ✅ chosen
+
+`open()` moves the chart into a plain stage element inside the host. Where the Fullscreen API
+exists (desktops, Android, iPad) the stage itself goes fullscreen, labelled as a modal dialog
+(`role="dialog"`, `aria-modal`). Theme selectors still match, and the stage is in the top layer.
+On touch screens it then asks for `screen.orientation.lock("landscape")`. The API gives no focus
+trap, so focus that leaves the stage is put back on the close button. Escape, or leaving
+fullscreen from the browser (its own Escape handling, Android's back gesture), closes the chart.
+Where there is no API (iPhone), or the request is refused (no user gesture, a permissions policy),
+the stage goes into the modal `<dialog>` from attempt 3, with the page's scroll locked. On a phone
+held upright a short "Turn your phone sideways" hint shows in the rail (CSS only: portrait and a
+coarse pointer).
+
+Opening switches the chart to fit-to-width and closing restores its zoom. The full-screen button
+sits in the built-in toolbar (labelled **Full screen**) when there is one, else in the chart's
+corner, and `expandButton: false` hides it. `F` (or Shift + F) toggles full screen while focus is
+in the chart and not in a field, menu or dialog; it was the only free single key (the treegrid
+has no type-ahead). The `Gantt` class gets `enterFullscreen()`, `exitFullscreen()`,
+`toggleFullscreen()` and `isFullscreen`, which delegate to the add-on and reject with a clear
+message without it. Testing it found that `updateRootState()` rewrote the root's classes and
+dropped `sg-fullscreen` whenever fit or zoom changed, so the core now keeps that class while full
+screen.
+
+The event is `fullscreen-change` (DOM `gantt:fullscreen-change`), not `fullscreenchange`, to match
+every other event in the catalogue (`zoom-change`, `lookahead-change`).
+
+![The sample full screen on a 1440 × 900 desktop](assets/0011/desktop-fullscreen.png)
+
+Full screen, rows are fitted to the height: `floor((height − header) / rows)`, between
 `minRowHeight` (24 px, the WCAG 2.5.8 target size) and `maxRowHeight` (44 px), refitted on every
 resize and orientation change. The 14-row sample fits a Pixel 7 in landscape at 26 px rows with
 no vertical scroll. A rail (down the side in landscape, where width is spare and the notch is;
@@ -124,6 +149,9 @@ chart's `--sg-height`, fit-to-width, the page's scroll and focus.
 - A small core hook, `Gantt.extensions`: functions called with every new chart, so a separately
   loaded add-on can read `gantt.options.mobile`. It costs a few bytes and avoids loading the
   mobile code into the core or the script-tag build.
+- Full screen on every size from the add-on: a Full screen button, the `F` key, and
+  `gantt.enterFullscreen()` / `exitFullscreen()` / `toggleFullscreen()` / `isFullscreen` in the
+  core (delegating to the add-on).
 - Two events in the catalogue, `layout-change` and `fullscreen-change`, mirrored on the host as
   `gantt:layout-change` and `gantt:fullscreen-change`.
 - Tokens for the host's brand: `--sg-cta-bg`, `--sg-cta-fg`, `--sg-cta-radius`,
@@ -131,12 +159,17 @@ chart's `--sg-height`, fit-to-width, the page's scroll and focus.
   mobile CSS lives in the main stylesheet, so hosts add one script, not a stylesheet.
 - `prefers-reduced-motion` turns off the dialog's entrance animation.
 
-Sizes (gzip): core 44.27 KB (was 44.15), script-tag build 46.83 KB (was 46.63), CSS 5.06 KB (was
-4.02), mobile module 4.87 KB and its script-tag add-on 5.12 KB (8 KB budget each).
+Sizes (gzip): core 44.38 KB (was 44.15), script-tag build 46.94 KB (was 46.63), CSS 5.09 KB (was
+4.02), mobile module 5.27 KB and its script-tag add-on 5.51 KB (8 KB budget each).
 
 ## What does this cost us?
 
-- Hosts have to load a second script to get the phone experience; without it nothing changes.
+- Hosts have to load a second script to get the phone experience and full screen; without it
+  nothing changes and `enterFullscreen()` rejects. The module keeps the name `mobile` although
+  full screen works everywhere, because phones are why it exists and renaming it would only add
+  churn.
+- In element fullscreen, focus is kept inside by moving it back rather than by making the page
+  inert, so a screen reader's virtual cursor can still reach page content behind the chart.
 - The summary is a second rendering of the programme to keep in step with the chart (it
   re-renders on `change` and `load`).
 - Below 600 px a page can no longer show the chart inline without `preview: false`.

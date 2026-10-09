@@ -116,5 +116,5 @@ accept `preventDefault()` and `waitUntil(promise)`; see [integration.md](integra
 
 | Event | Cancelable | Payload | When |
 | --- | --- | --- | --- |
-| `fullscreen-change` |  | `open`, `native`, `orientation` | The full-screen chart opened or closed (`streamlined-gantt/mobile`). `native` is true while the Fullscreen API is active; iPhones get a full-viewport overlay instead. |
+| `fullscreen-change` |  | `open`, `native`, `orientation` | The full-screen chart opened or closed (`streamlined-gantt/mobile`). `native` is true when the Fullscreen API is in use; iPhones get a full-viewport dialog instead. |
 | `layout-change` |  | `mode`, `previous`, `orientation`, `width` | The mobile presentation changed: `mode` is `"inline"` (the chart), `"preview"` (the phone summary that replaces it below the breakpoint) or `"fullscreen"`. |

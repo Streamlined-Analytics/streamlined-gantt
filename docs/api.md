@@ -94,43 +94,45 @@ emit `edit-rejected` with a `reason`: `vetoed`, `error`, `timeout`, `locked`, `c
 
 ## View control (`Gantt`)
 
-| Method                                                                           |                                                |
-| -------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `setZoom(zoom)`, `zoomIn()`, `zoomOut()`, `fitToRange(from, to)`, `setFit(fit)`  | Timescale                                      |
-| `scrollToDate(date)`, `scrollToTask(id)`, `focusTask(id)`                        | Navigation                                     |
-| `select(ids)`, `getSelection()`, `clearSelection()`, `selectLink(id)`            | Selection                                      |
-| `collapse(id)`, `expand(id)`, `toggle(id)`, `collapseAll()`, `expandAll(level?)` | Outline                                        |
-| `setReadOnly(bool)`, `setCriticalPathVisible(bool)`, `setBaselineVisible(id)`    | Display                                        |
-| `setFilter(predicate)`, `setLookahead({weeks})`                                  | Filtering and lookahead                        |
-| `openEditor(id)`, `openContextMenu(id)`, `openLinkPicker(id)`                    | UI                                             |
-| `setTheme(theme)`, `setCategories(map)`, `refreshTheme()`                        | Theming                                        |
-| `refresh()`, `destroy()`                                                         | Re-render, and release everything (idempotent) |
-| `Gantt.extensions`                                                               | Functions called with each new chart (add-ons) |
+| Method                                                                                |                                                |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `setZoom(zoom)`, `zoomIn()`, `zoomOut()`, `fitToRange(from, to)`, `setFit(fit)`       | Timescale                                      |
+| `scrollToDate(date)`, `scrollToTask(id)`, `focusTask(id)`                             | Navigation                                     |
+| `select(ids)`, `getSelection()`, `clearSelection()`, `selectLink(id)`                 | Selection                                      |
+| `collapse(id)`, `expand(id)`, `toggle(id)`, `collapseAll()`, `expandAll(level?)`      | Outline                                        |
+| `setReadOnly(bool)`, `setCriticalPathVisible(bool)`, `setBaselineVisible(id)`         | Display                                        |
+| `setFilter(predicate)`, `setLookahead({weeks})`                                       | Filtering and lookahead                        |
+| `openEditor(id)`, `openContextMenu(id)`, `openLinkPicker(id)`                         | UI                                             |
+| `enterFullscreen(options?)`, `exitFullscreen()`, `toggleFullscreen()`, `isFullscreen` | Full screen (with `streamlined-gantt/mobile`)  |
+| `setTheme(theme)`, `setCategories(map)`, `refreshTheme()`                             | Theming                                        |
+| `refresh()`, `destroy()`                                                              | Re-render, and release everything (idempotent) |
+| `Gantt.extensions`                                                                    | Functions called with each new chart (add-ons) |
 
 ## Optional entries
 
-| Import                       | Exports                                                                                                                                                                        |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `streamlined-gantt/engine`   | `schedule`, `Calendar`, date helpers, `validateProgramme`, `projectSummary`, `paymentSchedule`, `fromGovUkBankHolidays`, `addWorkingDays(date, n, calendar)` and more. No DOM. |
-| `streamlined-gantt/events`   | `EVENT_NAMES`, the event catalogue                                                                                                                                             |
-| `streamlined-gantt/print`    | `printProgramme`, `buildDocument`, `toSVG`, `exportPNG`, `printDocumentHTML`, `installPrint`                                                                                   |
-| `streamlined-gantt/io/mspdi` | `toMSPDI`, `fromMSPDI`, `MspdiParseError` (see [mspdi.md](mspdi.md))                                                                                                           |
-| `streamlined-gantt/io/csv`   | `exportCSV(gantt)`, `programmeToCSV`                                                                                                                                           |
-| `streamlined-gantt/health`   | `check(gantt)`: SCL/CIOB programme health findings                                                                                                                             |
-| `streamlined-gantt/toolbar`  | `buildToolbar`                                                                                                                                                                 |
-| `streamlined-gantt/editor`   | `builtinEditor`, `openTaskEditor`, `defaultEditorFields`                                                                                                                       |
-| `streamlined-gantt/mobile`   | `mobileView(gantt, options)`, `installMobile(Gantt)`, `MobileView`, `MOBILE_STRINGS`: the phone summary and full-screen chart (see [integration.md](integration.md#phones))    |
+| Import                       | Exports                                                                                                                                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `streamlined-gantt/engine`   | `schedule`, `Calendar`, date helpers, `validateProgramme`, `projectSummary`, `paymentSchedule`, `fromGovUkBankHolidays`, `addWorkingDays(date, n, calendar)` and more. No DOM.      |
+| `streamlined-gantt/events`   | `EVENT_NAMES`, the event catalogue                                                                                                                                                  |
+| `streamlined-gantt/print`    | `printProgramme`, `buildDocument`, `toSVG`, `exportPNG`, `printDocumentHTML`, `installPrint`                                                                                        |
+| `streamlined-gantt/io/mspdi` | `toMSPDI`, `fromMSPDI`, `MspdiParseError` (see [mspdi.md](mspdi.md))                                                                                                                |
+| `streamlined-gantt/io/csv`   | `exportCSV(gantt)`, `programmeToCSV`                                                                                                                                                |
+| `streamlined-gantt/health`   | `check(gantt)`: SCL/CIOB programme health findings                                                                                                                                  |
+| `streamlined-gantt/toolbar`  | `buildToolbar`                                                                                                                                                                      |
+| `streamlined-gantt/editor`   | `builtinEditor`, `openTaskEditor`, `defaultEditorFields`                                                                                                                            |
+| `streamlined-gantt/mobile`   | `mobileView(gantt, options)`, `installMobile(Gantt)`, `MobileView`, `MOBILE_STRINGS`: the phone summary and full screen on every size (see [integration.md](integration.md#phones)) |
 
 ## Keyboard
 
-| Keys                               | Action                                                                                 |
-| ---------------------------------- | -------------------------------------------------------------------------------------- |
-| Arrow keys, Home/End, Page Up/Down | Move between rows and cells (treegrid)                                                 |
-| Alt + Left/Right                   | Move the task one working day                                                          |
-| Alt + Shift + Left/Right           | Shorten or lengthen by one working day                                                 |
-| Enter or F2                        | Edit the cell (opens the editor in the timeline layout); Ctrl + Enter opens the editor |
-| Ctrl + K                           | Link to another task (picker)                                                          |
-| Shift + F10 or the Menu key        | Context menu                                                                           |
-| Delete                             | Remove the task (with confirmation)                                                    |
-| Ctrl + Z, Ctrl + Y                 | Undo and redo                                                                          |
-| Escape                             | Cancel a drag, close a dialog, or leave the full-screen chart                          |
+| Keys                                | Action                                                                                 |
+| ----------------------------------- | -------------------------------------------------------------------------------------- |
+| Arrow keys, Home/End, Page Up/Down  | Move between rows and cells (treegrid)                                                 |
+| Alt + Left/Right                    | Move the task one working day                                                          |
+| Alt + Shift + Left/Right            | Shorten or lengthen by one working day                                                 |
+| Enter or F2                         | Edit the cell (opens the editor in the timeline layout); Ctrl + Enter opens the editor |
+| Ctrl + K                            | Link to another task (picker)                                                          |
+| Shift + F10 or the Menu key         | Context menu                                                                           |
+| Delete                              | Remove the task (with confirmation)                                                    |
+| Ctrl + Z, Ctrl + Y                  | Undo and redo                                                                          |
+| F (with `streamlined-gantt/mobile`) | Open or close the chart full screen                                                    |
+| Escape                              | Cancel a drag, close a dialog, or leave the full-screen chart                          |

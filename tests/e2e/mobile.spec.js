@@ -31,16 +31,32 @@ async function axe(page, selector) {
 const isPhone = (page) => page.viewportSize().width < 600;
 
 /**
- * Swaps the viewport's width and height. Chromium will not resize a window
- * in native fullscreen, so that is left first, as a system back gesture
- * would; the chart's own full-viewport dialog stays open.
+ * Turns the device: swaps the viewport's width and height. Chromium cannot
+ * resize a window in native fullscreen, so there the device metrics are
+ * emulated instead, as a real phone rotating in fullscreen would report them.
  * @param {import("@playwright/test").Page} page
+ * @param {string} browserName
  */
-async function rotate(page) {
-  await page.evaluate(() => document.fullscreenElement && document.exitFullscreen());
-  await expect.poll(() => page.evaluate(() => Boolean(document.fullscreenElement))).toBe(false);
-  const { width, height } = page.viewportSize();
-  await page.setViewportSize({ width: height, height: width });
+async function rotate(page, browserName) {
+  const { width, height } = await page.evaluate(() => ({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }));
+  if (browserName !== "chromium") {
+    await page.setViewportSize({ width: height, height: width });
+    return;
+  }
+  const client = await page.context().newCDPSession(page);
+  const landscape = height > width;
+  await client.send("Emulation.setDeviceMetricsOverride", {
+    width: height,
+    height: width,
+    deviceScaleFactor: 1,
+    mobile: true,
+    screenOrientation: landscape
+      ? { type: "landscapePrimary", angle: 90 }
+      : { type: "portraitPrimary", angle: 0 },
+  });
 }
 
 /**
@@ -62,12 +78,18 @@ async function usedFullscreenApiWherePossible(page, browserName) {
  */
 async function railFollowsTheLongEdge(page) {
   const rail = await page.locator(".sg-rail").boundingBox();
-  const { width, height } = page.viewportSize();
+  const { width, height } = await page.evaluate(() => ({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }));
   return width > height ? rail.height > rail.width : rail.width > rail.height;
 }
 
-/** @param {import("@playwright/test").Page} page */
-const sheet = (page) => page.locator("dialog.sg-sheet");
+/**
+ * The chart while full screen: in the stage (Fullscreen API) or in the dialog (iPhone).
+ * @param {import("@playwright/test").Page} page
+ */
+const sheet = (page) => page.locator(".sg-root.sg-fullscreen");
 
 /**
  * Taps a bar to select it, then drags it one week later with touch.
@@ -109,7 +131,7 @@ test("phone: portrait summary, open, rotate to landscape, drag a bar, close", as
   await expect(page.locator(".sg-rotate-hint")).toBeVisible();
   await expect.poll(() => usedFullscreenApiWherePossible(page, browserName)).toBe(true);
 
-  await rotate(page);
+  await rotate(page, browserName);
   await expect(sheet(page)).toBeVisible();
   await expect(page.locator(".sg-rotate-hint")).toBeHidden();
   await expect
@@ -121,14 +143,14 @@ test("phone: portrait summary, open, rotate to landscape, drag a bar, close", as
       }),
     )
     .toBe(true);
-  expect(await axe(page, "dialog.sg-sheet")).toEqual([]);
+  expect(await axe(page, ".sg-fullscreen")).toEqual([]);
 
   await dragStripOutOneWeek(page, browserName);
   expect((await eventNames(page)).filter((name) => name === "change")).toHaveLength(1);
 
   await page.getByRole("button", { name: "Close the chart" }).tap();
-  await expect(sheet(page)).toBeHidden();
   await expect(page.locator(".sg-fullscreen")).toHaveCount(0);
+  expect(await page.evaluate(() => document.fullscreenElement)).toBeNull();
   const modes = await page.evaluate(() =>
     window.events.filter((event) => event.type === "layout-change").map((event) => event.mode),
   );
@@ -139,7 +161,7 @@ test("phone: portrait summary, open, rotate to landscape, drag a bar, close", as
   expect(fullscreen.at(0)).toBe(true);
   expect(fullscreen.at(-1)).toBe(false);
 
-  await rotate(page);
+  await rotate(page, browserName);
   await expect(preview).toBeVisible();
   await expect(preview.locator('[data-task-id="strip"] .sg-preview-dates')).toContainText("10 Mar");
   assertClean();
@@ -157,13 +179,16 @@ test("tablet: inline chart, expand, drag a bar, close", async ({ page, browserNa
   await expect(page.getByRole("button", { name: "Open the chart full screen" })).toBeVisible();
 });
 
-test("rotating while open keeps the chart open and refits the rows", async ({ page }) => {
+test("rotating while open keeps the chart open and refits the rows", async ({
+  page,
+  browserName,
+}) => {
   await openHarness(page, SAMPLE);
   await page.evaluate(() => window.gantt.mobile.open());
   await expect(sheet(page)).toBeVisible();
   const tallRows = (await page.evaluate(() => window.gantt.rowHeight)) === 44;
   const before = await page.evaluate(() => window.gantt.rowHeight);
-  await rotate(page);
+  await rotate(page, browserName);
   await expect
     .poll(async () => tallRows || (await page.evaluate(() => window.gantt.rowHeight)) !== before)
     .toBe(true);
@@ -199,7 +224,10 @@ test("the editor is a full-width sheet on a phone, with inputs that do not zoom"
   const editor = page.locator("dialog.sg-dialog");
   await expect(editor).toBeVisible();
   const box = await editor.boundingBox();
-  const viewport = page.viewportSize();
+  const viewport = await page.evaluate(() => ({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }));
   expect(Math.round(box.width)).toBe(viewport.width);
   expect(Math.abs(box.y + box.height - viewport.height)).toBeLessThanOrEqual(2);
   const sizes = await editor

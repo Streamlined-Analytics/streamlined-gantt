@@ -1196,6 +1196,27 @@
     display: flex;
   }
 
+  .sg-stage {
+    display: flex;
+    flex: 1;
+    width: 100%;
+    height: 100%;
+  }
+
+  .sg-stage[hidden] {
+    display: none;
+  }
+
+  .sg-toolbar-fullscreen {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sg-fullscreen .sg-toolbar-fullscreen {
+    display: none;
+  }
+
   .sg-root.sg-fullscreen {
     flex: 1;
     display: grid;

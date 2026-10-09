@@ -3,25 +3,30 @@
 
 import { toDay } from "../engine/dates.js";
 import { formatDate } from "../engine/format.js";
-import { html, svg } from "./dom.js";
+import { html, setAttributes, svg } from "./dom.js";
 import { ZOOM_LEVELS, ZOOM_ORDER } from "./scale.js";
 import { fill } from "./strings.js";
 
 /**
- * The phone experience (`streamlined-gantt/mobile`, ADR-0011).
+ * The phone experience and full screen on every screen size
+ * (`streamlined-gantt/mobile`, ADR-0011).
  *
  * - **Preview**: below `breakpoint` (a phone held upright) the chart is
  *   replaced by a readable list, one row per task with its dates and a mini
  *   bar on a shared track, and a button that opens the full chart. The list
  *   has no inner scroll; the page scrolls.
- * - **Full screen**: `open()` moves the chart into a modal `<dialog>` inside
- *   the host (so the host's theme selectors still match), which gives the top
- *   layer, a focus trap and Escape for free. On touch devices it also asks
- *   for document fullscreen and a landscape lock where the browser allows it
- *   (Android Chrome); iPhones, which have neither, get the same full-viewport
- *   dialog. Rows shrink, down to `minRowHeight`, so the whole programme fits
- *   the height; a rail holds close, zoom and fit controls, and pinch zooms.
- * - **Inline**: at other widths the chart is unchanged, with an expand button.
+ * - **Full screen** (any size; the expand button, `F`, or `open()`): the chart
+ *   moves into a stage element inside the host, so the host's theme selectors
+ *   still match. Where the Fullscreen API exists (desktops, Android, iPad) the
+ *   stage itself goes fullscreen, with a landscape lock on touch screens where
+ *   allowed; Escape or leaving fullscreen closes it, and focus is kept inside.
+ *   Otherwise (iPhone, or a refused request) the stage is shown in a modal
+ *   `<dialog>`, which gives the top layer, a focus trap and Escape. The chart
+ *   fits the width, rows shrink (down to `minRowHeight`) so the whole
+ *   programme fits the height, a rail holds close, zoom and fit, and two
+ *   fingers pinch to zoom.
+ * - **Inline**: at other widths the chart is unchanged, with an expand button
+ *   (in the built-in toolbar when there is one, else in the corner).
  *
  * Events: `layout-change` and `fullscreen-change` on the chart (DOM
  * `gantt:layout-change`, `gantt:fullscreen-change` on the host).
@@ -40,6 +45,7 @@ export const MOBILE_STRINGS = {
   mobileRail: "Chart controls",
   mobileClose: "Close the chart",
   mobileExpand: "Open the chart full screen",
+  mobileFullscreen: "Full screen",
   mobileZoomIn: "Zoom in",
   mobileZoomOut: "Zoom out",
   mobileFit: "Fit the whole programme",
@@ -52,8 +58,9 @@ export const MOBILE_STRINGS = {
  * @typedef {object} MobileOptions
  * @property {number} [breakpoint] host width in px below which the preview replaces the chart (600)
  * @property {boolean} [preview] show the preview below the breakpoint (true); false keeps the chart
- * @property {boolean} [expandButton] draw the expand button on the inline chart (true)
- * @property {"auto"|"always"|"never"} [fullscreen] use the Fullscreen API: on touch devices ("auto"), everywhere, or never
+ * @property {boolean} [expandButton] draw the full-screen button on the inline chart (true)
+ * @property {boolean} [shortcut] F toggles full screen while focus is in the chart (true)
+ * @property {"auto"|"overlay"} [fullscreen] use the Fullscreen API where it exists ("auto"), or always the full-viewport dialog ("overlay")
  * @property {"landscape"|"any"} [orientation] lock to landscape while full screen, where supported ("landscape")
  * @property {number} [minRowHeight] smallest row when fitting rows to the screen (24, the WCAG 2.5.8 target size)
  * @property {number} [maxRowHeight] largest row when fitting rows to the screen (44)
@@ -93,6 +100,7 @@ export class MobileView {
       breakpoint: 600,
       preview: true,
       expandButton: true,
+      shortcut: true,
       fullscreen: "auto",
       orientation: "landscape",
       minRowHeight: 24,
@@ -142,18 +150,25 @@ export class MobileView {
       this.list,
     );
     gantt.root.before(this.preview);
+    const toolbar = gantt.root.querySelector(":scope > .sg-toolbar");
     this.expand = this.options.expandButton
       ? html(
           "button",
-          { type: "button", class: "sg-button sg-expand", "aria-label": s.mobileExpand },
-          [icon("expand")],
+          {
+            type: "button",
+            class: toolbar ? "sg-button sg-toolbar-fullscreen" : "sg-button sg-expand",
+            "aria-label": toolbar ? null : s.mobileExpand,
+            "aria-keyshortcuts": this.options.shortcut ? "F" : null,
+          },
+          toolbar ? [icon("expand"), s.mobileFullscreen] : [icon("expand")],
         )
       : null;
-    if (this.expand) gantt.root.append(this.expand);
+    if (this.expand) (toolbar ?? gantt.root).append(this.expand);
+    this.stage = html("div", { class: "sg-stage", hidden: true });
     this.sheet = /** @type {HTMLDialogElement} */ (
       html("dialog", { class: "sg-sheet", "aria-label": s.mobileDialogLabel })
     );
-    gantt.root.after(this.sheet);
+    gantt.root.after(this.stage, this.sheet);
     const button = (name, label) =>
       /** @type {HTMLButtonElement} */ (
         html("button", { type: "button", class: "sg-button", "aria-label": label }, [icon(name)])
@@ -199,6 +214,8 @@ export class MobileView {
       this.close();
     });
     this.on(document, "fullscreenchange", () => this.onFullscreenChange());
+    this.on(document, "focusin", (event) => this.keepFocusInside(event));
+    this.on(gantt.root, "keydown", (event) => this.onKeyDown(event));
     this.on(gantt.scroller, "touchstart", (event) => this.onTouchStart(event), { passive: true });
     this.on(gantt.scroller, "touchmove", (event) => this.onTouchMove(event), { passive: false });
     for (const name of ["change", "load"])
@@ -340,10 +357,8 @@ export class MobileView {
   /* --------------------------------------------------------- full screen */
 
   /**
-   * Opens the full-screen chart. Call it from a click or tap so the browser
-   * allows fullscreen and the orientation lock. The dialog is shown after the
-   * fullscreen request settles, so it stacks above the fullscreen element in
-   * the top layer.
+   * Opens the chart full screen. Call it from a click, tap or key press so the
+   * browser allows fullscreen and the orientation lock.
    * @param {{taskId?: string}} [options] select and scroll to a task
    * @returns {Promise<void>} resolves once the chart is showing
    */
@@ -357,22 +372,61 @@ export class MobileView {
       height: root.style.getPropertyValue("--sg-height"),
       overflow: document.documentElement.style.overflow,
       fitWidth: gantt.fitWidth,
+      zoom: gantt.zoom,
     };
     this.isOpen = true;
+    this.native = false;
     root.hidden = false;
     root.classList.add("sg-fullscreen");
     root.style.setProperty("--sg-height", "100%");
     root.append(this.rail);
-    this.sheet.append(root);
-    return this.requestNativeFullscreen().then(() => this.show(options.taskId));
+    this.stage.append(root);
+    this.stage.hidden = false;
+    if (!this.canUseFullscreenApi())
+      return Promise.resolve().then(() => this.showOverlay(options.taskId));
+    setAttributes(this.stage, {
+      role: "dialog",
+      "aria-modal": "true",
+      "aria-label": this.strings.mobileDialogLabel,
+    });
+    return this.stage.requestFullscreen({ navigationUI: "hide" }).then(
+      () => {
+        if (!this.isOpen) return;
+        this.native = true;
+        this.lockOrientation();
+        this.show(options.taskId);
+      },
+      () => this.showOverlay(options.taskId),
+    );
+  }
+
+  /** @returns {boolean} */
+  canUseFullscreenApi() {
+    return (
+      this.options.fullscreen !== "overlay" &&
+      typeof this.stage.requestFullscreen === "function" &&
+      document.fullscreenEnabled !== false &&
+      !document.fullscreenElement
+    );
+  }
+
+  /**
+   * The fallback: the stage in a modal dialog covering the viewport.
+   * @param {string|undefined} taskId
+   */
+  showOverlay(taskId) {
+    if (!this.isOpen) return;
+    setAttributes(this.stage, { role: null, "aria-modal": null, "aria-label": null });
+    this.sheet.append(this.stage);
+    this.sheet.showModal();
+    document.documentElement.style.overflow = "hidden";
+    this.show(taskId);
   }
 
   /** @param {string|undefined} taskId */
   show(taskId) {
-    if (!this.isOpen || this.sheet.open) return;
     const gantt = this.gantt;
-    this.sheet.showModal();
-    document.documentElement.style.overflow = "hidden";
+    if (!gantt.fitWidth) gantt.setFit("width");
     this.fitRows(true);
     if (taskId && gantt.getTask(taskId)) {
       gantt.select([taskId]);
@@ -384,6 +438,11 @@ export class MobileView {
     this.emitFullscreen();
   }
 
+  lockOrientation() {
+    if (this.options.orientation !== "landscape" || !this.gantt.coarsePointer()) return;
+    /** @type {any} */ (screen.orientation)?.lock?.("landscape").catch(() => {});
+  }
+
   /** Closes the full-screen chart and puts it back in the page. */
   close() {
     if (!this.isOpen) return;
@@ -392,16 +451,20 @@ export class MobileView {
     const saved = this.saved;
     gantt.pointer?.cancel();
     this.isOpen = false;
+    this.native = false;
     this.exitNativeFullscreen();
     this.rail.remove();
     root.classList.remove("sg-fullscreen");
     if (saved.height) root.style.setProperty("--sg-height", saved.height);
     else root.style.removeProperty("--sg-height");
     gantt.options.rowHeight = saved.rowHeight;
-    this.sheet.after(root);
-    this.sheet.close();
+    this.sheet.before(this.stage);
+    this.stage.before(root);
+    this.stage.hidden = true;
+    if (this.sheet.open) this.sheet.close();
     document.documentElement.style.overflow = saved.overflow;
-    if (saved.fitWidth && !gantt.fitWidth) gantt.setFit("width");
+    if (!saved.fitWidth) gantt.setZoom(saved.zoom);
+    else if (!gantt.fitWidth) gantt.setFit("width");
     else gantt.refresh();
     this.update();
     const previous = this.returnFocus;
@@ -416,29 +479,20 @@ export class MobileView {
     this.emitFullscreen();
   }
 
+  /**
+   * Opens or closes the full-screen chart.
+   * @param {{taskId?: string}} [options]
+   * @returns {Promise<void>}
+   */
+  toggle(options) {
+    if (!this.isOpen) return this.open(options);
+    this.close();
+    return Promise.resolve();
+  }
+
   /** @returns {boolean} whether the full-screen chart is open */
   get opened() {
     return this.isOpen;
-  }
-
-  /**
-   * Asks for document fullscreen and a landscape lock where wanted and
-   * supported. Never rejects: iPhones and desktops simply get the dialog.
-   * @returns {Promise<void>}
-   */
-  requestNativeFullscreen() {
-    const setting = this.options.fullscreen;
-    const wanted = setting === "always" || (setting === "auto" && this.gantt.coarsePointer());
-    const element = document.documentElement;
-    if (!wanted || !element.requestFullscreen || document.fullscreenElement)
-      return Promise.resolve();
-    return element
-      .requestFullscreen({ navigationUI: "hide" })
-      .then(() => {
-        if (this.options.orientation === "landscape")
-          /** @type {any} */ (screen.orientation)?.lock?.("landscape").catch(() => {});
-      })
-      .catch(() => {});
   }
 
   exitNativeFullscreen() {
@@ -447,19 +501,42 @@ export class MobileView {
     } catch {
       /* not locked, or unsupported */
     }
-    if (document.fullscreenElement === document.documentElement)
-      document.exitFullscreen?.().catch(() => {});
+    if (document.fullscreenElement === this.stage) document.exitFullscreen?.().catch(() => {});
   }
 
+  /** Leaving native fullscreen (Escape, the back gesture, the browser's own UI) closes the chart. */
   onFullscreenChange() {
-    const native = Boolean(document.fullscreenElement) && this.isOpen;
-    if (native === this.native) return;
-    this.native = native;
-    if (this.isOpen) this.emitFullscreen();
+    if (this.isOpen && this.native && document.fullscreenElement !== this.stage) this.close();
+  }
+
+  /**
+   * F toggles full screen while focus is in the chart (not in a field, menu or
+   * dialog); Escape closes native fullscreen if the browser did not.
+   * @param {KeyboardEvent} event
+   */
+  onKeyDown(event) {
+    if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+    const target = /** @type {Element} */ (event.target);
+    if (target.closest?.("dialog:not(.sg-sheet), .sg-menu, input, select, textarea")) return;
+    const isF = (event.key === "f" || event.key === "F") && this.options.shortcut;
+    const isEscape = event.key === "Escape" && this.native;
+    if (!isF && !isEscape) return;
+    event.preventDefault();
+    if (isEscape) this.close();
+    else this.toggle();
+  }
+
+  /**
+   * Keeps focus inside the native fullscreen stage; the modal dialog fallback
+   * does this itself.
+   * @param {FocusEvent} event
+   */
+  keepFocusInside(event) {
+    const outside = !this.stage.contains(/** @type {Node} */ (event.target));
+    if (this.isOpen && this.native && outside) this.closeButton.focus();
   }
 
   emitFullscreen() {
-    this.native = this.isOpen && Boolean(document.fullscreenElement);
     this.gantt.emit("fullscreen-change", {
       open: this.isOpen,
       native: this.native,
@@ -564,11 +641,11 @@ export class MobileView {
     this.cleanups = [];
     this.resizeObserver?.disconnect();
     this.preview.remove();
+    this.stage.remove();
     this.sheet.remove();
     this.expand?.remove();
     this.gantt.root.hidden = false;
-    if (/** @type {any} */ (this.gantt).mobile === this)
-      delete (/** @type {any} */ (this.gantt).mobile);
+    if (this.gantt.mobile === this) this.gantt.mobile = undefined;
   }
 }
 
@@ -590,10 +667,9 @@ function touchDistance(touches) {
  * @returns {MobileView}
  */
 export function mobileView(gantt, options) {
-  const existing = /** @type {any} */ (gantt).mobile;
-  if (existing instanceof MobileView) return existing;
+  if (gantt.mobile instanceof MobileView) return gantt.mobile;
   const view = new MobileView(gantt, options);
-  /** @type {any} */ (gantt).mobile = view;
+  gantt.mobile = view;
   return view;
 }
 

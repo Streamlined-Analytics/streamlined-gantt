@@ -186,6 +186,8 @@ export class Gantt extends ProgrammeController {
     this.editingCell = null;
     /** @type {any} */
     this.lastRejection = null;
+    /** @type {import("./mobile.js").MobileView|undefined} set by `streamlined-gantt/mobile` */
+    this.mobile = undefined;
     if (toolbar) this.root.prepend(toolbar(this));
     this.on("change", (event) => {
       this.lastChange = event;
@@ -288,6 +290,7 @@ export class Gantt extends ProgrammeController {
         this.readOnly ? "sg-readonly" : "",
         this.timelineOnly ? "sg-layout-timeline" : "",
         this.fitWidth ? "sg-fit" : "",
+        this.isFullscreen ? "sg-fullscreen" : "",
         this.showCriticalPath ? "sg-show-critical" : "",
         this.coarsePointer() ? "sg-coarse" : "",
         this.options.colorScheme === "light" || this.options.colorScheme === "dark"
@@ -1399,6 +1402,39 @@ export class Gantt extends ProgrammeController {
     if (this.focus.taskId && this.store.get("tasks", this.focus.taskId))
       this.focusTask(this.focus.taskId);
     return result;
+  }
+
+  /* --------------------------------------------------------- full screen */
+
+  /**
+   * Opens the chart full screen: the Fullscreen API where the browser has it,
+   * else a full-viewport dialog. Needs `streamlined-gantt/mobile` (ADR-0011).
+   * @param {{taskId?: string}} [options]
+   * @returns {Promise<void>}
+   */
+  enterFullscreen(options) {
+    return this.mobile
+      ? this.mobile.open(options)
+      : Promise.reject(new Error("Full screen needs streamlined-gantt/mobile (mobileView)"));
+  }
+
+  exitFullscreen() {
+    this.mobile?.close();
+  }
+
+  /**
+   * @param {{taskId?: string}} [options]
+   * @returns {Promise<void>}
+   */
+  toggleFullscreen(options) {
+    return this.isFullscreen
+      ? Promise.resolve(this.exitFullscreen())
+      : this.enterFullscreen(options);
+  }
+
+  /** @returns {boolean} */
+  get isFullscreen() {
+    return Boolean(this.mobile?.opened);
   }
 
   /* ---------------------------------------------- editor, menu, tooltip */

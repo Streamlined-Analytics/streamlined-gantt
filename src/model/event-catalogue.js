@@ -373,7 +373,7 @@ export const EVENT_CATALOGUE = [
     group: "mobile",
     payload: ["open", "native", "orientation"],
     description:
-      "The full-screen chart opened or closed (`streamlined-gantt/mobile`). `native` is true while the Fullscreen API is active; iPhones get a full-viewport overlay instead.",
+      "The full-screen chart opened or closed (`streamlined-gantt/mobile`). `native` is true when the Fullscreen API is in use; iPhones get a full-viewport dialog instead.",
   },
   {
     name: "layout-change",

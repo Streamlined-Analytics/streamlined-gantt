@@ -15,11 +15,12 @@ All notable changes to this project are documented here. The format follows
   - below 600 px of width (a phone held upright) a readable summary replaces the chart: the
     programme's dates, an "Open the chart" button, and each task's dates with a mini bar; no
     inner scroll, and tapping a task opens the chart at it;
-  - a full-screen chart in a modal dialog inside the host (top layer, focus trap, Escape, scroll
-    lock, safe-area insets), with the Fullscreen API and a landscape lock on Android, and the
-    same full-viewport dialog on iPhone; rows fit the height (24 to 44 px); a rail with close,
-    zoom in, zoom out and fit; pinch to zoom;
-  - an expand button on the inline chart;
+  - full screen on every screen size, from a Full screen button (in the built-in toolbar, else
+    the chart's corner), the `F` key or `gantt.enterFullscreen()` / `exitFullscreen()` /
+    `toggleFullscreen()` / `isFullscreen`: the Fullscreen API on the chart's stage element
+    where it exists (with a landscape lock on touch screens), a full-viewport modal dialog on
+    iPhone; focus kept inside, Escape returns; the chart fits the width and rows fit the height
+    (24 to 44 px); a rail with close, zoom in, zoom out and fit; pinch to zoom;
   - `mobileView()`, `installMobile()`, the `mobile` option and the element's `mobile` attribute;
   - `layout-change` and `fullscreen-change` events;
   - tokens `--sg-cta-bg`, `--sg-cta-fg`, `--sg-cta-radius`, `--sg-preview-track`,

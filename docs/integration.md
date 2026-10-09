@@ -116,19 +116,24 @@ send it in an `HX-Trigger` header.
 
 ## Phones
 
-`streamlined-gantt/mobile` (ADR-0011) makes the chart work on a phone:
+`streamlined-gantt/mobile` (ADR-0011) makes the chart work on a phone, and gives it a full-screen
+mode on every screen size:
 
 - **Held upright** (the host narrower than `breakpoint`, 600 px by default), the chart is replaced
   by a summary: the programme's dates, an **Open the chart** button and one row per task with its
   dates and a mini bar on a shared track. It has no inner scroll; the page scrolls. Tapping a row
   opens the chart at that task.
-- **Open the chart** shows it full screen in a modal dialog: rows shrink (down to 24 px) so the
-  whole programme fits the height, a rail holds close, zoom in, zoom out and fit, and two fingers
-  pinch to zoom. On Android it also enters fullscreen and locks to landscape; iPhones have no
-  element fullscreen, so they get the same full-viewport dialog and a "turn your phone sideways"
-  hint while upright. Escape, the close button or the back gesture (out of fullscreen) return.
-- **Wider** (a phone on its side, tablets, desktops), the chart shows as usual with an expand
-  button in its top-right corner.
+- **Full screen**, on any screen (the **Open the chart** button, the expand button, `F`, or
+  `gantt.enterFullscreen()`): where the browser has the Fullscreen API (desktops, Android, iPad)
+  the chart's own stage element goes fullscreen; on touch screens it also asks for a landscape
+  lock. iPhones have no element fullscreen, so they get a full-viewport modal dialog instead, and
+  a "turn your phone sideways" hint while upright. Either way the chart fits the width, rows
+  shrink (down to 24 px) so the whole programme fits the height, a rail holds close, zoom in, zoom
+  out and fit, two fingers pinch to zoom, focus stays inside, and Escape (or leaving fullscreen
+  from the browser) returns to the page with the chart's zoom and focus restored.
+- **Wider** (a phone on its side, tablets, desktops), the chart shows as usual with a full-screen
+  button: a **Full screen** button in the built-in toolbar when there is one, else an expand
+  button in the chart's top-right corner. `expandButton: false` hides it.
 
 ### ES modules
 
@@ -137,8 +142,8 @@ import { Gantt } from "streamlined-gantt";
 import { mobileView } from "streamlined-gantt/mobile";
 
 const gantt = new Gantt(host, { data, layout: "timeline", fit: "width" });
-const mobile = mobileView(gantt, { breakpoint: 600 }); // also gantt.mobile
-myOwnButton.addEventListener("click", () => mobile.open()); // open() from a tap, for fullscreen
+mobileView(gantt, { breakpoint: 600 }); // also gantt.mobile
+myOwnButton.addEventListener("click", () => gantt.toggleFullscreen()); // from a click, for the API
 ```
 
 ### Script tag and the element
@@ -169,14 +174,17 @@ The add-on installs itself on `StreamlinedGantt.Gantt`, so `new StreamlinedGantt
 | `pinchZoom`    | `true`        | Two-finger pinch zooms the full-screen chart                              |
 | `strings`      | English       | `MOBILE_STRINGS` keys, e.g. `{mobileOpen: "View the programme"}`          |
 
-Methods: `open({taskId})` (returns a promise), `close()`, `opened`, `mode` (`"inline"`,
+On the chart: `gantt.enterFullscreen({taskId})` (a promise; call it from a click or key press so
+the browser allows fullscreen), `gantt.exitFullscreen()`, `gantt.toggleFullscreen()` and
+`gantt.isFullscreen`. Without the add-on, `enterFullscreen()` rejects with an error saying so. On
+the handle (`gantt.mobile`): `open()`, `close()`, `toggle()`, `opened`, `mode` (`"inline"`,
 `"preview"` or `"fullscreen"`) and `destroy()` (also called by `gantt.destroy()`).
 
 ### Events
 
 `layout-change` (`mode`, `previous`, `orientation`, `width`) fires when the presentation changes,
 and `fullscreen-change` (`open`, `native`, `orientation`) when the full-screen chart opens or
-closes, or the browser leaves native fullscreen. Like every event they bubble from the host as
+closes; `native` is true when the Fullscreen API is in use. Like every event they bubble from the host as
 `gantt:layout-change` and `gantt:fullscreen-change`, so a page can, for example, hide its own
 table while the summary is showing, or pause a live chart while the full-screen one is open.
 

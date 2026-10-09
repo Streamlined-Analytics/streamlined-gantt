@@ -246,4 +246,18 @@ describe("published JSON Schema", () => {
     expect(schema.$defs.constraint.properties.type.enum).toEqual(CONSTRAINT_TYPES);
     expect(schema.$defs.delayEvent.properties.kind.enum).toEqual(DELAY_KINDS);
   });
+
+  test("durations and lags are capped, so hostile data cannot freeze the calendar", () => {
+    const programme = {
+      tasks: [
+        { id: "a", name: "A", start: "2026-11-02", duration: 10_001 },
+        { id: "b", name: "B", start: "2026-11-02", duration: 10_000 },
+      ],
+      links: [{ id: "l", from: "b", to: "a", lag: -10_001 }],
+    };
+    expect(collectProblems(programme).map((problem) => problem.path)).toEqual([
+      "/tasks/0/duration",
+      "/links/0/lag",
+    ]);
+  });
 });

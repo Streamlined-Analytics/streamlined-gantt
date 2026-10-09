@@ -25,6 +25,9 @@ const EPOCH_YEAR = 2000;
 const MAX_RANGE_DAYS = 3660;
 const MAX_SEARCH_YEARS = 400;
 const MAX_EMPTY_YEARS = 10;
+/** ISO dates are limited to years 0000-9999; refusing indexes beyond them avoids year-by-year walks of millions of years. */
+const MIN_YEAR = 0;
+const MAX_YEAR = 9999;
 const DEFAULT_WORK_WEEK = [1, 2, 3, 4, 5];
 
 /**
@@ -214,6 +217,9 @@ export class Calendar {
    */
   dayAt(index) {
     let year = EPOCH_YEAR + Math.floor(index / 261);
+    if (!(year >= MIN_YEAR && year <= MAX_YEAR)) {
+      throw new RangeError(`Working index ${index} is outside the years ${MIN_YEAR}-${MAX_YEAR}`);
+    }
     let emptyYears = 0;
     for (let guard = 0; guard < MAX_SEARCH_YEARS && emptyYears < MAX_EMPTY_YEARS; guard += 1) {
       const offset = this.yearOffset(year);

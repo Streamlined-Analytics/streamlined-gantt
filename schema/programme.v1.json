@@ -256,6 +256,7 @@
         "duration": {
           "type": "integer",
           "minimum": 0,
+          "maximum": 10000,
           "description": "Working days; 0 for milestones"
         },
         "calendar": {
@@ -373,6 +374,8 @@
         },
         "lag": {
           "type": "integer",
+          "minimum": -10000,
+          "maximum": 10000,
           "description": "Working days; negative is a lead"
         }
       },

@@ -190,4 +190,12 @@ describe("gov.uk feed mapping", () => {
     expect(fromGovUkBankHolidays(feed, "scotland")).toEqual([]);
     expect(fromGovUkBankHolidays(undefined, "scotland")).toEqual([]);
   });
+
+  test("indexes beyond the years 0000-9999 are refused at once, not walked year by year", () => {
+    const calendar = new Calendar({ id: "c" });
+    const started = performance.now();
+    expect(() => calendar.dayAt(1e12)).toThrow(RangeError);
+    expect(() => calendar.dayAt(-1e12)).toThrow(RangeError);
+    expect(performance.now() - started).toBeLessThan(50);
+  });
 });

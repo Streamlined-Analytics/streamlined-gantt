@@ -206,5 +206,6 @@ describe("rolled-up progress", () => {
       links: [],
     };
     expect(projectSummary(analyse(data), data).progress).toBeCloseTo(0.5, 10);
+    expect(analyse(data).resolved.get("a").progress).toBe(1);
   });
 });

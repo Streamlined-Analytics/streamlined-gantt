@@ -113,7 +113,7 @@ export function analyse(programme, options = {}) {
   for (const task of tasks) {
     if (tree.summaries.has(task.id) || !task.start) continue;
     const dates = resolveLeafDates(task, calendar);
-    resolved.set(task.id, { ...dates, summary: false, progress: task.progress ?? 0 });
+    resolved.set(task.id, { ...dates, summary: false, progress: progressOf(task) });
   }
   const { order, depth } = depthFirst(tree);
   const fieldValues = new Map();
@@ -168,7 +168,7 @@ function rollUpSummary(id, context) {
         duration: calendar.workingDaysBetween(start, finish),
         milestone: false,
         summary: true,
-        progress: summaryTask.progress ?? 0,
+        progress: progressOf(summaryTask),
       });
     }
     fieldValues.set(id, {});

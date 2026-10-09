@@ -11,6 +11,8 @@ import { findCycle } from "./graph.js";
  */
 
 export const SCHEMA_ID = "streamlined-gantt/1";
+/** Largest duration or lag accepted: about 38 years of working days, far beyond any programme. */
+export const MAX_WORKING_DAYS = 10_000;
 export const TASK_TYPES = [
   "task",
   "summary",
@@ -319,8 +321,13 @@ function validateTaskDates(task, path, problems) {
     problems.require(task.finish >= task.start, `${path}.finish`, "must not be before start");
   }
   if (task.duration !== undefined) {
-    const valid = Number.isInteger(task.duration) && task.duration >= 0;
-    problems.require(valid, `${path}.duration`, "must be a whole number of working days >= 0");
+    const valid =
+      Number.isInteger(task.duration) && task.duration >= 0 && task.duration <= MAX_WORKING_DAYS;
+    problems.require(
+      valid,
+      `${path}.duration`,
+      `must be a whole number of working days from 0 to ${MAX_WORKING_DAYS}`,
+    );
   }
   if (!isSummary && task.finish === undefined && task.duration === undefined) {
     problems.add(path, "needs a finish date or a duration");
@@ -408,9 +415,9 @@ function validateLink(link, path, taskIds, problems) {
   }
   if (link.lag !== undefined) {
     problems.require(
-      Number.isInteger(link.lag),
+      Number.isInteger(link.lag) && Math.abs(link.lag) <= MAX_WORKING_DAYS,
       `${path}.lag`,
-      "must be a whole number of working days",
+      `must be a whole number of working days, at most ${MAX_WORKING_DAYS} either way`,
     );
   }
 }

@@ -238,6 +238,16 @@ describe("full screen", () => {
     expect(gantt.fitWidth).toBe(true);
   });
 
+  test("zooming in at the finest level stays there instead of fitting", async () => {
+    const { gantt } = mountSample({ width: "900px" });
+    const mobile = mobileView(gantt);
+    await mobile.open();
+    gantt.setZoom("day");
+    mobile.zoom(-1);
+    expect(gantt.fitWidth).toBe(false);
+    expect(gantt.zoom).toBe("day");
+  });
+
   test("a two-finger pinch zooms in, and the browser's own pinch is suppressed", async () => {
     const { gantt } = mountSample({ width: "900px" });
     const mobile = mobileView(gantt);
@@ -293,6 +303,21 @@ describe("full screen", () => {
     } finally {
       delete document.documentElement.requestFullscreen;
     }
+  });
+
+  test("destroying the mobile view while open restores the chart", async () => {
+    const { gantt, host } = mountSample({ width: "900px", height: "420px" });
+    const rowHeight = gantt.rowHeight;
+    const mobile = mobileView(gantt);
+    await mobile.open();
+    mobile.zoom(-1);
+    mobile.destroy();
+    expect(gantt.root.parentElement).toBe(host);
+    expect(gantt.rowHeight).toBe(rowHeight);
+    expect(gantt.options.rowHeight).toBeUndefined();
+    expect(gantt.root.style.getPropertyValue("--sg-height")).toBe("420px");
+    expect(gantt.fitWidth).toBe(true);
+    expect(document.documentElement.style.overflow).toBe("");
   });
 
   test("destroying the chart while open removes the dialog and restores the page", async () => {

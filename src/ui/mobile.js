@@ -503,6 +503,7 @@ export class MobileView {
         : ZOOM_LEVELS[level].dayWidth < dayWidth / 1.05,
     );
     const next = direction < 0 ? levels.at(-1) : levels[0];
+    if (direction < 0 && !next) return;
     if (!next || (direction > 0 && ZOOM_LEVELS[next].dayWidth <= fitted)) this.fit();
     else gantt.setZoom(next);
     this.updateRail();
@@ -550,17 +551,14 @@ export class MobileView {
 
   /* ------------------------------------------------------------ lifecycle */
 
-  /** Removes the preview, the expand button and every listener. Idempotent. */
+  /**
+   * Closes the full-screen chart (restoring the chart's row height, height and
+   * fit), then removes the summary, the expand button and every listener.
+   * Idempotent; `gantt.destroy()` calls it while the chart is still intact.
+   */
   destroy() {
     if (this.destroyed) return;
-    if (this.isOpen) {
-      this.exitNativeFullscreen();
-      document.documentElement.style.overflow = this.saved.overflow;
-      this.sheet.after(this.gantt.root);
-      this.gantt.root.classList.remove("sg-fullscreen");
-      this.rail.remove();
-      this.isOpen = false;
-    }
+    this.close();
     this.destroyed = true;
     for (const cleanup of this.cleanups) cleanup();
     this.cleanups = [];

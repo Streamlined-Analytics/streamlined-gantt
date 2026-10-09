@@ -53,12 +53,19 @@ The element initialises when htmx swaps it in and destroys itself when it is swa
 
 ```html
 <streamlined-gantt
+  id="job"
   src="/jobs/42/programme.json"
+  listen-patch
   hx-post="/jobs/42/programme/changes/"
-  hx-trigger="gantt:change"
-  hx-vals="js:{changes: JSON.stringify(event.detail.changes)}"
+  hx-trigger="gantt:change[detail.source=='local']"
+  hx-vals='js:{changes: JSON.stringify(event.detail.changes), target: "#job"}'
+  hx-swap="none"
 ></streamlined-gantt>
 ```
+
+To revert or correct an edit, the server replies with
+`HX-Trigger: {"gantt:patch": {"target": "#job", "changes": {"tasks": {"update": [...]}}}}`.
+See `examples/htmx-save-back.html` and [docs/integration.md](docs/integration.md).
 
 ### Server approval
 
@@ -68,8 +75,12 @@ gantt.on("before-task-update", (event) => {
     fetch(`/jobs/42/tasks/${event.id}/`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
-      body: JSON.stringify(event.changes),
-    }).then((response) => (response.ok ? response.json() : false)), // a changeset corrects the edit
+      body: JSON.stringify({ task: event.new }),
+    }).then((response) => {
+      if (response.status === 204) return undefined; // approved as made
+      if (response.status === 409) return false; // rejected: the edit is undone
+      return response.json(); // a changeset corrects the edit
+    }),
   );
 });
 ```

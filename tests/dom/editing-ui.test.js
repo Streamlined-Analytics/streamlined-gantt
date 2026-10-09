@@ -6,7 +6,7 @@ import flatRoof from "../fixtures/programmes/flat-roof.json";
 import { trustedHTML } from "../../src/index.js";
 import { buildToolbar } from "../../src/toolbar.js";
 import { FLAT_ROOF_FIELDS } from "../support/fields.js";
-import { cleanup, frame, mount } from "./support.js";
+import { Gantt, cleanup, frame, mount } from "./support.js";
 
 afterEach(cleanup);
 
@@ -368,6 +368,14 @@ describe("tooltip", () => {
 });
 
 describe("toolbar", () => {
+  test("toolbar: true without a registered toolbar throws before touching the host", () => {
+    const host = document.createElement("div");
+    expect(() => new Gantt(host, { data: structuredClone(flatRoof), toolbar: true })).toThrow(
+      /streamlined-gantt\/toolbar/,
+    );
+    expect(host.childElementCount).toBe(0);
+  });
+
   test("the optional toolbar drives zoom, toggles and lookahead", () => {
     const { gantt, host } = mount(structuredClone(flatRoof), { toolbar: buildToolbar });
     const toolbar = host.querySelector("[role=toolbar]");

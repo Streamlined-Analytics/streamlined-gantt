@@ -89,6 +89,11 @@ export class Gantt extends ProgrammeController {
    */
   constructor(host, options = {}) {
     if (!(host instanceof HTMLElement)) throw new TypeError("Gantt needs a host element");
+    const toolbar = options.toolbar === true ? defaultToolbar : options.toolbar;
+    if (options.toolbar && typeof toolbar !== "function")
+      throw new TypeError(
+        'toolbar: true needs the built-in toolbar: pass toolbar: buildToolbar from "streamlined-gantt/toolbar"',
+      );
     const { data, ...rest } = options;
     super({ ...rest, eventTarget: rest.eventTarget === undefined ? host : rest.eventTarget });
     this.host = host;
@@ -152,11 +157,6 @@ export class Gantt extends ProgrammeController {
     this.editingCell = null;
     /** @type {any} */
     this.lastRejection = null;
-    const toolbar = this.options.toolbar === true ? defaultToolbar : this.options.toolbar;
-    if (this.options.toolbar && typeof toolbar !== "function")
-      throw new TypeError(
-        'toolbar: true needs the built-in toolbar: pass toolbar: buildToolbar from "streamlined-gantt/toolbar"',
-      );
     if (toolbar) this.root.prepend(toolbar(this));
     this.on("change", (event) => {
       this.lastChange = event;

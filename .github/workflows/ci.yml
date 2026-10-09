@@ -35,6 +35,8 @@ jobs:
       - run: npx prettier --check .
       - name: SPDX headers
         run: npm run check:spdx
+      - name: Events reference is generated from the catalogue
+        run: node scripts/generate-events-doc.mjs --check
 
   typecheck:
     name: Type check (JSDoc) and declarations

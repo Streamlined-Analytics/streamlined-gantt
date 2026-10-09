@@ -39,7 +39,11 @@ export function defineConfig(name, options) {
   configurations.set(name, options);
 }
 
-const BOOLEAN_ATTRIBUTES = { "read-only": "readOnly", "critical-path": "showCriticalPath" };
+const BOOLEAN_ATTRIBUTES = {
+  "read-only": "readOnly",
+  "critical-path": "showCriticalPath",
+  toolbar: "toolbar",
+};
 
 export class StreamlinedGanttElement extends HTMLElement {
   static get observedAttributes() {
@@ -182,7 +186,7 @@ export class StreamlinedGanttElement extends HTMLElement {
   /** @param {Event} event */
   applyPatchEvent(event) {
     const detail = /** @type {CustomEvent} */ (event).detail ?? {};
-    if (detail.target && detail.target !== this.id) return;
+    if (detail.target && String(detail.target).replace(/^#/, "") !== this.id) return;
     const { target: _target, elt: _elt, ...changeset } = detail;
     this.instance?.applyPatch(changeset.changes ?? changeset, { cause: "patch" });
   }

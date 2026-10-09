@@ -124,5 +124,24 @@ describe("<streamlined-gantt>", () => {
       }),
     );
     expect(element.gantt.getTask("t5").name).toBe("Patched by server");
+    element.dispatchEvent(
+      new CustomEvent("gantt:patch", {
+        bubbles: true,
+        detail: {
+          target: "#job",
+          elt: element,
+          changes: { tasks: { update: [{ id: "t5", name: "Selector target, as htmx sends it" }] } },
+        },
+      }),
+    );
+    expect(element.gantt.getTask("t5").name).toBe("Selector target, as htmx sends it");
+  });
+
+  test("the color-scheme attribute maps to the option", async () => {
+    const host = container();
+    host.innerHTML = inlineElement('color-scheme="dark"');
+    await settle();
+    const element = host.querySelector("streamlined-gantt");
+    expect(element.querySelector(".sg-root").classList.contains("sg-scheme-dark")).toBe(true);
   });
 });

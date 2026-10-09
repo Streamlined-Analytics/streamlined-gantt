@@ -2,6 +2,7 @@
 // Copyright 2026 Streamlined Analytics Ltd and contributors
 
 import { isISODate } from "./dates.js";
+import { pathSegment } from "./schema.js";
 
 /**
  * Custom per-task fields defined in configuration (cost, charge, quantity,
@@ -217,7 +218,7 @@ export class FieldRegistry {
       const definition = this.byKey.get(key);
       if (!definition || definition.compute) continue;
       const problem = typeProblem(definition, value);
-      if (problem) problems.add(`${path}.${key}`, problem);
+      if (problem) problems.add(`${path}.${pathSegment(key)}`, problem);
     }
   }
 

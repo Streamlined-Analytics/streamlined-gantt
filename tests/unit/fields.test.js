@@ -123,6 +123,13 @@ describe("validation layers", () => {
       { add: (path, message) => problems.push({ path, message }) },
     );
     expect(problems).toEqual([{ path: "/tasks/0/fields.cost", message: "must be a whole number" }]);
+    const dotted = [];
+    new FieldRegistry([{ key: "a.b", type: "number" }]).checkStored(
+      { fields: { "a.b": "x" } },
+      "/f",
+      { add: (path) => dotted.push(path) },
+    );
+    expect(dotted).toEqual(["/f.a\u0001b"]);
     registry.checkStored({}, "/x", { add: () => problems.push("unexpected") });
     expect(problems).toHaveLength(1);
   });

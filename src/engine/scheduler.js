@@ -528,7 +528,7 @@ class Scheduler {
       this.mode === "off" &&
       notStarted &&
       this.dataDateIndex !== null &&
-      node.ES < this.dataDateIndex
+      node.ES - (node.anchor === "finish" ? 1 : 0) < this.dataDateIndex
     ) {
       this.addViolation(
         "before-data-date",

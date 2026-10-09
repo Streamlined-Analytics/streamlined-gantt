@@ -13,6 +13,7 @@ import { toISO } from "./dates.js";
  */
 
 const FORMULA_PREFIX = /^[=+\-@\t\r]/;
+const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;
 
 /**
  * @param {unknown} value
@@ -22,7 +23,7 @@ export function csvCell(value) {
   if (value === null || value === undefined) return "";
   if (typeof value === "number" || typeof value === "boolean") return String(value);
   let text = String(value);
-  if (FORMULA_PREFIX.test(text)) text = `'${text}`;
+  if (FORMULA_PREFIX.test(text) && !PLAIN_NUMBER.test(text)) text = `'${text}`;
   if (/[",\r\n]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
   return text;
 }

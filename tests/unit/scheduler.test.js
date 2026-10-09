@@ -324,6 +324,24 @@ describe("progress and the data date", () => {
     expect(view.A).toMatchObject({ start: "2026-11-02", finish: "2026-11-12" });
   });
 
+  test("in off mode, a finish-anchored milestone the day before the data date is a violation", () => {
+    const { result } = run(
+      {
+        dataDate: "2026-11-09",
+        tasks: [
+          { id: "A", name: "A", start: "2026-11-02", duration: 1, progress: 1 },
+          { id: "M", name: "M", type: "milestone", start: "2026-11-06" },
+        ],
+        links: [{ id: "l", from: "A", to: "M" }],
+        calendars: [ewCalendar()],
+      },
+      { mode: "off" },
+    );
+    expect(result.violations).toContainEqual(
+      expect.objectContaining({ code: "before-data-date", taskId: "M" }),
+    );
+  });
+
   test("in off mode, unstarted work before the data date is a violation", () => {
     const { result } = run(
       {

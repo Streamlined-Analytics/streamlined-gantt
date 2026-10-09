@@ -115,8 +115,30 @@ function toPointer(path) {
   const dotted = path.replace(/^\$\./, "").replace(/\[(\d+)\]/g, ".$1");
   return `/${dotted
     .split(".")
-    .map((segment) => segment.replace(/~/g, "~0").replace(/\//g, "~1"))
+    .map((segment) => unescapeSegment(segment).replace(/~/g, "~0").replace(/\//g, "~1"))
     .join("/")}`;
+}
+
+const DOT_STANDIN = "\u0001";
+const BRACKET_STANDIN = "\u0002";
+
+/**
+ * Escapes a user-controlled key (an id or a custom field key) before it is
+ * appended to an internal dotted path, so a key containing "." or "[" still
+ * becomes a single JSON Pointer segment.
+ * @param {string} key
+ * @returns {string}
+ */
+export function pathSegment(key) {
+  return String(key).replaceAll(".", DOT_STANDIN).replaceAll("[", BRACKET_STANDIN);
+}
+
+/**
+ * @param {string} segment
+ * @returns {string}
+ */
+function unescapeSegment(segment) {
+  return segment.replaceAll(DOT_STANDIN, ".").replaceAll(BRACKET_STANDIN, "[");
 }
 
 /**
@@ -157,10 +179,10 @@ function checkForbiddenKeys(value, path, problems, depth = 0) {
   if (depth > 12 || value === null || typeof value !== "object") return;
   for (const key of Object.keys(value)) {
     if (FORBIDDEN_KEYS.has(key)) {
-      problems.add(`${path}.${key}`, "forbidden property name");
+      problems.add(`${path}.${pathSegment(key)}`, "forbidden property name");
       continue;
     }
-    checkForbiddenKeys(value[key], `${path}.${key}`, problems, depth + 1);
+    checkForbiddenKeys(value[key], `${path}.${pathSegment(key)}`, problems, depth + 1);
   }
 }
 
@@ -173,7 +195,10 @@ function checkForbiddenKeys(value, path, problems, depth = 0) {
 function checkUnknownKeys(item, allowed, path, problems) {
   for (const key of Object.keys(item)) {
     if (allowed.has(key) || key.startsWith("x-")) continue;
-    problems.add(`${path}.${key}`, "unknown property (use an x- prefix for extensions)");
+    problems.add(
+      `${path}.${pathSegment(key)}`,
+      "unknown property (use an x- prefix for extensions)",
+    );
   }
 }
 
@@ -408,7 +433,11 @@ function validateSecondaryCollections(data, taskIds, problems) {
     }
     for (const [id, dates] of Object.entries(baseline.tasks)) {
       const valid = isPlainObject(dates) && isISODate(dates.start) && isISODate(dates.finish);
-      problems.require(valid, `${path}.tasks.${id}`, "needs ISO start and finish dates");
+      problems.require(
+        valid,
+        `${path}.tasks.${pathSegment(id)}`,
+        "needs ISO start and finish dates",
+      );
     }
   });
   if (Array.isArray(data.baselines)) checkIds(data.baselines, "baselines", problems);
@@ -424,6 +453,10 @@ function validateSecondaryCollections(data, taskIds, problems) {
         `${path}.kind`,
         `must be one of ${DELAY_KINDS.join(", ")}`,
       );
+    }
+    if (event?.taskIds !== undefined && !Array.isArray(event.taskIds)) {
+      problems.add(`${path}.taskIds`, "must be an array of task ids");
+      return;
     }
     for (const taskId of event?.taskIds ?? []) {
       problems.require(taskIds.has(taskId), `${path}.taskIds`, `unknown task "${taskId}"`);

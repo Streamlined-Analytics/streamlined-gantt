@@ -70,7 +70,9 @@ describe("CSV export", () => {
     expect(csvCell('Say "hi", then go')).toBe('"Say ""hi"", then go"');
     expect(csvCell('=HYPERLINK("http://x")')).toBe('"\'=HYPERLINK(""http://x"")"');
     expect(csvCell("+44 1234")).toBe("'+44 1234");
-    expect(csvCell("-2")).toBe("'-2");
+    expect(csvCell("-2")).toBe("-2");
+    expect(csvCell("-5400.25")).toBe("-5400.25");
+    expect(csvCell("-2 days")).toBe("'-2 days");
     expect(csvCell(-2)).toBe("-2");
     expect(csvCell("line\nbreak")).toBe('"line\nbreak"');
     expect(csvCell(null)).toBe("");

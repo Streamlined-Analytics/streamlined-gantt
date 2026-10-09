@@ -199,6 +199,22 @@ describe("validation errors list every problem with JSON Pointer paths", () => {
     ]);
   });
 
+  test("keys containing dots or brackets stay single JSON Pointer segments", () => {
+    const data = {
+      tasks: [{ id: "t.5", name: "A", start: "2026-11-02", duration: 1, "odd.key[0]": 1 }],
+      baselines: [{ id: "b", tasks: { "t.5": { start: "x", finish: "2026-11-02" } } }],
+    };
+    expect(problemsOf(data)).toEqual(["/tasks/0/odd.key[0]", "/baselines/0/tasks/t.5"]);
+  });
+
+  test("non-array delay task ids are reported, not thrown", () => {
+    const data = {
+      tasks: [],
+      delayEvents: [{ id: "d", from: "2026-11-02", to: "2026-11-02", taskIds: 5 }],
+    };
+    expect(problemsOf(data)).toEqual(["/delayEvents/0/taskIds"]);
+  });
+
   test("prototype-polluting keys are rejected at any depth", () => {
     const data = JSON.parse(
       '{"tasks":[{"id":"a","name":"A","start":"2026-11-02","duration":1,"fields":{"__proto__":{"polluted":true}}}]}',

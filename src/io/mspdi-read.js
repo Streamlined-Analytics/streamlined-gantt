@@ -55,7 +55,7 @@ const TENTHS_OF_MINUTE_PER_ELAPSED_DAY = 14400;
  * @property {number} minutesPerDay
  * @property {string} dayStart the project's DefaultStartTime
  * @property {Calendar} calendar the project calendar
- * @property {Map<string, string>} calendarIds calendar UID to calendar id
+ * @property {Map<string, Calendar>} engineCalendars calendar UID to a working-day calendar
  * @property {Partial<Record<keyof typeof FIELD_IDS, string>>} fields FieldID per role, by alias
  * @property {string[]} warnings
  */
@@ -80,16 +80,18 @@ export function readProgramme(xml, useResidue) {
   /** @type {string[]} */
   const warnings = [];
   const calendars = readCalendars(root, warnings);
-  const calendarIds = new Map(calendars.map(({ uid, definition }) => [String(uid), definition.id]));
-  const defaultCalendar =
-    calendarIds.get(textOf(root, "CalendarUID") ?? "") ?? calendars[0]?.definition.id;
-  const defaultDefinition = calendars.find(({ definition }) => definition.id === defaultCalendar);
+  const engineCalendars = new Map(
+    calendars.map(({ uid, definition }) => [String(uid), new Calendar(definition)]),
+  );
+  const defaultUid = textOf(root, "CalendarUID") ?? "";
+  const defaultEngine = engineCalendars.get(defaultUid) ?? engineCalendars.values().next().value;
+  const defaultCalendar = defaultEngine?.id;
   /** @type {ReadContext} */
   const context = {
     minutesPerDay: Number(textOf(root, "MinutesPerDay")) || 480,
     dayStart: textOf(root, "DefaultStartTime") ?? "08:00:00",
-    calendar: new Calendar(defaultDefinition?.definition ?? { id: "standard" }),
-    calendarIds,
+    calendar: defaultEngine ?? new Calendar({ id: "standard" }),
+    engineCalendars,
     fields: fieldsByAlias(root),
     warnings,
   };
@@ -222,11 +224,23 @@ function readTask(element, uidToId, parents, context) {
   if (parent) task.parent = parent;
   if (textOf(element, "WBS")) task.wbs = textOf(element, "WBS");
   if (textOf(element, "Summary") === "1") task.type = "summary";
-  else readLeafFields(task, element, context);
-  const calendar = context.calendarIds.get(textOf(element, "CalendarUID") ?? "");
-  if (calendar) task.calendar = calendar;
+  else readLeafFields(task, element, withTaskCalendar(element, context));
+  const calendar = context.engineCalendars.get(textOf(element, "CalendarUID") ?? "");
+  if (calendar) task.calendar = calendar.id;
   readTextFields(task, element, context);
   return task;
+}
+
+/**
+ * The reading context for one task: dates are normalised on the task's own
+ * calendar (`CalendarUID`) when it has one, else on the project calendar.
+ * @param {XmlElement} element
+ * @param {ReadContext} context
+ * @returns {ReadContext}
+ */
+function withTaskCalendar(element, context) {
+  const own = context.engineCalendars.get(textOf(element, "CalendarUID") ?? "");
+  return own ? { ...context, calendar: own } : context;
 }
 
 /**
@@ -346,7 +360,7 @@ function readConstraint(element, name, warnings) {
   const type = CONSTRAINT_TYPES[code];
   if (!type) {
     const label = UNSUPPORTED_CONSTRAINTS[code] ?? `type ${code}`;
-    warnings.push(`"${name}": the ${label} constraint is not supported and was dropped`);
+    warnings.push(`"${name}": ${label} constraint dropped (unsupported)`);
     return undefined;
   }
   const date = textOf(element, "ConstraintDate");
@@ -366,9 +380,7 @@ function readLinks(entry, uidToId, context) {
   for (const element of children(entry.element, "PredecessorLink")) {
     const from = uidToId.get(textOf(element, "PredecessorUID") ?? "");
     if (!from) {
-      context.warnings.push(
-        `"${entry.task.name}": a link from a missing or external task was dropped`,
-      );
+      context.warnings.push(`"${entry.task.name}": link from a missing task dropped`);
       continue;
     }
     const base = `${from}-${entry.task.id}`;
@@ -397,11 +409,11 @@ function linkLagDays(element, name, context) {
   const format = Number(textOf(element, "LagFormat") ?? 7);
   if (tenths === 0) return 0;
   if (PERCENT_FORMATS.has(format)) {
-    context.warnings.push(`"${name}": a percentage lag was dropped`);
+    context.warnings.push(`"${name}": percentage lag dropped`);
     return 0;
   }
   if (ELAPSED_FORMATS.has(format)) {
-    context.warnings.push(`"${name}": an elapsed lag was converted to working days`);
+    context.warnings.push(`"${name}": elapsed lag converted to working days`);
     return Math.round(((tenths / TENTHS_OF_MINUTE_PER_ELAPSED_DAY) * 5) / 7);
   }
   return Math.round(tenths / (context.minutesPerDay * 10));
@@ -424,7 +436,8 @@ function readBaselines(entries, context) {
       if (!byNumber.has(number)) byNumber.set(number, { id: `baseline-${number}`, tasks: {} });
       const tasks = /** @type {import("../engine/types.js").Baseline} */ (byNumber.get(number))
         .tasks;
-      tasks[task.id] = { start: start.slice(0, 10), finish: toISO(finishDay(finish, context)) };
+      const finishOn = finishDay(finish, withTaskCalendar(element, context));
+      tasks[task.id] = { start: start.slice(0, 10), finish: toISO(finishOn) };
     }
   }
   const numbers = [...byNumber.keys()].sort((first, second) => first - second);
@@ -457,7 +470,7 @@ function parseResidue(text, warnings) {
     const value = JSON.parse(text);
     return typeof value === "object" && value !== null && !Array.isArray(value) ? value : null;
   } catch {
-    warnings.push("Ignored unreadable streamlined-gantt data; the native fields were used");
+    warnings.push("Unreadable streamlined-gantt data ignored");
     return null;
   }
 }

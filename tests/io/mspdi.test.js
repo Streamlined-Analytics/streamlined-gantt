@@ -418,10 +418,10 @@ describe("import of files from other tools", () => {
       { id: "t3-t6", from: "t3", to: "t6", type: "SF", lag: 2 },
     ]);
     expect(foreign.warnings).toEqual([
-      '"Pour slab": the MSO constraint is not supported and was dropped',
-      '"Pour slab": a link from a missing or external task was dropped',
-      '"Cure": an elapsed lag was converted to working days',
-      '"Cure": a percentage lag was dropped',
+      '"Pour slab": MSO constraint dropped (unsupported)',
+      '"Pour slab": link from a missing task dropped',
+      '"Cure": elapsed lag converted to working days',
+      '"Cure": percentage lag dropped',
     ]);
   });
 
@@ -453,7 +453,27 @@ describe("import of files from other tools", () => {
     expect(programme.tasks[1]).toEqual({ id: "t2", name: "No dates" });
     expect(programme.tasks[2]).toMatchObject({ duration: 1 });
     expect(programme.links.map((link) => link.id)).toEqual(["t1-t4", "t1-t4-2"]);
-    expect(warnings).toEqual(['"Odd": the type 99 constraint is not supported and was dropped']);
+    expect(warnings).toEqual(['"Odd": type 99 constraint dropped (unsupported)']);
+  });
+
+  test("finishes are normalised on the task's own calendar", () => {
+    const weekDays = (working) =>
+      [1, 2, 3, 4, 5, 6, 7]
+        .map(
+          (day) =>
+            `<WeekDay><DayType>${day}</DayType><DayWorking>${working.includes(day) ? 1 : 0}</DayWorking></WeekDay>`,
+        )
+        .join("");
+    const xml = `<Project><CalendarUID>1</CalendarUID><Calendars>
+      <Calendar><UID>1</UID><Name>Office</Name><WeekDays>${weekDays([2, 3, 4, 5, 6])}</WeekDays></Calendar>
+      <Calendar><UID>2</UID><Name>Six-day site</Name><WeekDays>${weekDays([2, 3, 4, 5, 6, 7])}</WeekDays></Calendar>
+    </Calendars><Tasks>
+      <Task><UID>1</UID><Name>Office task</Name><Start>2026-11-09T08:00:00</Start><Finish>2026-11-16T08:00:00</Finish><DurationFormat>8</DurationFormat><PercentComplete>100</PercentComplete><ActualFinish>2026-11-16T08:00:00</ActualFinish></Task>
+      <Task><UID>2</UID><Name>Site task</Name><CalendarUID>2</CalendarUID><Start>2026-11-09T08:00:00</Start><Finish>2026-11-16T08:00:00</Finish><DurationFormat>8</DurationFormat><PercentComplete>100</PercentComplete><ActualFinish>2026-11-16T08:00:00</ActualFinish></Task>
+    </Tasks></Project>`;
+    const [office, site] = fromMSPDI(xml).programme.tasks;
+    expect(office).toMatchObject({ actualFinish: "2026-11-13", duration: 5 });
+    expect(site).toMatchObject({ calendar: "cal-2", actualFinish: "2026-11-14", duration: 6 });
   });
 
   test("duplicate stored ids fall back to UID-based ids", () => {
@@ -481,9 +501,7 @@ describe("import of files from other tools", () => {
     );
     const { programme: imported, warnings } = fromMSPDI(xml);
     expect(imported.tasks[0].locked).toBeUndefined();
-    expect(warnings).toEqual([
-      "Ignored unreadable streamlined-gantt data; the native fields were used",
-    ]);
+    expect(warnings).toEqual(["Unreadable streamlined-gantt data ignored"]);
   });
 });
 
@@ -572,7 +590,7 @@ describe("calendar import edge cases", () => {
     );
     expect(days(calendar)).toEqual(["2027-01-01..2027-01-03"]);
     expect(warnings).toEqual([
-      'Calendar exception "Odd" has an unknown recurrence; read as one range',
+      'Calendar exception "Odd" has an unknown recurrence; read as a range',
     ]);
   });
 });

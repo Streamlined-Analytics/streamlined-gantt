@@ -240,7 +240,7 @@ function expandException(element, warnings) {
   if (days === null) {
     if (type !== 1)
       warnings.push(
-        `Calendar exception "${name ?? ""}" has an unknown recurrence; read as one range`,
+        `Calendar exception "${name ?? ""}" has an unknown recurrence; read as a range`,
       );
     return [exceptionEntry(recurrence.from, recurrence.to, name)];
   }

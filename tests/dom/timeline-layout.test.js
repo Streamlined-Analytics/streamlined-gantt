@@ -57,6 +57,17 @@ describe("layout: timeline", () => {
     expect(host.querySelector('[data-task-id="p3"] .sg-bar-label.sg-before')).not.toBeNull();
   });
 
+  test("on a narrow chart a label takes the roomier side and is shortened, not clipped", () => {
+    const { gantt, host } = timelineChart({ width: "360px", minDayWidth: 1 });
+    const labels = [...host.querySelectorAll(".sg-svg .sg-bar-label")];
+    expect(labels.some((label) => label.textContent.endsWith("…"))).toBe(true);
+    for (const label of labels) {
+      const box = label.getBBox();
+      expect(box.x, label.textContent).toBeGreaterThanOrEqual(-1);
+      expect(box.x + box.width, label.textContent).toBeLessThanOrEqual(gantt.scale.width + 1);
+    }
+  });
+
   test("the hidden treegrid keeps its rows, positions and spoken names", () => {
     const { host } = timelineChart();
     const grid = host.querySelector("[role=treegrid]");

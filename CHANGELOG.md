@@ -23,7 +23,8 @@ All notable changes to this project are documented here. The format follows
 
 - The chart opened weeks (two months at month zoom) before the first task when the timeline
   was too short to scroll. The scale now starts one or two days before the first task.
-- Bar labels near the right edge are drawn before the bar instead of being clipped.
+- Bar labels near the right edge are drawn before the bar, or shortened with an ellipsis,
+  instead of being clipped.
 
 ## [0.1.0] - 2026-10-09
 

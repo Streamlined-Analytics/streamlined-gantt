@@ -42,8 +42,9 @@ the task editor instead of an inline cell editor nobody could see. The context m
 from the keyboard, anchors to the bar.
 
 Labels default to `barLabels: "inside"`: inside when the name fits, else after the bar, and
-before the bar when "after" would run past the right edge, so a fitted programme never clips
-its last labels.
+before the bar when "after" would run past the right edge. When neither side has room (a
+phone-width chart), the label goes on the roomier side and is shortened with an ellipsis, so a
+fitted programme never clips a label; the full name stays in the hidden treegrid.
 
 ### Fit to width: a fitted day width, frozen during a drag ✅ chosen
 
@@ -77,7 +78,7 @@ under the pointer. Print and export keep the rounded scale.
 - `layout: "grid" | "timeline"`, `fit: "width"`, `minDayWidth`, `setFit()`, and the `layout`
   and `fit` element attributes.
 - An exact scale start for both layouts.
-- Core 44.06 KB gzip (was 43.52), script-tag build 46.55 KB (was 46.01), CSS 4.02 KB (was 3.92).
+- Core 44.11 KB gzip (was 43.52), script-tag build 46.59 KB (was 46.01), CSS 4.02 KB (was 3.92).
 
 We did not add a "grid below the timeline" option: hosts that want a table render their own,
 as the website does.
@@ -90,4 +91,4 @@ as the website does.
   bar to outline.
 - The label width is estimated (6.5 px per character), so a name close to the bar width may
   sit outside when it would just have fitted.
-- 470 bytes of the core budget; about 0.9 KB remains.
+- About 600 bytes of the core budget; about 0.9 KB remains.

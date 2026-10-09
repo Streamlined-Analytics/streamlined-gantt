@@ -42,6 +42,10 @@
       "types": "./dist/types/events.d.ts",
       "default": "./dist/events.js"
     },
+    "./print": {
+      "types": "./dist/types/print/index.d.ts",
+      "default": "./dist/print.js"
+    },
     "./io/mspdi": {
       "types": "./dist/types/io/mspdi.d.ts",
       "default": "./dist/io/mspdi.js"

@@ -38,6 +38,13 @@ const builds = [
   },
   { entryPoints: ["src/engine/index.js"], outfile: "dist/engine.js", format: "esm" },
   { entryPoints: ["src/events.js"], outfile: "dist/events.js", format: "esm" },
+  { entryPoints: ["src/print/index.js"], outfile: "dist/print.js", format: "esm" },
+  {
+    entryPoints: ["src/print/iife.js"],
+    outfile: "dist/print.iife.min.js",
+    format: "iife",
+    globalName: "StreamlinedGanttPrint",
+  },
   { entryPoints: ["src/io/mspdi.js"], outfile: "dist/io/mspdi.js", format: "esm" },
   {
     entryPoints: ["src/io/mspdi.js"],

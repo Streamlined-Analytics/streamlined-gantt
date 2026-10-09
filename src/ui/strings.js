@@ -111,6 +111,9 @@ export const DEFAULT_STRINGS = {
   lookaheadOff: "Whole programme",
   lookaheadWeeks: "{weeks} weeks",
   print: "Print",
+  legend: "Key",
+  legendTask: "Task",
+  legendBaseline: "Baseline",
   taskRow: "{name}, {start} to {finish}, {duration} {days}",
   milestoneRow: "{name}, {type} on {date}",
 };

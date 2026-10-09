@@ -1,0 +1,84 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Streamlined Analytics Ltd and contributors -->
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A3 print and export · streamlined-gantt</title>
+    <link rel="stylesheet" href="/dist/streamlined-gantt.css" />
+    <link rel="stylesheet" href="/examples/examples.css" />
+  </head>
+  <body>
+    <main>
+      <h1>A3 print, SVG and PNG export</h1>
+      <p>
+        The print renderer draws every row (not just the visible ones) as a single standalone SVG
+        with a key and a drawing-style title block, fitted to an A3 landscape page.
+      </p>
+      <div class="toolbar">
+        <button type="button" id="print">Print A3</button>
+        <button type="button" id="svg">Download SVG</button>
+        <button type="button" id="png">Download PNG</button>
+        <label>
+          Lookahead
+          <select id="lookahead">
+            <option value="">Whole programme</option>
+            <option value="2">2 weeks</option>
+            <option value="3">3 weeks</option>
+          </select>
+        </label>
+        <a href="/examples/print-preview.html" id="preview">Open print preview</a>
+      </div>
+      <div id="programme"></div>
+    </main>
+    <script type="module">
+      import { Gantt } from "/dist/streamlined-gantt.js";
+      import { installPrint } from "/dist/print.js";
+
+      installPrint(Gantt);
+      const data = await (await fetch("/examples/data/flat-roof.json")).json();
+      const gantt = new Gantt(document.getElementById("programme"), {
+        data,
+        height: "420px",
+        toolbar: true,
+      });
+      const titleBlock = {
+        client: "Mill Lane Management Co",
+        drawnBy: "J Smith",
+        status: "For construction",
+      };
+      const download = (blob, name) => {
+        const link = Object.assign(document.createElement("a"), {
+          href: URL.createObjectURL(blob),
+          download: name,
+        });
+        link.click();
+        URL.revokeObjectURL(link.href);
+      };
+      document
+        .getElementById("print")
+        .addEventListener("click", () => gantt.print({ paper: "A3", titleBlock }));
+      document
+        .getElementById("svg")
+        .addEventListener("click", () =>
+          download(
+            new Blob([gantt.toSVG({ titleBlock })], { type: "image/svg+xml" }),
+            "programme.svg",
+          ),
+        );
+      document
+        .getElementById("png")
+        .addEventListener("click", async () =>
+          download(await gantt.exportPNG({ titleBlock }), "programme.png"),
+        );
+      document.getElementById("lookahead").addEventListener("change", (event) => {
+        const weeks = Number(event.target.value);
+        gantt.setLookahead(weeks ? { weeks } : null);
+        document.getElementById("preview").href =
+          `/examples/print-preview.html${weeks ? `?lookahead=${weeks}` : ""}`;
+      });
+      window.gantt = gantt;
+    </script>
+  </body>
+</html>

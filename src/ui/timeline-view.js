@@ -498,7 +498,7 @@ export class TimelineView {
  * @param {Geometry} geometry
  * @returns {SVGElement[]}
  */
-function summaryShape(geometry) {
+export function summaryShape(geometry) {
   const { left, right, top, height } = geometry;
   const width = Math.max(right - left, 2);
   const cap = Math.min(6, width / 2);
@@ -515,7 +515,7 @@ function summaryShape(geometry) {
  * @param {Geometry} geometry
  * @returns {SVGElement}
  */
-function milestoneShape(type, geometry) {
+export function milestoneShape(type, geometry) {
   const x = (geometry.left + geometry.right) / 2;
   const { y, height } = geometry;
   const half = height / 2;
@@ -542,7 +542,7 @@ function milestoneShape(type, geometry) {
  * @param {string|null} criticalPattern
  * @returns {SVGElement[]}
  */
-function barShape(row, geometry, previewProgress, criticalPattern) {
+export function barShape(row, geometry, previewProgress, criticalPattern) {
   const { left, right, top, height } = geometry;
   const width = Math.max(right - left, 2);
   const progress = previewProgress ?? row.dates?.progress ?? 0;

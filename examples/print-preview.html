@@ -1,0 +1,66 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Streamlined Analytics Ltd and contributors -->
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <title>Print preview · streamlined-gantt</title>
+    <link rel="stylesheet" href="/dist/streamlined-gantt.css" />
+    <style>
+      @page {
+        size: A3 landscape;
+        margin: 8mm;
+      }
+
+      html,
+      body {
+        margin: 0;
+        background: #ffffff;
+      }
+
+      #sheet svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      #source {
+        position: absolute;
+        left: -10000px;
+        width: 1200px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="sheet"></div>
+    <div id="source"></div>
+    <script type="module">
+      import { Gantt } from "/dist/streamlined-gantt.js";
+      import { buildDocument } from "/dist/print.js";
+
+      const params = new URLSearchParams(location.search);
+      const data = await (
+        await fetch(params.get("fixture") ?? "/examples/data/flat-roof.json")
+      ).json();
+      const gantt = new Gantt(document.getElementById("source"), {
+        data,
+        today: () => "2026-11-09",
+      });
+      const weeks = Number(params.get("lookahead"));
+      if (weeks) gantt.setLookahead({ weeks });
+      document
+        .getElementById("sheet")
+        .append(
+          buildDocument(gantt, {
+            titleBlock: {
+              client: "Mill Lane Management Co",
+              drawnBy: "J Smith",
+              status: "For construction",
+            },
+          }),
+        );
+      gantt.destroy();
+      document.body.dataset.ready = "true";
+    </script>
+  </body>
+</html>

@@ -63,7 +63,7 @@ function nextUnit(day, unit) {
 
 export class TimeScale {
   /**
-   * @param {{zoom?: ZoomLevel, start: number, finish: number, locale?: string, strings?: Record<string, string>, dayWidth?: number}} options
+   * @param {{zoom?: ZoomLevel, start: number, finish: number, locale?: string, strings?: Record<string, string>, dayWidth?: number, padDays?: number}} options
    */
   constructor(options) {
     this.zoom = options.zoom ?? "week";
@@ -71,7 +71,7 @@ export class TimeScale {
     this.dayWidth = options.dayWidth ?? this.config.dayWidth;
     this.locale = options.locale ?? "en-GB";
     this.strings = options.strings ?? {};
-    const pad = this.config.padDays;
+    const pad = options.padDays ?? this.config.padDays;
     this.start = unitStart(options.start - pad, this.config.top === "year" ? "month" : "week");
     const paddedFinish = options.finish + pad;
     let end = unitStart(paddedFinish, this.config.bottom);

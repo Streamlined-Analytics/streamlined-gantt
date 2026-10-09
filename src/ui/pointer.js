@@ -256,8 +256,7 @@ export class PointerController {
 
   /** @returns {Record<string, unknown>} */
   describeOrigin() {
-    const { origin } = this.drag;
-    return describe({ start: origin.start, finish: origin.finish, progress: origin.progress });
+    return this.describeOriginOf(/** @type {DragState} */ (this.drag));
   }
 
   /**
@@ -403,7 +402,7 @@ export class PointerController {
         ? drag.current
         : drag.current
           ? describe(drag.current)
-          : this.describeOrigin();
+          : this.describeOriginOf(drag);
     this.gantt.emit("drag-end", {
       kind: drag.kind,
       taskId: drag.taskId,

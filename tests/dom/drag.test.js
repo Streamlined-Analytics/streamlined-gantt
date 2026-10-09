@@ -71,6 +71,35 @@ describe("drag editing with a mouse", () => {
     expect(gantt.getTask("t3").start).toBe("2026-11-10");
   });
 
+  test("Escape before the first drag frame cancels cleanly (no move processed yet)", () => {
+    const { gantt, host } = mount(structuredClone(flatRoof));
+    const ends = record(gantt, ["drag-end"]);
+    const target = handle(host, "t5", "move");
+    const box = target.getBoundingClientRect();
+    const base = {
+      bubbles: true,
+      cancelable: true,
+      pointerId: 9,
+      pointerType: "mouse",
+      isPrimary: true,
+      button: 0,
+      buttons: 1,
+    };
+    const x = box.left + box.width / 2;
+    const y = box.top + box.height / 2;
+    target.dispatchEvent(new PointerEvent("pointerdown", { ...base, clientX: x, clientY: y }));
+    target
+      .closest("svg")
+      .dispatchEvent(new PointerEvent("pointermove", { ...base, clientX: x + 40, clientY: y }));
+    expect(() =>
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+    ).not.toThrow();
+    expect(ends).toHaveLength(1);
+    expect(ends[0]).toMatchObject({ cancelled: true, kind: "move", taskId: "t5" });
+    expect(ends[0].to).toEqual(ends[0].from);
+    expect(gantt.getTask("t5").start).toBe("2026-11-13");
+  });
+
   test("resize-end gives the inclusive finish under the pointer (Frappe #73)", async () => {
     const { gantt, host } = mount(structuredClone(flatRoof), { zoom: "day" });
     await pointerDrag(handle(host, "t5", "resize-end"), { dx: 32 * 3 });

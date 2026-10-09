@@ -1,0 +1,78 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Streamlined Analytics Ltd and contributors -->
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live cost and cash flow · streamlined-gantt</title>
+    <link rel="stylesheet" href="/dist/streamlined-gantt.css" />
+    <link rel="stylesheet" href="/examples/examples.css" />
+    <!-- ECharts belongs to this example page only; it is not a library dependency. -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/echarts/6.1.0/echarts.min.js"
+      integrity="sha384-C2iskrW/uPW46KzOjrvJIQo4YkV8lkD+QS0CrDN18IIPIpT/g2USu8bTP3nvmIAD"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      .summary-grid {
+        display: grid;
+        grid-template-columns: minmax(260px, 1fr) 2fr;
+        gap: 16px;
+        margin-top: 16px;
+      }
+
+      .kpis {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .kpis th,
+      .kpis td {
+        padding: 6px 8px;
+        border-bottom: 1px solid #e2e5ea;
+        text-align: left;
+      }
+
+      .kpis td {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .chart {
+        height: 280px;
+      }
+
+      @media (max-width: 760px) {
+        .summary-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Drag the programme, watch cost, margin and cash flow move</h1>
+      <p>
+        Every figure below is computed by <code>gantt.getProjectSummary()</code>. The table and
+        charts update live while you drag (from the preview) and settle once per committed change.
+      </p>
+      <div id="programme"></div>
+      <div class="summary-grid">
+        <table class="kpis" aria-label="Programme summary">
+          <tbody id="kpis"></tbody>
+        </table>
+        <div>
+          <div
+            id="cashflow"
+            class="chart"
+            role="img"
+            aria-label="Cumulative cost against stage payments"
+          ></div>
+          <div id="weekly" class="chart" role="img" aria-label="Cost and charge by week"></div>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="/examples/echarts-summary.js"></script>
+  </body>
+</html>

@@ -1,9 +1,23 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Streamlined Analytics Ltd and contributors
 
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { watchErrors } from "./support/page.js";
+
+const echarts = readFileSync(
+  new URL("../../node_modules/echarts/dist/echarts.min.js", import.meta.url),
+);
+
+test.beforeEach(async ({ page }) => {
+  await page.route("https://cdnjs.cloudflare.com/ajax/libs/echarts/**", (route) =>
+    route.fulfill({
+      body: echarts,
+      contentType: "text/javascript",
+      headers: { "Access-Control-Allow-Origin": "*" },
+    }),
+  );
+});
 
 const pages = readdirSync(new URL("../../examples/", import.meta.url)).filter(
   (name) => name.endsWith(".html") && name !== "index.html",

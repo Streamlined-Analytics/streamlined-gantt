@@ -809,3 +809,59 @@ describe("other API", () => {
     expect(destroyed.map((event) => event.type)).toEqual(["destroy"]);
   });
 });
+
+describe("indent and outdent", () => {
+  const flatRoof = () =>
+    new ProgrammeController({
+      data: loadFixture("programmes/flat-roof.json"),
+      fields: FLAT_ROOF_FIELDS,
+    });
+
+  const tree = () =>
+    new ProgrammeController({
+      data: {
+        calendars: [ewCalendar()],
+        tasks: [
+          { id: "P", name: "Phase", type: "summary" },
+          { id: "A", name: "A", parent: "P", start: "2026-11-02", duration: 2 },
+          { id: "B", name: "B", parent: "P", start: "2026-11-02", duration: 2 },
+        ],
+        links: [],
+      },
+    });
+
+  test("indent makes a task the last child of the sibling above; undo restores it", async () => {
+    const controller = tree();
+    expect(await controller.indentTask("B")).toMatchObject({ committed: true });
+    expect(controller.getTask("B").parent).toBe("A");
+    await controller.undo();
+    expect(controller.getTask("B").parent).toBe("P");
+  });
+
+  test("outdent moves a task up one level, to the top when its parent is top-level", async () => {
+    const controller = tree();
+    await controller.indentTask("B");
+    expect(await controller.outdentTask("B", { cause: "keyboard" })).toMatchObject({
+      committed: true,
+    });
+    expect(controller.getTask("B").parent).toBe("P");
+    await controller.outdentTask("B");
+    expect(controller.getTask("B").parent ?? null).toBeNull();
+  });
+
+  test("indenting under a linked predecessor is refused as a cycle", async () => {
+    expect(await flatRoof().indentTask("t3")).toMatchObject({ committed: false, reason: "cycle" });
+  });
+
+  test.each([
+    ["indentTask", "s1", "validation", /no task above/],
+    ["indentTask", "nope", "not-found", /Unknown task/],
+    ["outdentTask", "s1", "validation", /already at the top level/],
+    ["outdentTask", "nope", "not-found", /Unknown task/],
+  ])("%s(%s) is refused with reason %s", async (method, id, reason, message) => {
+    const controller = flatRoof();
+    const rejections = record(controller, ["edit-rejected"]);
+    expect(await controller[method](id)).toMatchObject({ committed: false, reason });
+    expect(rejections[0].message).toMatch(message);
+  });
+});

@@ -769,4 +769,27 @@ describe("float at the edges", () => {
       ).toEqual([]);
     }
   });
+
+  test("without a completion date, a start-anchored milestone on the last day is critical", () => {
+    const programme = (start) => ({
+      tasks: [
+        { id: "A", name: "A", start: "2026-11-02", duration: 5 },
+        { id: "M", name: "Handover", type: "milestone", start, duration: 0 },
+      ],
+      links: [],
+      calendars: [ewCalendar()],
+    });
+    const sameDay = run(programme("2026-11-06")).view;
+    expect(sameDay.M).toMatchObject({
+      anchor: "start",
+      totalFloat: 0,
+      freeFloat: 0,
+      critical: true,
+    });
+    expect(sameDay.A).toMatchObject({ totalFloat: 0, critical: true });
+    const dayAfter = run(programme("2026-11-09")).view;
+    expect(dayAfter.M).toMatchObject({ totalFloat: 0, freeFloat: 0, critical: true });
+    expect(dayAfter.A).toMatchObject({ totalFloat: 1, critical: false });
+    expect(run(programme("2026-11-04")).view.M.totalFloat).toBe(2);
+  });
 });

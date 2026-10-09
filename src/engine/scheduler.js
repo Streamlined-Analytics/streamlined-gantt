@@ -151,6 +151,14 @@ function sameEdges(first, second) {
 }
 
 /**
+ * @param {Node} node
+ * @returns {boolean}
+ */
+function isStartAnchoredPoint(node) {
+  return node.dates.milestone && node.anchor === "start";
+}
+
+/**
  * Whether the predecessor point a link measures from is the start of a day
  * (a bar's start, or a start-anchored milestone) rather than the end of one.
  * @param {import("./graph.js").Edge} edge
@@ -448,8 +456,20 @@ class Scheduler {
   /** @returns {number} */
   latestEarlyFinish() {
     let latest = -Infinity;
-    for (const node of this.nodes.values()) latest = Math.max(latest, node.EF);
+    for (const node of this.nodes.values()) latest = Math.max(latest, this.endOfDay(node, node.EF));
     return latest;
+  }
+
+  /**
+   * The working index at the end of the day a node finishes on. A
+   * start-anchored milestone at index `i` is shown on day `i`, which ends at
+   * `i + 1`; everything else already finishes at the end of a day.
+   * @param {Node} node
+   * @param {number} index
+   * @returns {number}
+   */
+  endOfDay(node, index) {
+    return isStartAnchoredPoint(node) ? index + 1 : index;
   }
 
   /**
@@ -471,9 +491,7 @@ class Scheduler {
    * @param {number} terminal
    */
   backward(node, terminal) {
-    const startAnchoredPoint = node.dates.milestone && node.anchor === "start";
-    const completionSet = Boolean(this.input.contractCompletion);
-    let lateFinish = completionSet && startAnchoredPoint ? terminal - 1 : terminal;
+    let lateFinish = isStartAnchoredPoint(node) ? terminal - 1 : terminal;
     for (const edge of node.outgoing) {
       const successor = this.nodes.get(edge.to);
       const shift = anchorShift(edge, node, successor);
@@ -482,7 +500,7 @@ class Scheduler {
     const constraint = node.task.constraint;
     if (constraint?.type === "FNLT") {
       const finishBoundary = this.calendar.indexOf(toDay(constraint.date) + 1);
-      const limit = startAnchoredPoint ? finishBoundary - 1 : finishBoundary;
+      const limit = isStartAnchoredPoint(node) ? finishBoundary - 1 : finishBoundary;
       lateFinish = Math.min(lateFinish, limit);
       if (node.EF > limit)
         this.addViolation(
@@ -505,7 +523,7 @@ class Scheduler {
    * @returns {number}
    */
   freeFloat(node, projectEarlyFinish) {
-    let slack = projectEarlyFinish - node.EF;
+    let slack = projectEarlyFinish - this.endOfDay(node, node.EF);
     for (const edge of node.outgoing) {
       slack = Math.min(slack, linkSlack(edge, node, this.nodes.get(edge.to)));
     }

@@ -302,16 +302,16 @@ describe("progress and the data date", () => {
       dataDate: "2026-11-10",
       tasks: [
         { id: "A", name: "A", start: "2026-11-02", duration: 3, progress: 0.5 },
-        { id: "B", name: "B", start: "2026-11-02", duration: 10 },
+        { id: "B", name: "B", start: "2026-11-02", duration: 10, progress: 0.1 },
       ],
       links: [],
       calendars: [ewCalendar()],
     });
     expect(view.A).toMatchObject({ start: "2026-11-02", finish: "2026-11-10", duration: 7 });
-    expect(view.B.finish).toBe("2026-11-13");
-    expect(view.A.totalFloat).toBe(3);
-    expect(view.A.lateStart).toBe("2026-11-05");
-    expect(view.A.lateFinish).toBe("2026-11-13");
+    expect(view.B.finish).toBe("2026-11-20");
+    expect(view.A.totalFloat).toBe(8);
+    expect(view.A.lateStart).toBe("2026-11-12");
+    expect(view.A.lateFinish).toBe("2026-11-20");
   });
 
   test("an actual start without progress counts as started", () => {

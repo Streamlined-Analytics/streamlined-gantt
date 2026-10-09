@@ -738,4 +738,35 @@ describe("float at the edges", () => {
     expect(run(programme("2026-11-16")).view.M.totalFloat).toBe(-1);
     expect(run(programme("2026-11-12")).view.M.totalFloat).toBe(1);
   });
+
+  test("a milestone marked as started but not complete stays a point, in every mode", () => {
+    for (const mode of ["propagate", "tight", "off"]) {
+      const { view, result } = run(
+        {
+          tasks: [
+            { id: "A", name: "A", start: "2026-11-02", duration: 5 },
+            {
+              id: "M",
+              name: "Handover",
+              type: "milestone",
+              start: "2026-11-06",
+              duration: 0,
+              progress: 0.5,
+            },
+          ],
+          links: [{ id: "l", from: "A", to: "M" }],
+          calendars: [ewCalendar()],
+          dataDate: "2026-11-11",
+        },
+        { mode },
+      );
+      expect(view.M.earlyStart, mode).toBe(view.M.earlyFinish);
+      expect(view.M.start, mode).toBe(view.M.finish);
+      expect(
+        result.violations.filter(
+          (violation) => violation.taskId === "M" && violation.code === "negative-float",
+        ),
+      ).toEqual([]);
+    }
+  });
 });

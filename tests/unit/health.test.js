@@ -105,4 +105,30 @@ describe("programme health check", () => {
     );
     expect(findings.filter((finding) => finding.code === "out-of-sequence")).toHaveLength(1);
   });
+
+  test("out-of-sequence rolls progress up through summaries", () => {
+    const programme = (leafProgress) => ({
+      tasks: [
+        { id: "S", name: "Strip-out", type: "summary", progress: 0 },
+        {
+          id: "a",
+          name: "A",
+          parent: "S",
+          start: "2026-11-02",
+          duration: 2,
+          progress: leafProgress,
+        },
+        { id: "b", name: "B", parent: "S", start: "2026-11-02", duration: 1, progress: 1 },
+        { id: "T", name: "Fit-out", type: "summary" },
+        { id: "c", name: "C", parent: "T", start: "2026-11-04", duration: 1, progress: 0.5 },
+      ],
+      links: [{ id: "l1", from: "S", to: "T" }],
+    });
+    const outOfSequence = (data) =>
+      check(data).filter((finding) => finding.code === "out-of-sequence");
+    expect(outOfSequence(programme(1))).toEqual([]);
+    expect(outOfSequence(programme(0.5))).toEqual([
+      expect.objectContaining({ taskId: "T", linkId: "l1" }),
+    ]);
+  });
 });

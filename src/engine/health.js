@@ -3,7 +3,7 @@
 
 import { MILESTONE_TYPES, isComplete, isLocked, isStarted } from "./model.js";
 import { leafTasks } from "./analysis.js";
-import { ancestorsOf } from "./graph.js";
+import { ancestorsOf, leavesOf } from "./graph.js";
 
 /**
  * Programme health check, after the SCL Delay and Disruption Protocol
@@ -188,7 +188,9 @@ function finding(code, severity, task, message) {
 }
 
 /**
- * A successor has started although its finish-to-start predecessor is not complete.
+ * A successor has started although its finish-to-start predecessor is not
+ * complete. For summaries, progress rolls up from their leaves: a summary has
+ * started when any leaf has, and is complete when every leaf is.
  * @param {import("./analysis.js").Analysis} analysis
  * @param {import("./types.js").Link} link
  * @returns {HealthFinding[]}
@@ -199,8 +201,13 @@ function outOfSequence(analysis, link) {
   if ((link.type ?? "FS") !== "FS") return [];
   const predecessor = analysis.taskById.get(link.from);
   const successor = analysis.taskById.get(link.to);
+  if (!successor || !predecessor) return [];
+  const leaves = (id) =>
+    leavesOf(id, analysis.tree.hierarchy)
+      .map((leaf) => analysis.taskById.get(leaf))
+      .filter(Boolean);
   const startedTooEarly =
-    successor && predecessor && isStarted(successor) && !isComplete(predecessor);
+    leaves(successor.id).some(isStarted) && !leaves(predecessor.id).every(isComplete);
   if (!startedTooEarly) return [];
   return [
     {

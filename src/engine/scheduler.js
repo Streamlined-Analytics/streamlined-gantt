@@ -417,6 +417,7 @@ class Scheduler {
    * Places complete and in-progress tasks. Returns false for unstarted tasks.
    * An in-progress task that keeps its stored dates (off mode, locked)
    * finishes on its stored forecast, so its float matches what successors see.
+   * A milestone is a point: started or not, it never spans a day.
    * @param {Node} node
    * @returns {boolean}
    */
@@ -433,6 +434,7 @@ class Scheduler {
       return true;
     }
     node.EF = node.ES + node.duration;
+    if (node.dates.milestone) return true;
     if (this.keepsStoredDates(node)) {
       node.EF = Math.max(node.ES, this.calendar.indexOf(node.dates.finish + 1));
       return true;

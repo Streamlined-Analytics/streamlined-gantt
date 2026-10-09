@@ -625,15 +625,7 @@ export class Gantt extends ProgrammeController {
    * @returns {boolean}
    */
   isFinishAnchored(id) {
-    this.anchorCache ??= { analysis: null, ids: new Set() };
-    if (this.anchorCache.analysis !== this.analysis) {
-      const ids = new Set();
-      for (const link of this.store.list("links")) {
-        if ((link.type ?? "FS") === "FS" || link.type === "FF") ids.add(link.to);
-      }
-      this.anchorCache = { analysis: this.analysis, ids };
-    }
-    return this.anchorCache.ids.has(id);
+    return this.analysis.schedule.tasks.get(id)?.anchor === "finish";
   }
 
   /**

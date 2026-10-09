@@ -90,25 +90,63 @@ export function ancestorsOf(id, hierarchy) {
 }
 
 /**
- * Expands links to leaf-to-leaf edges.
- * @param {{id: string, parent?: string|null}[]} tasks
+ * Expands links to leaf-to-leaf edges, following summary semantics: a
+ * summary starts when its earliest leaf starts and finishes when its latest
+ * leaf finishes.
+ *
+ * - From a summary, FS/FF links leave every leaf (the summary's finish is the
+ *   latest of them), but SS/SF links leave only the earliest-starting leaf.
+ * - Into a summary, FS/SS links constrain every leaf (the summary's start is
+ *   the earliest of them), but FF/SF links constrain only the latest-finishing leaf.
+ *
+ * @param {{id: string, parent?: string|null, start?: string, finish?: string}[]} tasks
  * @param {{id: string, from: string, to: string, type?: string, lag?: number}[]} links
  * @param {Hierarchy} [hierarchy]
  * @returns {Edge[]}
  */
 export function expandLinks(tasks, links, hierarchy = buildHierarchy(tasks)) {
+  const byId = new Map(tasks.map((task) => [task.id, task]));
   /** @type {Edge[]} */
   const edges = [];
   for (const link of links) {
     const type = /** @type {Edge["type"]} */ (link.type ?? "FS");
     const lag = link.lag ?? 0;
-    for (const from of leavesOf(link.from, hierarchy)) {
-      for (const to of leavesOf(link.to, hierarchy)) {
-        edges.push({ linkId: link.id, from, to, type, lag });
-      }
+    const fromLeaves = endpointLeaves(
+      link.from,
+      type[0] === "S" ? "earliest-start" : "all",
+      hierarchy,
+      byId,
+    );
+    const toLeaves = endpointLeaves(
+      link.to,
+      type[1] === "F" ? "latest-finish" : "all",
+      hierarchy,
+      byId,
+    );
+    for (const from of fromLeaves) {
+      for (const to of toLeaves) edges.push({ linkId: link.id, from, to, type, lag });
     }
   }
   return edges;
+}
+
+/**
+ * @param {string} id
+ * @param {"all"|"earliest-start"|"latest-finish"} rule
+ * @param {Hierarchy} hierarchy
+ * @param {Map<string, {start?: string, finish?: string}>} byId
+ * @returns {string[]}
+ */
+function endpointLeaves(id, rule, hierarchy, byId) {
+  const leaves = leavesOf(id, hierarchy);
+  if (rule === "all" || leaves.length < 2) return leaves;
+  const finishOf = (leaf) => byId.get(leaf)?.finish ?? byId.get(leaf)?.start ?? "";
+  const startOf = (leaf) => byId.get(leaf)?.start ?? "";
+  const pick =
+    rule === "earliest-start"
+      ? leaves.reduce((best, leaf) => (startOf(leaf) < startOf(best) ? leaf : best))
+      : leaves.reduce((best, leaf) => (finishOf(leaf) > finishOf(best) ? leaf : best));
+  return [pick];
 }
 
 /**

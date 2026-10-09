@@ -466,6 +466,20 @@ describe("locked tasks, summaries and violations", () => {
     expect(view.S1).toBeUndefined();
   });
 
+  test("an SS link from a summary follows the summary's start, not its latest leaf", () => {
+    const { view } = run({
+      tasks: [
+        { id: "S1", name: "Phase 1", type: "summary" },
+        { id: "a", name: "a", parent: "S1", start: "2026-11-02", duration: 2 },
+        { id: "b", name: "b", parent: "S1", start: "2026-11-09", duration: 2 },
+        { id: "c", name: "c", start: "2026-11-02", duration: 1 },
+      ],
+      links: [{ id: "l", from: "S1", to: "c", type: "SS", lag: 1 }],
+      calendars: [ewCalendar()],
+    });
+    expect(view.c.start).toBe("2026-11-03");
+  });
+
   test("tasks on non-working days are reported", () => {
     const { result } = run(
       {

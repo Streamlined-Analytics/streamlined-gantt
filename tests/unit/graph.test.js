@@ -44,6 +44,27 @@ describe("links and cycles", () => {
     ]);
   });
 
+  test("SS/SF links leave a summary from its earliest leaf; FF/SF links enter its latest-finishing leaf", () => {
+    const dated = [
+      { id: "S", name: "S" },
+      { id: "early", name: "e", parent: "S", start: "2026-11-02", finish: "2026-11-03" },
+      { id: "late", name: "l", parent: "S", start: "2026-11-09", finish: "2026-11-20" },
+      { id: "x", name: "x", start: "2026-11-02", finish: "2026-11-02" },
+    ];
+    expect(
+      expandLinks(dated, [{ id: "1", from: "S", to: "x", type: "SS" }]).map((edge) => edge.from),
+    ).toEqual(["early"]);
+    expect(
+      expandLinks(dated, [{ id: "1", from: "S", to: "x", type: "FS" }]).map((edge) => edge.from),
+    ).toEqual(["early", "late"]);
+    expect(
+      expandLinks(dated, [{ id: "1", from: "x", to: "S", type: "FF" }]).map((edge) => edge.to),
+    ).toEqual(["late"]);
+    expect(
+      expandLinks(dated, [{ id: "1", from: "x", to: "S", type: "SS" }]).map((edge) => edge.to),
+    ).toEqual(["early", "late"]);
+  });
+
   test("topological order ignores edges to unknown nodes", () => {
     const { order, blocked } = topologicalOrder(
       ["x", "y"],

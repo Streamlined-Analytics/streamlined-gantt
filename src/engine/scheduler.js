@@ -268,18 +268,22 @@ class Scheduler {
   }
 
   /**
+   * Earliest start allowed by logic, SNET and the data date. A finish-anchored
+   * milestone sits at the end of its date, so its index is one more than the
+   * start-of-day index of the date it must not precede.
    * @param {Node} node
    * @param {number} logic
    * @returns {number}
    */
   unfixedStart(node, logic) {
     const { task } = node;
+    const pointOffset = node.anchor === "finish" ? 1 : 0;
     const pullBack = this.mode === "tight" && node.incoming.length > 0 && !this.pinned.has(task.id);
     let start = pullBack ? logic : Math.max(node.currentStart, logic);
     if (task.constraint?.type === "SNET") {
-      start = Math.max(start, this.calendar.indexOf(toDay(task.constraint.date)));
+      start = Math.max(start, this.calendar.indexOf(toDay(task.constraint.date)) + pointOffset);
     }
-    if (this.dataDateIndex !== null) start = Math.max(start, this.dataDateIndex);
+    if (this.dataDateIndex !== null) start = Math.max(start, this.dataDateIndex + pointOffset);
     return start;
   }
 
@@ -334,7 +338,7 @@ class Scheduler {
     let lateFinish = terminal;
     for (const edge of node.outgoing) {
       const successor = this.nodes.get(edge.to);
-      lateFinish = Math.min(lateFinish, allowedFinish(edge, successor, node.duration));
+      lateFinish = Math.min(lateFinish, allowedFinish(edge, successor, node.EF - node.ES));
     }
     const constraint = node.task.constraint;
     if (constraint?.type === "FNLT") {
@@ -349,7 +353,7 @@ class Scheduler {
         );
     }
     node.LF = lateFinish;
-    node.LS = lateFinish - node.duration;
+    node.LS = lateFinish - (node.EF - node.ES);
   }
 
   /**

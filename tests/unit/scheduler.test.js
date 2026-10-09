@@ -297,6 +297,23 @@ describe("progress and the data date", () => {
     expect(view.A.critical).toBe(false);
   });
 
+  test("float of a started task uses its effective span when the data date extends it", () => {
+    const { view } = run({
+      dataDate: "2026-11-10",
+      tasks: [
+        { id: "A", name: "A", start: "2026-11-02", duration: 3, progress: 0.5 },
+        { id: "B", name: "B", start: "2026-11-02", duration: 10 },
+      ],
+      links: [],
+      calendars: [ewCalendar()],
+    });
+    expect(view.A).toMatchObject({ start: "2026-11-02", finish: "2026-11-10", duration: 7 });
+    expect(view.B.finish).toBe("2026-11-13");
+    expect(view.A.totalFloat).toBe(3);
+    expect(view.A.lateStart).toBe("2026-11-05");
+    expect(view.A.lateFinish).toBe("2026-11-13");
+  });
+
   test("an actual start without progress counts as started", () => {
     const { view } = run({
       dataDate: "2026-11-10",
@@ -358,6 +375,21 @@ describe("milestones", () => {
   test("a milestone driven by SS sits at its predecessor's start", () => {
     const { view } = run(programme([{ id: "l1", from: "A", to: "P", type: "SS", lag: 1 }]));
     expect(view.P.start).toBe("2026-11-03");
+  });
+
+  test("a finish-anchored milestone respects SNET and the data date on its own date", () => {
+    const base = (extra) => ({
+      tasks: [
+        { id: "A", name: "A", start: "2026-11-02", duration: 1 },
+        { id: "M", name: "M", type: "milestone", start: "2026-11-02", ...extra },
+      ],
+      links: [{ id: "l", from: "A", to: "M" }],
+      calendars: [ewCalendar()],
+    });
+    expect(run(base({ constraint: { type: "SNET", date: "2026-11-05" } })).view.M.start).toBe(
+      "2026-11-05",
+    );
+    expect(run({ ...base({}), dataDate: "2026-11-06" }).view.M.start).toBe("2026-11-06");
   });
 
   test("a finish milestone on a non-working day reports the previous working day", () => {

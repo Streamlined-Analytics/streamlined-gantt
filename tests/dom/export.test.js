@@ -5,7 +5,12 @@ import { afterEach, beforeAll, describe, expect, test } from "vitest";
 import flatRoof from "../fixtures/programmes/flat-roof.json";
 import { generatePerfProgramme } from "../fixtures/perf/generate-perf-fixture.js";
 import { Gantt } from "../../src/index.js";
-import { installPrint, printDocumentHTML } from "../../src/print/index.js";
+import {
+  buildDocument,
+  exportPNG,
+  installPrint,
+  printDocumentHTML,
+} from "../../src/print/index.js";
 import { cleanup, mount } from "./support.js";
 
 beforeAll(() => installPrint(Gantt));
@@ -73,5 +78,14 @@ describe("exportPNG", () => {
         .documentElement.getAttribute("width"),
     );
     expect(bitmap.width).toBe(Math.ceil(svgWidth));
+  });
+
+  test("an empty programme exports a valid document and PNG", async () => {
+    const { gantt } = mount({ tasks: [] });
+    const svg = buildDocument(gantt);
+    expect(Number(svg.getAttribute("width"))).toBeGreaterThan(0);
+    expect(svg.getAttribute("viewBox")).not.toMatch(/NaN|Infinity/);
+    const png = await exportPNG(gantt);
+    expect(png.type).toBe("image/png");
   });
 });

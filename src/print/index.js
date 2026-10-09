@@ -255,6 +255,7 @@ function documentScale(gantt, rows, options) {
   const data = gantt.store.data;
   for (const date of [data.contractCompletion, data.dataDate]) if (date) days.push(toDay(date));
   if (options.range) days.push(toDay(options.range.from), toDay(options.range.to));
+  if (!days.length) days.push(toDay(gantt.todayISO()));
   const start = options.range ? toDay(options.range.from) : Math.min(...days);
   const finish = options.range ? toDay(options.range.to) : Math.max(...days);
   const zoom = options.zoom ?? zoomFor(finish - start + 1);

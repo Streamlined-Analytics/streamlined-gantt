@@ -23,11 +23,14 @@ const pages = readdirSync(new URL("../../examples/", import.meta.url)).filter(
   (name) => name.endsWith(".html") && name !== "index.html",
 );
 
+/** What shows a page is ready; the print preview renders a sheet and then destroys its chart. */
+const READY = { "print-preview.html": 'body[data-ready="true"] #sheet > *' };
+
 for (const name of pages) {
   test(`example ${name} loads without errors`, async ({ page }) => {
     const { assertClean } = watchErrors(page);
     await page.goto(`/examples/${name}`);
-    await expect(page.locator(".sg-root").first()).toBeVisible();
+    await expect(page.locator(READY[name] ?? ".sg-root").first()).toBeVisible();
     assertClean();
   });
 }

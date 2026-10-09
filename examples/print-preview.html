@@ -48,17 +48,15 @@
       });
       const weeks = Number(params.get("lookahead"));
       if (weeks) gantt.setLookahead({ weeks });
-      document
-        .getElementById("sheet")
-        .append(
-          buildDocument(gantt, {
-            titleBlock: {
-              client: "Mill Lane Management Co",
-              drawnBy: "J Smith",
-              status: "For construction",
-            },
-          }),
-        );
+      document.getElementById("sheet").append(
+        buildDocument(gantt, {
+          titleBlock: {
+            client: "Mill Lane Management Co",
+            drawnBy: "J Smith",
+            status: "For construction",
+          },
+        }),
+      );
       gantt.destroy();
       document.body.dataset.ready = "true";
     </script>

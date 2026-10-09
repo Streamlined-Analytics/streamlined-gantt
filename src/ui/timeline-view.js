@@ -504,7 +504,7 @@ export class TimelineView {
       id = `${this.arrowId}-c${this.customArrows.size}`;
       this.customArrows.set(colour, id);
       const marker = arrowMarker(id, "sg-arrow");
-      marker.firstElementChild?.setAttribute("style", `fill: ${colour}`);
+      /** @type {SVGElement} */ (marker.firstElementChild).style.setProperty("fill", colour);
       this.defs.append(marker);
     }
     return id;

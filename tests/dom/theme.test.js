@@ -236,13 +236,10 @@ describe("print and export use the theme", () => {
       categories: { roofing: "#c2410c" },
     });
     const svg = buildDocument(gantt);
-    const styled = [...svg.querySelectorAll(".sg-bar[style]")].map((element) =>
-      element.getAttribute("style"),
-    );
-    expect(styled).toContain(`fill:${rgb("#c2410c")}`);
-    expect(svg.querySelector(".sg-link-line[style]").getAttribute("style")).toBe(
-      `stroke:${rgb("#db2777")}`,
-    );
+    const fills = [...svg.querySelectorAll(".sg-bar")].map((element) => element.style.fill);
+    expect(fills).toContain(rgb("#c2410c"));
+    expect(svg.querySelector(".sg-link-line[style]").style.stroke).toBe(rgb("#db2777"));
+    expect(new XMLSerializer().serializeToString(svg)).toContain(`fill: ${rgb("#c2410c")}`);
     const css = svg.querySelector("style").textContent;
     expect(css).not.toMatch(/var\(--/);
   });

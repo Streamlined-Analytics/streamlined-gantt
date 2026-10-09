@@ -389,7 +389,7 @@ function drawTimeline(root, context) {
     });
     const line = svg("path", { class: "sg-link-line", d, "marker-end": "url(#doc-arrow)" });
     const colour = linkColour(link);
-    if (colour) line.setAttribute("style", `stroke:${context.resolve(colour)}`);
+    if (colour) line.style.setProperty("stroke", context.resolve(colour));
     body.append(line);
   }
   const baseline = gantt.visibleBaseline();
@@ -552,14 +552,16 @@ function paintCustomColour(group, colour, resolve) {
   if (!colour) return;
   const fill = resolve(colour);
   for (const shape of group.querySelectorAll(".sg-bar, .sg-milestone, .sg-summary-shape")) {
-    shape.setAttribute("style", `fill:${fill}`);
+    /** @type {SVGElement} */ (shape).style.setProperty("fill", fill);
   }
   for (const flag of group.querySelectorAll(".sg-flag")) {
-    flag.setAttribute("style", `fill:${fill};stroke:${fill}`);
+    /** @type {SVGElement} */ (flag).style.setProperty("fill", fill);
+    /** @type {SVGElement} */ (flag).style.setProperty("stroke", fill);
   }
   const progress = resolve(`color-mix(in oklab, ${colour} 62%, var(--sg-shade))`);
-  for (const bar of group.querySelectorAll(".sg-progress"))
-    bar.setAttribute("style", `fill:${progress}`);
+  for (const bar of group.querySelectorAll(".sg-progress")) {
+    /** @type {SVGElement} */ (bar).style.setProperty("fill", progress);
+  }
 }
 
 /**

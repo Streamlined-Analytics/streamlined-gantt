@@ -112,6 +112,18 @@ send it in an `HX-Trigger` header.
   Most sites build their own toolbar and call `setZoom`, `undo`, `redo`, `scrollToDate`,
   `setCriticalPathVisible` and so on.
 
+## Content Security Policy
+
+The chart works under a strict policy (`script-src 'self'; style-src 'self'`, no `eval`): it sets
+styles through the CSSOM, never through `style` attributes or inline `<style>`, and inserts HTML
+only for content you mark with `trustedHTML()`. `examples/strict-csp.html` is served with that
+policy, and a test fails on any violation.
+
+One exception: the print module's document SVG carries its own `<style>` element, so that
+exported SVG files stand alone. Appending that SVG to a page with a strict `style-src` (for
+example, an in-page print preview) needs a nonce or hash for it. Exports, downloads and
+`print()` (which uses its own frame) are unaffected.
+
 ## Styling
 
 See [theming.md](theming.md).

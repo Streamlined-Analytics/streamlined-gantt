@@ -23,6 +23,9 @@ const VENDOR = {
   "/vendor/htmx.min.js": "node_modules/htmx.org/dist/htmx.min.js",
   "/vendor/echarts.min.js": "node_modules/echarts/dist/echarts.min.js",
 };
+/** A strict policy: no inline scripts or styles, no eval, same-origin only. */
+const STRICT_CSP =
+  "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'";
 const TYPES = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -59,6 +62,9 @@ async function serveStatic(response, pathname) {
     response.writeHead(200, {
       "Content-Type": TYPES[extname(path)] || "application/octet-stream",
       "Cache-Control": "no-store",
+      ...(pathname === "/examples/strict-csp.html"
+        ? { "Content-Security-Policy": STRICT_CSP }
+        : {}),
     });
     response.end(body);
   } catch {

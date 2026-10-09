@@ -252,6 +252,40 @@ describe("constraints", () => {
     );
   });
 
+  test("FNLT on a start-anchored milestone one day late is a violation", () => {
+    const { result } = run({
+      tasks: [
+        {
+          id: "M",
+          name: "M",
+          type: "milestone",
+          start: "2026-11-10",
+          constraint: { type: "FNLT", date: "2026-11-09" },
+        },
+      ],
+      links: [],
+      calendars: [ewCalendar()],
+    });
+    expect(result.violations).toContainEqual(
+      expect.objectContaining({ code: "constraint-breached", taskId: "M" }),
+    );
+    const onTime = run({
+      tasks: [
+        {
+          id: "M",
+          name: "M",
+          type: "milestone",
+          start: "2026-11-09",
+          constraint: { type: "FNLT", date: "2026-11-09" },
+        },
+      ],
+      links: [],
+      calendars: [ewCalendar()],
+    }).result;
+    expect(onTime.violations).toEqual([]);
+    expect(onTime.tasks.get("M").totalFloat).toBe(0);
+  });
+
   test("ASAP is the default and needs no date", () => {
     const programme = n1();
     programme.tasks[0].constraint = { type: "ASAP" };
@@ -418,6 +452,37 @@ describe("milestones", () => {
     expect(view.P.earlyStart).toBe("2026-11-04");
     expect(view.P.lateFinish).toBe("2026-11-04");
     expect(view.B.start).toBe("2026-11-05");
+  });
+
+  test("a milestone FS-linked after a start-anchored milestone shows the same date, in every mode", () => {
+    const data = {
+      tasks: [
+        { id: "M1", name: "Start on site", type: "milestone", start: "2026-11-09" },
+        { id: "M2", name: "Site handed over", type: "milestone", start: "2026-11-02" },
+        { id: "A", name: "A", start: "2026-11-02", duration: 1 },
+      ],
+      links: [
+        { id: "l1", from: "M1", to: "M2" },
+        { id: "l2", from: "M2", to: "A" },
+      ],
+      calendars: [ewCalendar()],
+    };
+    for (const mode of ["propagate", "tight"]) {
+      const { view } = run(data, { mode });
+      expect(view.M2).toMatchObject({ start: "2026-11-09", anchor: "start" });
+      expect(view.A.start).toBe("2026-11-09");
+    }
+  });
+
+  test("a milestone after a finish-anchored milestone stays finish-anchored", () => {
+    const { view } = run(
+      programme([
+        { id: "l1", from: "A", to: "P" },
+        { id: "l2", from: "P", to: "S" },
+      ]),
+    );
+    expect(view.P).toMatchObject({ start: "2026-11-04", anchor: "finish" });
+    expect(view.S).toMatchObject({ start: "2026-11-04", anchor: "finish" });
   });
 
   test("a milestone driven by SS sits at its predecessor's start", () => {

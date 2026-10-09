@@ -59,6 +59,7 @@ import { indexTree, isComplete, isLocked, isStarted, resolveLeafDates } from "./
  * @property {number} totalFloat working days; negative when the programme is late
  * @property {number} freeFloat working days
  * @property {boolean} critical
+ * @property {"start"|"finish"} anchor where a milestone sits on its date (always "start" for bars)
  */
 
 /**
@@ -138,14 +139,6 @@ function linkSlack(edge, predecessor, successor) {
 }
 
 /**
- * @param {import("./graph.js").Edge[]} incoming
- * @returns {"start"|"finish"}
- */
-function milestoneAnchor(incoming) {
-  return incoming.some((edge) => edge.type === "FS" || edge.type === "FF") ? "finish" : "start";
-}
-
-/**
  * Why a task that keeps its stored dates conflicts with its predecessors.
  * @param {string} mode
  * @param {import("./types.js").Task} task
@@ -192,6 +185,7 @@ class Scheduler {
       edges.filter((edge) => this.nodes.has(edge.from) && this.nodes.has(edge.to)),
     );
     if (blocked.length) throw new RangeError(`Dependency cycle through: ${blocked.join(", ")}`);
+    this.assignAnchors(order);
     for (const id of order) this.forward(this.nodes.get(id));
     this.projectEarlyFinish = this.latestEarlyFinish();
     const terminal = this.terminalIndex();
@@ -229,10 +223,33 @@ class Scheduler {
       from.outgoing.push(edge);
       to.incoming.push(edge);
     }
-    for (const node of this.nodes.values()) {
-      node.anchor = node.dates.milestone ? milestoneAnchor(node.incoming) : "start";
+  }
+
+  /**
+   * Decides each milestone's anchor in dependency order: finish-anchored when
+   * an FS or FF link arrives from a task, or from a finish-anchored milestone;
+   * otherwise start-anchored. A milestone driven only by start-anchored
+   * milestones therefore shows the same date as they do.
+   * @param {string[]} order
+   */
+  assignAnchors(order) {
+    for (const id of order) {
+      const node = this.nodes.get(id);
+      node.anchor = node.dates.milestone && this.followsAFinish(node) ? "finish" : "start";
       node.currentStart = this.startIndex(node.dates.start, node.anchor);
     }
+  }
+
+  /**
+   * @param {Node} node
+   * @returns {boolean}
+   */
+  followsAFinish(node) {
+    return node.incoming.some((edge) => {
+      if (edge.type !== "FS" && edge.type !== "FF") return false;
+      const predecessor = this.nodes.get(edge.from);
+      return !predecessor.dates.milestone || predecessor.anchor === "finish";
+    });
   }
 
   /**
@@ -349,7 +366,9 @@ class Scheduler {
     }
     const constraint = node.task.constraint;
     if (constraint?.type === "FNLT") {
-      const limit = this.calendar.indexOf(toDay(constraint.date) + 1);
+      const finishBoundary = this.calendar.indexOf(toDay(constraint.date) + 1);
+      const startAnchoredPoint = node.dates.milestone && node.anchor === "start";
+      const limit = startAnchoredPoint ? finishBoundary - 1 : finishBoundary;
       lateFinish = Math.min(lateFinish, limit);
       if (node.EF > limit)
         this.addViolation(
@@ -443,6 +462,7 @@ class Scheduler {
         totalFloat,
         freeFloat: this.freeFloat(node, this.projectEarlyFinish),
         critical: isCritical,
+        anchor: node.anchor,
       });
       projectStart = Math.min(projectStart, dates.start);
       projectFinish = Math.max(projectFinish, dates.finish);

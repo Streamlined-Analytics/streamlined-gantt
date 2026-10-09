@@ -3,9 +3,12 @@
 
 import { describe, expect, test } from "vitest";
 import {
+  Calendar,
   buildHierarchy,
+  collectProblems,
   expandLinks,
   findCycle,
+  schedule,
   toDay,
   wouldCreateCycle,
 } from "../../src/engine/index.js";
@@ -103,6 +106,35 @@ describe("links and cycles", () => {
     );
     expect(wouldCreateCycle(tasks, [{ id: "1", from: "a", to: "c" }], { from: "b", to: "c" })).toBe(
       false,
+    );
+  });
+});
+
+describe("cycle detection does not depend on which summary leaf is chosen", () => {
+  const tasks = [
+    { id: "S", name: "Phase", type: "summary" },
+    { id: "a", name: "a", parent: "S", start: "2026-11-02", finish: "2026-11-03", duration: 20 },
+    { id: "b", name: "b", parent: "S", start: "2026-11-02", duration: 5 },
+    { id: "X", name: "X", start: "2026-11-02", duration: 1 },
+  ];
+  const links = [
+    { id: "l1", from: "X", to: "S", type: "FF" },
+    { id: "l2", from: "a", to: "X" },
+  ];
+
+  test("a summary link that reaches back into its own children is a cycle, whatever the dates", () => {
+    expect(findCycle(tasks, links)).not.toBeNull();
+    expect(collectProblems({ tasks, links }).map((problem) => problem.message)).toEqual([
+      expect.stringMatching(/^dependency cycle/),
+    ]);
+  });
+
+  test("so the scheduler never meets a cycle on data that validated", () => {
+    expect(() =>
+      schedule({ tasks, links: [links[0]], calendar: new Calendar({ id: "c" }) }),
+    ).not.toThrow();
+    expect(() => schedule({ tasks, links, calendar: new Calendar({ id: "c" }) })).toThrow(
+      RangeError,
     );
   });
 });

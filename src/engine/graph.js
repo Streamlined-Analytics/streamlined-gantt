@@ -108,7 +108,7 @@ export function ancestorsOf(id, hierarchy) {
  * @param {{id: string, parent?: string|null, start?: string, finish?: string, duration?: number}[]} tasks
  * @param {{id: string, from: string, to: string, type?: string, lag?: number}[]} links
  * @param {Hierarchy} [hierarchy]
- * @param {(id: string) => {start: number, finish: number}|undefined} [datesOf] day numbers of a leaf
+ * @param {((id: string) => {start: number, finish: number}|undefined)|null} [datesOf] day numbers of a leaf; null uses every leaf of a summary
  * @returns {Edge[]}
  */
 export function expandLinks(
@@ -168,7 +168,7 @@ export function estimatedDates(tasks) {
  */
 function endpointLeaves(id, rule, hierarchy, datesOf) {
   const leaves = leavesOf(id, hierarchy);
-  if (rule === "all" || leaves.length < 2) return leaves;
+  if (rule === "all" || leaves.length < 2 || !datesOf) return leaves;
   const startOf = (leaf) => datesOf(leaf)?.start ?? Infinity;
   const finishOf = (leaf) => datesOf(leaf)?.finish ?? -Infinity;
   const pick =
@@ -210,13 +210,18 @@ export function topologicalOrder(nodes, edges) {
 
 /**
  * Finds one dependency cycle, returned as the task ids along it, or null.
+ * Conservative for summaries: a link to or from a summary counts against all
+ * of its leaves, as MS Project reports a circular relationship when a
+ * summary's link reaches back into its own children. Whichever leaf the
+ * scheduler later picks, its edges are a subset of these, so data that passes
+ * validation never meets a cycle while scheduling.
  * @param {{id: string, parent?: string|null}[]} tasks
  * @param {{id: string, from: string, to: string, type?: string, lag?: number}[]} links
  * @returns {string[]|null}
  */
 export function findCycle(tasks, links) {
   const hierarchy = buildHierarchy(tasks);
-  const edges = expandLinks(tasks, links, hierarchy);
+  const edges = expandLinks(tasks, links, hierarchy, null);
   const leaves = tasks.map((task) => task.id).filter((id) => !hasChildren(id, hierarchy));
   const { blocked } = topologicalOrder(leaves, edges);
   if (!blocked.length) return null;

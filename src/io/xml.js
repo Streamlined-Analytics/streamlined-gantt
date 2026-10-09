@@ -231,11 +231,18 @@ export function textOf(element, name) {
   return found ? found.text.trim() : undefined;
 }
 
+/**
+ * Code points outside the XML 1.0 `Char` production: C0 controls other than
+ * tab, line feed and carriage return, lone surrogates, U+FFFE and U+FFFF.
+ */
 /* eslint-disable-next-line no-control-regex */
-const ILLEGAL_XML = /[\u0000-\u0008\u000b\u000c\u000e-\u001f￾￿]/g;
+const ILLEGAL_XML = /[\0-\b\v\f\x0e-\x1f\ud800-\udfff\ufffe\uffff]/gu;
 
 /**
- * Escapes text for XML, dropping characters XML 1.0 cannot carry.
+ * Escapes text for XML, dropping characters XML 1.0 cannot carry (see
+ * ADR-0012), so the document is always well-formed. Carriage returns are
+ * written as `&#13;`, because an XML parser turns a literal one into a line
+ * feed.
  * @param {unknown} value
  * @returns {string}
  */
@@ -245,7 +252,8 @@ export function escapeXml(value) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/\r/g, "&#13;");
 }
 
 /**

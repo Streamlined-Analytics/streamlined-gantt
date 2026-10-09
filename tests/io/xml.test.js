@@ -86,9 +86,20 @@ describe("parseXml", () => {
 
 describe("XmlWriter and escapeXml", () => {
   test("escapes markup characters and drops characters XML 1.0 cannot carry", () => {
-    expect(escapeXml(`a<b>&"c'\u0001\u0008\u000b\u001f￾￿\td\n`)).toBe(
+    expect(escapeXml(`a<b>&"c'\u0001\u0008\u000b\u001f\ufffe\uffff\td\n`)).toBe(
       "a&lt;b&gt;&amp;&quot;c'\td\n",
     );
+  });
+
+  test("drops lone surrogates but keeps astral characters (surrogate pairs)", () => {
+    expect(escapeXml("x\ud800y\udfffz\udc00\ud800\u{1F3D7}")).toBe("xyz\u{1F3D7}");
+  });
+
+  test("writes a carriage return as a character reference, which the reader decodes", () => {
+    expect(escapeXml("a\r\nb")).toBe("a&#13;\nb");
+    const writer = new XmlWriter();
+    writer.write("Root", "a\r\nb", 0);
+    expect(parseXml(writer.toString()).text).toBe("a\r\nb");
   });
 
   test("writes nested elements, skips undefined values and round-trips through the parser", () => {

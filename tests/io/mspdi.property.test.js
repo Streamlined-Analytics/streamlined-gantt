@@ -7,6 +7,7 @@ import { collectProblems } from "../../src/engine/schema.js";
 import { fromMSPDI, toMSPDI } from "../../src/io/mspdi.js";
 import { parseXml } from "../../src/io/xml.js";
 import { RUNS, arbCalendarAround, arbDag } from "../support/arbitraries.js";
+import { illegalXmlCharacters } from "../support/xml1.js";
 
 /**
  * Random valid programmes: a DAG of tasks with random types, hierarchy,
@@ -91,17 +92,123 @@ function offsetDate(iso, days) {
   return date.toISOString().slice(0, 10);
 }
 
+/**
+ * Text drawn mostly from characters XML 1.0 cannot carry (issue #9): C0
+ * controls, lone surrogates, U+FFFE and U+FFFF, carriage returns, plus markup
+ * characters, an astral character and plain letters. `fc.string` with the
+ * `binary` unit almost never produces these, so they get their own alphabet.
+ */
+const arbHostileText = fc.string({
+  unit: fc.constantFrom(
+    "\u0000",
+    "\u0001",
+    "\u000b",
+    "\u001f",
+    "\ud800",
+    "\udfff",
+    "\ufffe",
+    "\uffff",
+    "\r",
+    "\t",
+    "&",
+    "<",
+    "\u{1F3D7}",
+    "a",
+    " ",
+  ),
+  maxLength: 8,
+});
+
+/**
+ * Puts hostile text into every text field the writer emits: the programme
+ * name and currency, calendar names, and each task's id, name, WBS, notes,
+ * trade, crew and a custom field. Ids keep a `|` separator so they stay
+ * unique; links follow their tasks.
+ */
+const arbHostileProgramme = arbProgramme.chain((programme) =>
+  fc
+    .record({
+      name: arbHostileText,
+      currency: arbHostileText,
+      calendar: arbHostileText,
+      tasks: fc.array(fc.array(arbHostileText, { minLength: 6, maxLength: 6 }), {
+        minLength: programme.tasks.length,
+        maxLength: programme.tasks.length,
+      }),
+    })
+    .map((texts) => withHostileText(programme, texts)),
+);
+
+function withHostileText(programme, texts) {
+  const renamed = new Map(
+    programme.tasks.map((task, index) => [task.id, `${task.id}|${texts.tasks[index][0]}`]),
+  );
+  const rename = (id) => renamed.get(id) ?? id;
+  const tasks = programme.tasks.map((task, index) => {
+    const [, name, wbs, notes, trade, crew] = texts.tasks[index];
+    const hostile = { ...task, id: rename(task.id), name: `${task.name}${name}`, wbs, notes };
+    if (task.parent) hostile.parent = rename(task.parent);
+    if (trade) hostile.trade = trade;
+    if (crew) hostile.crew = crew;
+    hostile.fields = { ...task.fields, [crew]: trade };
+    return hostile;
+  });
+  const result = {
+    ...programme,
+    name: texts.name,
+    currency: texts.currency,
+    calendars: programme.calendars.map((calendar) => ({ ...calendar, name: texts.calendar })),
+    tasks,
+  };
+  if (programme.links)
+    result.links = programme.links.map((link) => ({
+      ...link,
+      from: rename(link.from),
+      to: rename(link.to),
+    }));
+  return result;
+}
+
+/**
+ * The round-trip contract: the export is XML 1.0 (no character a strict
+ * parser rejects), imports back deep-equal with no warnings, and re-exports
+ * byte-identically.
+ * @param {object} programme
+ */
+function expectLosslessRoundTrip(programme) {
+  const xml = toMSPDI(programme);
+  expect(illegalXmlCharacters(xml)).toEqual([]);
+  expect(() => parseXml(xml)).not.toThrow();
+  const imported = fromMSPDI(xml);
+  expect(imported.programme).toEqual(programme);
+  expect(imported.warnings).toEqual([]);
+  expect(toMSPDI(imported.programme)).toBe(xml);
+}
+
+const NUM_RUNS = Math.max(100, Math.round(RUNS / 5));
+
 describe("MSPDI round trip (property)", () => {
-  test.prop([arbProgramme], { numRuns: Math.max(100, Math.round(RUNS / 5)) })(
+  test.prop([arbProgramme], { numRuns: NUM_RUNS })(
     "any valid programme imports back deep-equal, and re-exports byte-identically",
     (programme) => {
       fc.pre(collectProblems(programme).length === 0);
-      const xml = toMSPDI(programme);
-      expect(() => parseXml(xml)).not.toThrow();
-      const imported = fromMSPDI(xml);
-      expect(imported.programme).toEqual(programme);
-      expect(imported.warnings).toEqual([]);
-      expect(toMSPDI(imported.programme)).toBe(xml);
+      expectLosslessRoundTrip(programme);
+    },
+  );
+
+  test.prop([arbProgramme], { numRuns: NUM_RUNS, seed: -1576626285 })(
+    "issue #9 regression: the seed that found a U+FFFE task name dropped (TZ=America/Los_Angeles)",
+    (programme) => {
+      fc.pre(collectProblems(programme).length === 0);
+      expectLosslessRoundTrip(programme);
+    },
+  );
+
+  test.prop([arbHostileProgramme], { numRuns: NUM_RUNS })(
+    "text XML 1.0 cannot carry, in any text field, survives the round trip",
+    (programme) => {
+      fc.pre(collectProblems(programme).length === 0);
+      expectLosslessRoundTrip(programme);
     },
   );
 });

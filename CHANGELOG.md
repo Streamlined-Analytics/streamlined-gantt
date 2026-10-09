@@ -7,6 +7,21 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-09
+
+### Fixed
+
+- MSPDI export no longer loses text that XML 1.0 cannot hold (#9, ADR-0012). This covers
+  U+FFFE and U+FFFF, control characters other than tab, line feed and carriage return, and lone
+  surrogates. Such text could be in any text field: names, ids, notes, trade, crew, custom
+  fields, calendar names, or the programme name.
+  - The native fields leave these characters out, and the residue now restores them. Before
+    this, U+FFFE and U+FFFF were stripped from the residue too, so a task named `"\uFFFE"`
+    imported as `""`.
+  - Lone surrogates were written as they were, so the file was not valid XML.
+  - A task id changed by a dropped character lost a residue over 255 characters.
+  - Carriage returns are written as `&#13;`, so XML parsers keep them.
+
 ## [0.3.0] - 2026-10-09
 
 ### Added

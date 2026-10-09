@@ -66,7 +66,12 @@ again gives byte-identical XML. This covers everything MSPDI has no field for:
 - delay events, markers, revisions, `contractCompletion` and programme `fields`;
 - calendar ids and exception kinds;
 - baseline names;
-- the original task and link order.
+- the original task and link order;
+- characters XML 1.0 cannot hold, in any text (names, ids, notes, trade, crew, custom fields,
+  calendar names, the programme name). These are control characters other than tab, line feed
+  and carriage return, lone surrogates, U+FFFE and U+FFFF. The native fields leave them out,
+  so MS Project shows the text without them, and the residue restores them. A carriage return
+  is written as `&#13;`, so XML parsers keep it rather than turning it into a line feed.
 
 It works by storing a small _residue_: the difference between the original and what the native
 fields rebuild. Each task's residue goes in the Text4 column (alias "streamlined-gantt data").
@@ -105,7 +110,8 @@ cleared: the residue restores the original value there.
 The XML reader is written for this module. It rejects any `<!DOCTYPE>`, so external entities
 (XXE) and entity-expansion ("billion laughs") attacks cannot happen. It decodes only the five
 standard entities and numeric character references, and does not need `DOMParser`. Malformed
-XML throws `MspdiParseError` with `line` and `column`. A document whose root is not `<Project>`
+XML throws `MspdiParseError` with `line` and `column`. Export always writes a well-formed XML
+1.0 document; a test checks it with libxml2. A document whose root is not `<Project>`
 throws a `TypeError`.
 
 See [ADR-0008](adr/0008-mspdi-lossless-round-trip-via-residue.md) for why it works this way.

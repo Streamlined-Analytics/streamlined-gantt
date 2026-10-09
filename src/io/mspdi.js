@@ -79,7 +79,7 @@ export function toMSPDI(programme, options = {}) {
     throw new TypeError("toMSPDI needs programme data with a tasks array");
   const plan = new ExportPlan(programme, { ...DEFAULT_OPTIONS, ...options });
   const rebuilt = readProgramme(plan.write(null), false).programme;
-  return plan.write(residueFor(programme, rebuilt));
+  return plan.write(residueFor(programme, rebuilt, plan.uid));
 }
 
 /**
@@ -442,13 +442,16 @@ function extendedAttributes(task, residue) {
 }
 
 /**
- * The patches that turn a native-only import back into the original.
+ * The patches that turn a native-only import back into the original. Tasks
+ * are paired by their position in the file, not by id: the native id can
+ * differ (text XML cannot carry is dropped, see ADR-0012), and overflowing
+ * residues are keyed by the id import rebuilds before patching.
  * @param {Programme} original
  * @param {Programme} rebuilt
+ * @param {Map<string, number>} uid each original task's UID, its 1-based position in the file
  * @returns {Residue}
  */
-function residueFor(original, rebuilt) {
-  const rebuiltTasks = new Map(rebuilt.tasks.map((task) => [task.id, task]));
+function residueFor(original, rebuilt, uid) {
   const originalLinks = groupByTarget(original.links ?? []);
   const rebuiltLinks = groupByTarget(rebuilt.links ?? []);
   /** @type {Map<string, string>} */
@@ -456,30 +459,45 @@ function residueFor(original, rebuilt) {
   /** @type {Record<string, object>} */
   const overflow = {};
   for (const task of original.tasks) {
+    const native = rebuilt.tasks[/** @type {number} */ (uid.get(task.id)) - 1];
     const patch = taskResidue(
       task,
-      rebuiltTasks.get(task.id),
+      native,
       originalLinks.get(task.id) ?? [],
-      rebuiltLinks.get(task.id) ?? [],
+      rebuiltLinks.get(native.id) ?? [],
     );
     if (!patch) continue;
-    const json = JSON.stringify(patch);
+    const json = residueJson(patch);
     if (json.length <= MAX_TEXT_FIELD) tasks.set(task.id, json);
-    else overflow[task.id] = patch;
+    else overflow[native.id] = patch;
   }
   const project = projectResidue(original, rebuilt, overflow);
-  return { tasks, project: project ? JSON.stringify(project) : null };
+  return { tasks, project: project ? residueJson(project) : null };
+}
+
+/**
+ * JSON with U+FFFE and U+FFFF written as `\u` escapes. `JSON.stringify`
+ * already escapes control characters and lone surrogates, so the result holds
+ * only characters XML 1.0 can carry, and the residue restores text the native
+ * fields had to drop (ADR-0012).
+ * @param {object} value
+ * @returns {string}
+ */
+function residueJson(value) {
+  return JSON.stringify(value)
+    .replace(/\uffff/g, "\\uffff")
+    .replace(/\ufffe/g, "\\ufffe");
 }
 
 /**
  * @param {Task} task
- * @param {Task|undefined} rebuilt
+ * @param {Task} rebuilt
  * @param {Link[]} links
  * @param {Link[]} rebuiltLinks
  * @returns {object|undefined}
  */
 function taskResidue(task, rebuilt, links, rebuiltLinks) {
-  const patch = diffValue(task, rebuilt ?? {}) ?? {};
+  const patch = diffValue(task, rebuilt) ?? {};
   const linkPatches = links.map(
     (link, position) => diffValue(link, rebuiltLinks[position] ?? {}) ?? 0,
   );

@@ -565,6 +565,49 @@ export class ProgrammeController {
   }
 
   /**
+   * Makes a task the last child of the sibling above it.
+   * @param {string} id
+   * @param {{cause?: string}} [options]
+   * @returns {Promise<EditResult>}
+   */
+  indentTask(id, options = {}) {
+    return this.perform(options.cause ?? "api", "Indent", (tx) => {
+      const task = this.store.get("tasks", id);
+      const siblings = this.analysis.tree.hierarchy.childrenOf.get(task?.parent ?? null) ?? [];
+      const previous = siblings[siblings.indexOf(id) - 1];
+      if (!task || !previous) {
+        tx.reject(
+          task ? "validation" : "not-found",
+          task ? "There is no task above to indent under" : `Unknown task "${id}"`,
+        );
+        return;
+      }
+      this.opUpdateTask(tx, id, { parent: previous });
+    });
+  }
+
+  /**
+   * Moves a task up one level, to follow its former parent.
+   * @param {string} id
+   * @param {{cause?: string}} [options]
+   * @returns {Promise<EditResult>}
+   */
+  outdentTask(id, options = {}) {
+    return this.perform(options.cause ?? "api", "Outdent", (tx) => {
+      const task = this.store.get("tasks", id);
+      if (!task?.parent) {
+        tx.reject(
+          task ? "validation" : "not-found",
+          task ? "The task is already at the top level" : `Unknown task "${id}"`,
+        );
+        return;
+      }
+      const grandparent = this.store.get("tasks", task.parent)?.parent ?? null;
+      this.opUpdateTask(tx, id, { parent: grandparent });
+    });
+  }
+
+  /**
    * Adds a dependency. A link that would create a cycle is refused with reason "cycle".
    * @param {Partial<import("../engine/types.js").Link>} link
    * @param {{cause?: string}} [options]

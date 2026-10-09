@@ -344,6 +344,30 @@ export const EVENT_CATALOGUE = [
     description: "A recoverable error (for example a failed src fetch).",
   },
   { name: "destroy", group: "lifecycle", payload: [], description: "The instance was destroyed." },
+  {
+    name: "editor-open",
+    group: "editor",
+    payload: ["taskId", "mode"],
+    description: "The built-in editor opened.",
+  },
+  {
+    name: "editor-save",
+    group: "editor",
+    payload: ["taskId", "values"],
+    description: "The built-in editor saved; `values` is the patch it sent.",
+  },
+  {
+    name: "editor-close",
+    group: "editor",
+    payload: ["taskId", "saved"],
+    description: "The built-in editor closed.",
+  },
+  {
+    name: "menu-action",
+    group: "editor",
+    payload: ["action", "taskId", "date"],
+    description: "A context-menu item was chosen.",
+  },
 ];
 
 export { EVENT_NAMES, isCancelable } from "./event-names.js";

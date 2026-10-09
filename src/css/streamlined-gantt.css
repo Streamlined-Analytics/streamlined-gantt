@@ -540,6 +540,228 @@
     border: 0;
   }
 
+  .sg-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px;
+    border-bottom: 1px solid var(--sg-grid-line);
+    background: var(--sg-header-bg);
+  }
+
+  .sg-button,
+  .sg-toolbar select,
+  .sg-dialog input,
+  .sg-dialog select,
+  .sg-dialog textarea {
+    min-height: 32px;
+    padding: 4px 10px;
+    border: 1px solid color-mix(in oklab, var(--sg-fg) 30%, var(--sg-bg));
+    border-radius: 6px;
+    background: var(--sg-bg);
+    color: var(--sg-fg);
+    font: inherit;
+  }
+
+  .sg-button {
+    cursor: pointer;
+  }
+
+  .sg-button:focus-visible,
+  .sg-toolbar select:focus-visible,
+  .sg-dialog input:focus-visible,
+  .sg-dialog select:focus-visible,
+  .sg-dialog textarea:focus-visible {
+    outline: 2px solid var(--sg-focus);
+    outline-offset: 1px;
+  }
+
+  .sg-button[aria-pressed="true"] {
+    background: var(--sg-selection);
+    border-color: var(--sg-focus);
+  }
+
+  .sg-button-primary {
+    background: var(--sg-focus);
+    border-color: var(--sg-focus);
+    color: var(--color-primary-content, #ffffff);
+  }
+
+  .sg-button-danger {
+    background: var(--sg-bar-critical);
+    border-color: var(--sg-bar-critical);
+    color: var(--color-error-content, #ffffff);
+  }
+
+  .sg-dialog {
+    width: min(560px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    padding: 0;
+    border: 1px solid var(--sg-grid-line);
+    border-radius: 10px;
+    background: var(--sg-bg);
+    color: var(--sg-fg);
+    font-family: var(--sg-font);
+    font-size: 14px;
+  }
+
+  .sg-dialog::backdrop {
+    background: rgb(0 0 0 / 0.35);
+  }
+
+  .sg-dialog-title {
+    margin: 0;
+    padding: 14px 18px 8px;
+    font-size: 17px;
+  }
+
+  .sg-dialog-body {
+    padding: 4px 18px;
+    overflow: auto;
+  }
+
+  .sg-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 18px 16px;
+  }
+
+  .sg-form {
+    display: grid;
+    gap: 10px;
+  }
+
+  .sg-field {
+    display: grid;
+    gap: 4px;
+  }
+
+  .sg-field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .sg-field label {
+    font-weight: 600;
+  }
+
+  .sg-input {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sg-input > input,
+  .sg-input > select,
+  .sg-input > textarea {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sg-field-error,
+  .sg-form-status {
+    min-height: 1em;
+    margin: 0;
+    color: var(--sg-bar-critical);
+    font-size: 12px;
+  }
+
+  .sg-dialog [aria-invalid] {
+    border-color: var(--sg-bar-critical);
+  }
+
+  .sg-picker-list {
+    max-height: 220px;
+    margin: 8px 0 0;
+    padding: 0;
+    overflow: auto;
+    list-style: none;
+    border: 1px solid var(--sg-grid-line);
+    border-radius: 6px;
+  }
+
+  .sg-picker-list > li {
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+
+  .sg-picker-list > li.sg-active {
+    background: var(--sg-selection);
+    outline: 2px solid var(--sg-focus);
+    outline-offset: -2px;
+  }
+
+  .sg-menu {
+    position: absolute;
+    z-index: 20;
+    min-width: 180px;
+    padding: 4px 0;
+    border: 1px solid var(--sg-grid-line);
+    border-radius: 8px;
+    background: var(--sg-bg);
+    box-shadow: 0 6px 20px rgb(0 0 0 / 0.18);
+  }
+
+  .sg-menu-item {
+    padding: 7px 14px;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .sg-menu-item:hover,
+  .sg-menu-item:focus {
+    background: var(--sg-selection);
+  }
+
+  .sg-menu-item:focus-visible {
+    outline: 2px solid var(--sg-focus);
+    outline-offset: -2px;
+  }
+
+  .sg-menu-item.sg-danger {
+    color: var(--sg-bar-critical);
+  }
+
+  .sg-tooltip {
+    position: absolute;
+    z-index: 15;
+    max-width: 280px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: var(--sg-fg);
+    color: var(--sg-bg);
+    font-size: 12px;
+    line-height: 1.4;
+    pointer-events: none;
+  }
+
+  .sg-tooltip[hidden] {
+    display: none;
+  }
+
+  .sg-cell.sg-editing {
+    padding: 2px;
+  }
+
+  .sg-cell-input {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    padding: 0 4px;
+    border: 2px solid var(--sg-focus);
+    border-radius: 3px;
+    background: var(--sg-bg);
+    color: var(--sg-fg);
+    font: inherit;
+  }
+
+  .sg-cell-input[aria-invalid="true"] {
+    border-color: var(--sg-bar-critical);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .sg-root *,
     .sg-root *::before,

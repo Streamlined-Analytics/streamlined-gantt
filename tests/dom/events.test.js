@@ -109,6 +109,25 @@ const TRIGGERS = {
     await new Promise((resolve) => setTimeout(resolve, 300));
   },
   destroy: ({ gantt }) => gantt.destroy(),
+  "editor-open": ({ gantt }) => {
+    gantt.openEditor("t5");
+    document.querySelector("dialog[open]").close();
+  },
+  "editor-save": async ({ gantt }) => {
+    gantt.openEditor("t5");
+    const input = document.querySelector("dialog[open] input");
+    input.value = "Renamed in editor";
+    document.querySelector("dialog[open] .sg-button-primary").click();
+    await gantt.whenIdle();
+  },
+  "editor-close": ({ gantt }) => {
+    gantt.openEditor("t5");
+    document.querySelector("dialog[open]").close();
+  },
+  "menu-action": ({ gantt, host }) => {
+    gantt.openContextMenu("t5", {});
+    host.querySelector('[data-action="copy-id"]').click();
+  },
 };
 
 describe("event catalogue", () => {

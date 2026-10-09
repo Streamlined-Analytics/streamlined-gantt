@@ -106,8 +106,13 @@ describe("keyboard", () => {
     expect(gantt.getSelection()).toEqual(["t5"]);
     press("Enter", { ctrlKey: true });
     expect(opened).toEqual(["t5"]);
+    document.querySelector("dialog[open]").close();
+    await frame();
     press("Delete");
+    await frame();
+    document.querySelector("dialog[open] .sg-button-danger").click();
     await gantt.whenIdle();
+    await frame();
     expect(gantt.getTask("t5")).toBeUndefined();
   });
 

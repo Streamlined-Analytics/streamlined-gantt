@@ -63,6 +63,10 @@ export const EVENT_NAME_LIST = Object.freeze([
   "schedule",
   "error",
   "destroy",
+  "editor-open",
+  "editor-save",
+  "editor-close",
+  "menu-action",
 ]);
 
 /** Every event name. */

@@ -15,6 +15,13 @@ import { KeyboardController } from "./keyboard.js";
 import { PointerController } from "./pointer.js";
 import { TimeScale, ZOOM_LEVELS, ZOOM_ORDER } from "./scale.js";
 import { DEFAULT_STRINGS, fill } from "./strings.js";
+import { startCellEdit } from "./cell-editor.js";
+import { confirmDialog } from "./dialog.js";
+import { openTaskEditor } from "./editor.js";
+import { ContextMenu } from "./menu.js";
+import { openLinkPicker } from "./picker.js";
+import { buildToolbar } from "./toolbar.js";
+import { Tooltip } from "./tooltip.js";
 import { TimelineView } from "./timeline-view.js";
 
 /**
@@ -118,6 +125,15 @@ export class Gantt extends ProgrammeController {
     this.canvas.append(this.grid.element, this.timeline.element);
     this.pointer = new PointerController(this);
     this.keyboard = new KeyboardController(this);
+    this.tooltip = new Tooltip(this);
+    this.menu = new ContextMenu(this);
+    /** @type {import("./dialog.js").DialogHandle|null} */
+    this.activeDialog = null;
+    /** @type {{taskId: string, columnIndex: number}|null} */
+    this.editingCell = null;
+    /** @type {any} */
+    this.lastRejection = null;
+    if (this.options.toolbar === true) this.root.prepend(buildToolbar(this));
     this.on("change", (event) => {
       this.lastChange = event;
     });
@@ -145,6 +161,7 @@ export class Gantt extends ProgrammeController {
     this.root.append(this.scroller, this.live, this.errorRegion, this.hint);
     this.host.append(this.root);
     this.onScroll = () => {
+      this.tooltip?.hide();
       this.requestRender();
       this.scheduleScrollEvent();
     };
@@ -247,6 +264,7 @@ export class Gantt extends ProgrammeController {
 
   /** @param {any} event */
   onRejected(event) {
+    this.lastRejection = event;
     if (event.reason === "validation" && event.taskIds?.[0]) {
       this.errorRegion.textContent = event.message;
     }
@@ -1224,66 +1242,118 @@ export class Gantt extends ProgrammeController {
   }
 
   /**
-   * Replaced by the built-in editor module.
-   * @param {string} _taskId
+   * @param {string} taskId
    * @returns {boolean}
    */
-  openBuiltInEditor(_taskId) {
-    return false;
+  openBuiltInEditor(taskId) {
+    if (this.options.editor !== "builtin") return false;
+    return openTaskEditor(this, taskId);
   }
 
   /**
-   * Fires `task-contextmenu`; the built-in menu (ui/menu.js) opens unless prevented.
+   * Fires `task-contextmenu` and opens the built-in menu (unless
+   * `contextMenu: false`). Opened by right-click, long-press, Shift+F10 or the Menu key.
    * @param {string} taskId
-   * @param {Record<string, any>} [context]
-   * @returns {boolean} whether a built-in menu opened
+   * @param {{clientX?: number, clientY?: number, originalEvent?: Event, keyboard?: boolean, pointerType?: string}} [context]
+   * @returns {boolean} whether the built-in menu opened
    */
   openContextMenu(taskId, context = {}) {
-    const event = this.emit("task-contextmenu", {
-      taskId,
-      task: this.getTask(taskId),
-      originalEvent: context.originalEvent ?? null,
-    });
-    void event;
-    return false;
+    const task = this.getTask(taskId);
+    if (!task) return false;
+    this.emit("task-contextmenu", { taskId, task, originalEvent: context.originalEvent ?? null });
+    this.tooltip.hide();
+    const svgRect = this.timeline.svg.getBoundingClientRect();
+    const overTimeline = context.clientX !== undefined && context.clientX >= svgRect.left;
+    const date = overTimeline ? toISO(this.scale.dayAt(context.clientX - svgRect.left)) : null;
+    return this.menu.open({ gantt: this, taskId, task, date }, context);
   }
 
   /**
-   * @param {string} _taskId
+   * Opens the "Link to…" picker (Ctrl+K).
+   * @param {string} taskId
    * @returns {boolean}
    */
-  openLinkPicker(_taskId) {
-    return false;
+  openLinkPicker(taskId) {
+    return openLinkPicker(this, taskId);
   }
 
   /**
    * Deletes a task after confirmation (Delete key and menu).
    * @param {string} taskId
-   * @returns {Promise<import("../model/controller.js").EditResult>|null}
+   * @returns {Promise<import("../model/controller.js").EditResult|null>}
    */
-  requestRemove(taskId) {
-    const row = this.rowById(taskId);
-    if (!row || this.readOnly) return null;
-    return this.removeTask(taskId, { cause: "keyboard" });
+  async requestRemove(taskId) {
+    const task = this.getTask(taskId);
+    if (!task || this.readOnly) return null;
+    if (this.options.confirmDelete !== false) {
+      const confirmed = await confirmDialog(this.root, {
+        title: this.strings.deleteTitle,
+        message: fill(this.strings.deleteMessage, { name: task.name }),
+        confirm: this.strings.deleteConfirm,
+        cancel: this.strings.cancel,
+        danger: true,
+      });
+      if (!confirmed) return null;
+    }
+    const rows = this.rows();
+    const position = rows.findIndex((row) => row.id === taskId);
+    const result = await this.removeTask(taskId, { cause: "keyboard" });
+    const next = this.rows()[Math.min(position, this.rows().length - 1)];
+    if (next) this.focusTask(next.id);
+    return result;
   }
 
   /**
-   * Starts inline editing of a cell (implemented by the inline editor module).
-   * @param {string} _taskId
-   * @param {number} _column
+   * Adds a task or milestone directly below another, as its next sibling.
+   * @param {string} taskId
+   * @param {"task"|"milestone"} kind
+   * @returns {Promise<import("../model/controller.js").EditResult>}
+   */
+  addBelow(taskId, kind) {
+    const task = this.getTask(taskId);
+    const parent = task.parent ?? null;
+    const siblings = this.analysis.tree.hierarchy.childrenOf.get(parent) ?? [];
+    const milestone = kind === "milestone";
+    const start = task.summary
+      ? task.start
+      : toISO(this.calendar.addWorkingDays(toDay(task.finish), milestone ? 0 : 1));
+    const input = {
+      name: milestone ? this.strings.newMilestone : this.strings.newTask,
+      start,
+      ...(milestone ? { type: "milestone", duration: 0 } : { duration: 1 }),
+    };
+    return this.addTask(/** @type {any} */ (input), {
+      parent,
+      index: siblings.indexOf(taskId) + 1,
+      cause: "menu",
+    }).then((result) => {
+      const added = this.lastChange?.changes.tasks.added[0]?.id;
+      if (result.committed && added) this.focusTask(added, { column: 1 });
+      return result;
+    });
+  }
+
+  /**
+   * Starts inline editing of a cell (Enter or F2).
+   * @param {string} taskId
+   * @param {number} column
    * @returns {boolean}
    */
-  startCellEdit(_taskId, _column) {
-    return false;
+  startCellEdit(taskId, column) {
+    return startCellEdit(this, taskId, column);
   }
 
   /**
-   * @param {string} _taskId
-   * @param {PointerEvent} _event
+   * @param {string} taskId
+   * @param {{clientX: number, clientY: number}} point
    */
-  showTooltip(_taskId, _event) {}
+  showTooltip(taskId, point) {
+    this.tooltip.show(taskId, point);
+  }
 
-  hideTooltip() {}
+  hideTooltip() {
+    this.tooltip.hide();
+  }
 
   /* ------------------------------------------------------------ lifecycle */
 
@@ -1302,6 +1372,9 @@ export class Gantt extends ProgrammeController {
     this.scroller.removeEventListener("scroll", this.onScroll);
     this.pointer.destroy();
     this.keyboard.destroy();
+    this.tooltip.destroy();
+    this.menu.destroy();
+    this.activeDialog?.close();
     this.grid.destroy();
     this.timeline.destroy();
     this.root.remove();

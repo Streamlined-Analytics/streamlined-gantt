@@ -666,6 +666,7 @@ export class Gantt extends ProgrammeController {
     this.root.style.setProperty("--sg-row-px", `${rowHeight}px`);
     if (this.scrollShift) {
       this.scroller.scrollLeft += this.scrollShift;
+      this.pointer?.shiftOrigin(this.scrollShift);
       this.scrollShift = 0;
     }
     this.root.classList.toggle("sg-has-markers", this.markerLines(scale).length > 0);

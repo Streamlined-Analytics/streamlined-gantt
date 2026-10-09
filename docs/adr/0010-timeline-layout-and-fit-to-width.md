@@ -71,14 +71,15 @@ weeks or months, the first tick is a partial one. The interactive chart uses a l
 `max(2, ceil(24 px / dayWidth))` days, so it always opens at, or one or two days before, the
 first task. The trailing padding is unchanged, for drag room. When a drag pulls the start earlier
 the scale grows to the left, and the chart shifts `scrollLeft` by the same amount so nothing moves
-under the pointer. Print and export keep the rounded scale.
+under the pointer (the drag's anchor points move by the same amount). Print and export keep
+the rounded scale.
 
 ## What did we land on, and why?
 
 - `layout: "grid" | "timeline"`, `fit: "width"`, `minDayWidth`, `setFit()`, and the `layout`
   and `fit` element attributes.
 - An exact scale start for both layouts.
-- Core 44.12 KB gzip (was 43.52), script-tag build 46.59 KB (was 46.01), CSS 4.02 KB (was 3.92).
+- Core 44.15 KB gzip (was 43.52), script-tag build 46.63 KB (was 46.01), CSS 4.02 KB (was 3.92).
 
 We did not add a "grid below the timeline" option: hosts that want a table render their own,
 as the website does.

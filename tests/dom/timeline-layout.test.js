@@ -184,6 +184,26 @@ describe("fit: width", () => {
   });
 });
 
+describe("drag past the start", () => {
+  test("the bar stays under the pointer when the scale grows to the left", async () => {
+    const { gantt, host } = mount(structuredClone(flatRoof), { layout: "timeline", zoom: "day" });
+    const before = gantt.scale.start;
+    let proposed = null;
+    gantt.on("drag-move", (event) => {
+      proposed = event.to.start;
+    });
+    await pointerDrag(host.querySelector('[data-task-id="t1"] .sg-hit'), {
+      dx: -32 * 10,
+      steps: 4,
+      release: false,
+    });
+    await frame();
+    await frame();
+    expect(gantt.scale.start).toBeLessThan(before);
+    expect(proposed).toBe("2026-10-23");
+  });
+});
+
 describe("initial view", () => {
   test.each(["day", "week", "month", "quarter"])(
     "at %s zoom the grid layout opens at the first task, not weeks earlier",

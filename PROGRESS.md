@@ -73,7 +73,7 @@ Each line is checked by the tests named.
 ## Tests
 
 - Engine and IO (Node): 508, plus 6 nightly-only MPXJ checks.
-- Browser components (Vitest, Chromium): 185.
+- Browser components (Vitest, Chromium): 186.
 - End-to-end, a11y, memory and print (Playwright, Chromium): 54. WebKit, iPad and Pixel run in CI.
 - Visual: 14 snapshots in the pinned Playwright image.
 - Property tests run 1,000 times per property on PRs and 10,000 nightly. Mutation testing (Stryker) runs weekly.
@@ -82,8 +82,8 @@ Each line is checked by the tests named.
 
 |                                           | Value                            | Budget |
 | ----------------------------------------- | -------------------------------- | ------ |
-| Core ESM bundle                           | 44.12 KB gzip                    | 45 KB  |
-| Script-tag bundle (core, editor, toolbar) | 46.59 KB gzip                    | 48 KB  |
+| Core ESM bundle                           | 44.15 KB gzip                    | 45 KB  |
+| Script-tag bundle (core, editor, toolbar) | 46.63 KB gzip                    | 48 KB  |
 | CSS                                       | 4.02 KB gzip                     | 6 KB   |
 | MSPDI module                              | 9.98 KB gzip                     | 10 KB  |
 | First render, 1,000 tasks / 1,500 links   | 71 ms                            | 250 ms |
@@ -93,7 +93,7 @@ Each line is checked by the tests named.
 
 ## Remaining
 
-- The core is at 44.12 of 45 KB after the timeline layout (ADR-0010). Larger core features
+- The core is at 44.15 of 45 KB after the timeline layout (ADR-0010). Larger core features
   will need a budget decision.
 - Lookahead print layout and the warnings panel for `check()` (UI), which the spec lists after
   drag editing.

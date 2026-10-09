@@ -699,3 +699,43 @@ describe("locked tasks, summaries and violations", () => {
     expect(view.A.duration).toBe(3);
   });
 });
+
+describe("float at the edges", () => {
+  test("off mode: an in-progress task that keeps its dates finishes on its stored forecast", () => {
+    const { view } = run(
+      {
+        tasks: [
+          {
+            id: "A",
+            name: "A",
+            start: "2026-11-02",
+            duration: 5,
+            progress: 0.4,
+            actualStart: "2026-11-02",
+            finish: "2026-11-12",
+          },
+          { id: "B", name: "B", start: "2026-11-13", duration: 2 },
+        ],
+        links: [{ id: "l", from: "A", to: "B" }],
+        calendars: [ewCalendar()],
+      },
+      { mode: "off" },
+    );
+    expect(view.A).toMatchObject({ finish: "2026-11-12", totalFloat: 0, critical: true });
+    expect(view.A.earlyFinish).toBe("2026-11-12");
+  });
+
+  test("a start-anchored milestone on the contract completion date has no float; a day later is late", () => {
+    const programme = (start) => ({
+      tasks: [{ id: "M", name: "Handover", type: "milestone", start, duration: 0 }],
+      links: [],
+      calendars: [ewCalendar()],
+      contractCompletion: "2026-11-13",
+    });
+    const onTime = run(programme("2026-11-13")).view.M;
+    expect(onTime).toMatchObject({ anchor: "start", totalFloat: 0, critical: true });
+    expect(onTime.lateFinish).toBe("2026-11-13");
+    expect(run(programme("2026-11-16")).view.M.totalFloat).toBe(-1);
+    expect(run(programme("2026-11-12")).view.M.totalFloat).toBe(1);
+  });
+});

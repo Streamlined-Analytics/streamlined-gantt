@@ -415,6 +415,8 @@ class Scheduler {
 
   /**
    * Places complete and in-progress tasks. Returns false for unstarted tasks.
+   * An in-progress task that keeps its stored dates (off mode, locked)
+   * finishes on its stored forecast, so its float matches what successors see.
    * @param {Node} node
    * @returns {boolean}
    */
@@ -431,6 +433,10 @@ class Scheduler {
       return true;
     }
     node.EF = node.ES + node.duration;
+    if (this.keepsStoredDates(node)) {
+      node.EF = Math.max(node.ES, this.calendar.indexOf(node.dates.finish + 1));
+      return true;
+    }
     const remaining = node.duration - Math.round(node.duration * (task.progress ?? 0));
     const remainingFloor = this.dataDateIndex === null ? -Infinity : this.dataDateIndex + remaining;
     if (this.mode !== "off" && !isLocked(task)) node.EF = Math.max(node.EF, remainingFloor);
@@ -447,6 +453,8 @@ class Scheduler {
   /**
    * The backward pass starts from the contract completion date when set (so a
    * late programme shows negative float), otherwise from the project early finish.
+   * A start-anchored milestone sits at the start of its day, so against the
+   * completion date its limit is one index earlier (see `backward`).
    * @returns {number}
    */
   terminalIndex() {
@@ -461,7 +469,9 @@ class Scheduler {
    * @param {number} terminal
    */
   backward(node, terminal) {
-    let lateFinish = terminal;
+    const startAnchoredPoint = node.dates.milestone && node.anchor === "start";
+    const completionSet = Boolean(this.input.contractCompletion);
+    let lateFinish = completionSet && startAnchoredPoint ? terminal - 1 : terminal;
     for (const edge of node.outgoing) {
       const successor = this.nodes.get(edge.to);
       const shift = anchorShift(edge, node, successor);
@@ -470,7 +480,6 @@ class Scheduler {
     const constraint = node.task.constraint;
     if (constraint?.type === "FNLT") {
       const finishBoundary = this.calendar.indexOf(toDay(constraint.date) + 1);
-      const startAnchoredPoint = node.dates.milestone && node.anchor === "start";
       const limit = startAnchoredPoint ? finishBoundary - 1 : finishBoundary;
       lateFinish = Math.min(lateFinish, limit);
       if (node.EF > limit)

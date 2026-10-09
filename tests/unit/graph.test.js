@@ -8,7 +8,7 @@ import {
   findCycle,
   wouldCreateCycle,
 } from "../../src/engine/index.js";
-import { ancestorsOf, leavesOf, topologicalOrder } from "../../src/engine/graph.js";
+import { ancestorsOf, estimatedDates, leavesOf, topologicalOrder } from "../../src/engine/graph.js";
 
 const tasks = [
   { id: "s", name: "S" },
@@ -63,6 +63,23 @@ describe("links and cycles", () => {
     expect(
       expandLinks(dated, [{ id: "1", from: "x", to: "S", type: "SS" }]).map((edge) => edge.to),
     ).toEqual(["early", "late"]);
+  });
+
+  test("leaf selection uses durations when a finish is not stored", () => {
+    const dated = [
+      { id: "S", name: "S" },
+      { id: "long", name: "l", parent: "S", start: "2026-11-02", duration: 20 },
+      { id: "short", name: "s", parent: "S", start: "2026-11-05", finish: "2026-11-06" },
+      { id: "x", name: "x", start: "2026-11-02", duration: 1 },
+    ];
+    expect(
+      expandLinks(dated, [{ id: "1", from: "x", to: "S", type: "FF" }]).map((edge) => edge.to),
+    ).toEqual(["long"]);
+    expect(estimatedDates(dated)("long")).toEqual({
+      start: toDay("2026-11-02"),
+      finish: toDay("2026-11-02") + 27,
+    });
+    expect(estimatedDates(dated)("missing")).toBeUndefined();
   });
 
   test("topological order ignores edges to unknown nodes", () => {

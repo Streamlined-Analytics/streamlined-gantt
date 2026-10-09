@@ -9,6 +9,8 @@
  * @module engine/graph
  */
 
+import { isISODate, toDay } from "./dates.js";
+
 /**
  * @typedef {object} Edge
  * @property {string} linkId
@@ -99,13 +101,22 @@ export function ancestorsOf(id, hierarchy) {
  * - Into a summary, FS/SS links constrain every leaf (the summary's start is
  *   the earliest of them), but FF/SF links constrain only the latest-finishing leaf.
  *
- * @param {{id: string, parent?: string|null, start?: string, finish?: string}[]} tasks
+ * Which leaf starts first or finishes last is decided by `datesOf`; the
+ * scheduler passes calendar-exact dates, and the default estimates a missing
+ * finish from the stored duration.
+ *
+ * @param {{id: string, parent?: string|null, start?: string, finish?: string, duration?: number}[]} tasks
  * @param {{id: string, from: string, to: string, type?: string, lag?: number}[]} links
  * @param {Hierarchy} [hierarchy]
+ * @param {(id: string) => {start: number, finish: number}|undefined} [datesOf] day numbers of a leaf
  * @returns {Edge[]}
  */
-export function expandLinks(tasks, links, hierarchy = buildHierarchy(tasks)) {
-  const byId = new Map(tasks.map((task) => [task.id, task]));
+export function expandLinks(
+  tasks,
+  links,
+  hierarchy = buildHierarchy(tasks),
+  datesOf = estimatedDates(tasks),
+) {
   /** @type {Edge[]} */
   const edges = [];
   for (const link of links) {
@@ -115,13 +126,13 @@ export function expandLinks(tasks, links, hierarchy = buildHierarchy(tasks)) {
       link.from,
       type[0] === "S" ? "earliest-start" : "all",
       hierarchy,
-      byId,
+      datesOf,
     );
     const toLeaves = endpointLeaves(
       link.to,
       type[1] === "F" ? "latest-finish" : "all",
       hierarchy,
-      byId,
+      datesOf,
     );
     for (const from of fromLeaves) {
       for (const to of toLeaves) edges.push({ linkId: link.id, from, to, type, lag });
@@ -131,17 +142,35 @@ export function expandLinks(tasks, links, hierarchy = buildHierarchy(tasks)) {
 }
 
 /**
+ * Day-number dates from stored values, without a calendar: a missing finish is
+ * estimated as seven calendar days per five working days.
+ * @param {{id: string, start?: string, finish?: string, duration?: number}[]} tasks
+ * @returns {(id: string) => {start: number, finish: number}|undefined}
+ */
+export function estimatedDates(tasks) {
+  const byId = new Map(tasks.map((task) => [task.id, task]));
+  return (id) => {
+    const task = byId.get(id);
+    if (!task?.start || !isISODate(task.start)) return undefined;
+    const start = toDay(task.start);
+    if (task.finish && isISODate(task.finish)) return { start, finish: toDay(task.finish) };
+    const duration = Math.max(1, task.duration ?? 1);
+    return { start, finish: start + Math.ceil(((duration - 1) * 7) / 5) };
+  };
+}
+
+/**
  * @param {string} id
  * @param {"all"|"earliest-start"|"latest-finish"} rule
  * @param {Hierarchy} hierarchy
- * @param {Map<string, {start?: string, finish?: string}>} byId
+ * @param {(id: string) => {start: number, finish: number}|undefined} datesOf
  * @returns {string[]}
  */
-function endpointLeaves(id, rule, hierarchy, byId) {
+function endpointLeaves(id, rule, hierarchy, datesOf) {
   const leaves = leavesOf(id, hierarchy);
   if (rule === "all" || leaves.length < 2) return leaves;
-  const finishOf = (leaf) => byId.get(leaf)?.finish ?? byId.get(leaf)?.start ?? "";
-  const startOf = (leaf) => byId.get(leaf)?.start ?? "";
+  const startOf = (leaf) => datesOf(leaf)?.start ?? Infinity;
+  const finishOf = (leaf) => datesOf(leaf)?.finish ?? -Infinity;
   const pick =
     rule === "earliest-start"
       ? leaves.reduce((best, leaf) => (startOf(leaf) < startOf(best) ? leaf : best))

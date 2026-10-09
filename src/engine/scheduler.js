@@ -177,8 +177,15 @@ class Scheduler {
   run() {
     const { tasks, links } = this.input;
     const { hierarchy, summaries } = indexTree(tasks);
+    const byId = new Map(tasks.map((task) => [task.id, task]));
     const leaves = tasks.filter((task) => !summaries.has(task.id) && task.start);
-    const edges = expandLinks(tasks, links, hierarchy).filter((edge) => edge.from !== edge.to);
+    const exactDates = (id) => {
+      const task = byId.get(id);
+      return task?.start && !summaries.has(id) ? resolveLeafDates(task, this.calendar) : undefined;
+    };
+    const edges = expandLinks(tasks, links, hierarchy, exactDates).filter(
+      (edge) => edge.from !== edge.to,
+    );
     this.buildNodes(leaves, edges);
     const { order, blocked } = topologicalOrder(
       [...this.nodes.keys()],

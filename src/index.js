@@ -4,6 +4,13 @@
 /**
  * streamlined-gantt: framework-free Gantt and construction programme library.
  *
+ * The core entry re-exports the engine API that integrations commonly need
+ * (scheduling, calendars, dates, validation, formatting, summaries, CSV). The
+ * complete engine, including rarer helpers such as `fromGovUkBankHolidays`,
+ * `paymentSchedule` and the calendar-argument wrappers like
+ * `addWorkingDays(date, n, calendar)`, is the `streamlined-gantt/engine`
+ * entry, which has no DOM code and runs in Node and workers.
+ *
  * @module streamlined-gantt
  */
 
@@ -15,4 +22,39 @@ export { EVENT_NAME_LIST } from "./model/event-names.js";
 export { StreamlinedGanttElement, defineElement, defineConfig } from "./element.js";
 export { trustedHTML } from "./ui/dom.js";
 export { DEFAULT_STRINGS } from "./ui/strings.js";
-export * from "./engine/index.js";
+export * from "./engine/dates.js";
+export { Calendar, CalendarHasNoWorkingTimeError } from "./engine/calendar.js";
+export { schedule } from "./engine/scheduler.js";
+export {
+  GanttValidationError,
+  collectProblems,
+  validateProgramme,
+  SCHEMA_ID,
+  TASK_TYPES,
+  LINK_TYPES,
+  CONSTRAINT_TYPES,
+  DELAY_KINDS,
+} from "./engine/schema.js";
+export { findCycle, wouldCreateCycle, expandLinks, buildHierarchy } from "./engine/graph.js";
+export {
+  isMilestone,
+  isLocked,
+  isComplete,
+  isStarted,
+  normaliseDatePatch,
+  resolveLeafDates,
+  schedulingCalendar,
+} from "./engine/model.js";
+export { FieldRegistry } from "./engine/fields.js";
+export { analyse } from "./engine/analysis.js";
+export { projectSummary } from "./engine/summary.js";
+export { checkProgramme, MAX_ACTIVITY_DAYS } from "./engine/health.js";
+export { programmeToCSV, csvCell, minorToDecimal } from "./engine/csv.js";
+export {
+  formatDate,
+  formatLongDate,
+  formatMoney,
+  parseMoney,
+  formatPercent,
+  minorUnitScale,
+} from "./engine/format.js";

@@ -37,7 +37,16 @@ describe("task predicates", () => {
 });
 
 describe("resolving and normalising dates (inclusive finish)", () => {
-  test("finish wins over duration; duration derives finish; milestones are points", () => {
+  test("when stored finish and duration disagree, duration wins (a calendar change moves the finish)", () => {
+    const conflicting = resolveLeafDates(
+      { id: "a", name: "a", start: "2026-12-23", finish: "2026-12-24", duration: 3 },
+      ew,
+    );
+    expect(ew.convert("x", conflicting.finish)).toBe("2026-12-29");
+    expect(conflicting.duration).toBe(3);
+  });
+
+  test("duration wins over finish; finish alone derives duration; milestones are points", () => {
     expect(
       resolveLeafDates({ id: "a", name: "a", start: "2026-12-23", finish: "2026-12-29" }, ew),
     ).toMatchObject({ duration: 3, milestone: false });

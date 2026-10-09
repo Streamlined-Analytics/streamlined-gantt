@@ -60,6 +60,10 @@ for a date-only domain.
 
   Dates are converted back only at the end, which is why floats are always in working days.
 
+- **Duration is the planning quantity.** When a task stores both `finish` and `duration`,
+  `duration` wins and the finish is derived from it. A calendar change, such as a new weather
+  day, therefore moves the finish rather than silently shortening the task, as in MS Project. A
+  task stored with only `finish` derives its duration from the calendar.
 - **`addWorkingDays(date, 0)` returns the input unchanged,** even on a non-working day. Snapping
   is explicit through `nextWorkingDay` and `previousWorkingDay`. For n > 0 from a non-working day,
   the first working day after it counts as the first.

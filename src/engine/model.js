@@ -74,7 +74,9 @@ export function schedulingCalendar(programme) {
 
 /**
  * Resolves a leaf task's full date triple from the stored subset.
- * `finish` wins over `duration` when both are stored.
+ * When both are stored, `duration` (working days, the planning quantity) wins
+ * and `finish` is derived from it, so a calendar change moves the finish rather
+ * than silently changing the duration, as in MS Project.
  * @param {import("./types.js").Task} task
  * @param {Calendar} calendar
  * @returns {ResolvedDates}
@@ -82,7 +84,7 @@ export function schedulingCalendar(programme) {
 export function resolveLeafDates(task, calendar) {
   const start = toDay(task.start);
   if (isMilestone(task)) return { start, finish: start, duration: 0, milestone: true };
-  if (task.finish) {
+  if (task.finish && task.duration === undefined) {
     const finish = toDay(task.finish);
     return {
       start,

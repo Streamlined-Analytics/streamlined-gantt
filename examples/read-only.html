@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Streamlined Analytics Ltd and contributors -->
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Read-only share view · streamlined-gantt</title>
+    <link rel="stylesheet" href="/dist/streamlined-gantt.css" />
+    <link rel="stylesheet" href="/examples/examples.css" />
+    <script src="/dist/streamlined-gantt.iife.min.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>Programme for 14 Mill Lane (read-only)</h1>
+      <p>
+        A view to share with a client or subcontractor: no dragging, no editing, no menus that
+        change data. Keyboard navigation, the tooltip and the critical path still work. One
+        attribute: <code>read-only</code>.
+      </p>
+      <streamlined-gantt
+        id="shared"
+        src="/examples/data/flat-roof.json"
+        read-only
+        toolbar
+        zoom="week"
+        height="460px"
+        show-baseline="bl1"
+      ></streamlined-gantt>
+    </main>
+  </body>
+</html>

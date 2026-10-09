@@ -98,6 +98,15 @@ describe("layout: timeline", () => {
     expect(dialog()).not.toBeNull();
   });
 
+  test("a task added below keeps keyboard focus on its row (one hidden column)", async () => {
+    const { gantt } = timelineChart();
+    gantt.focusTask("t5");
+    await gantt.addBelow("t5", "task");
+    const added = gantt.lastChange.changes.tasks.added[0].id;
+    expect(gantt.focus).toEqual({ taskId: added, column: 0 });
+    expect(document.activeElement.closest("[data-task-id]").dataset.taskId).toBe(added);
+  });
+
   test("clicking a bar selects it and moves keyboard focus to its row", () => {
     const { gantt, host } = timelineChart();
     host

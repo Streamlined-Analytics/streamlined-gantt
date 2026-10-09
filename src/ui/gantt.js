@@ -1030,7 +1030,8 @@ export class Gantt extends ProgrammeController {
     let expanded = false;
     for (const ancestor of ancestors) expanded = this.collapsed.delete(ancestor) || expanded;
     if (expanded) this.rowCache = null;
-    this.focus = { taskId, column: options.column ?? this.focus.column ?? 0 };
+    const column = options.column ?? this.focus.column ?? 0;
+    this.focus = { taskId, column: Math.min(column, this.columns.length - 1) };
     if (options.scroll !== false) this.scrollRowIntoView(taskId);
     this.focusAfterRender = options.focus !== false;
     this.render();

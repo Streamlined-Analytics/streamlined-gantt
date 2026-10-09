@@ -78,7 +78,7 @@ under the pointer. Print and export keep the rounded scale.
 - `layout: "grid" | "timeline"`, `fit: "width"`, `minDayWidth`, `setFit()`, and the `layout`
   and `fit` element attributes.
 - An exact scale start for both layouts.
-- Core 44.11 KB gzip (was 43.52), script-tag build 46.59 KB (was 46.01), CSS 4.02 KB (was 3.92).
+- Core 44.12 KB gzip (was 43.52), script-tag build 46.59 KB (was 46.01), CSS 4.02 KB (was 3.92).
 
 We did not add a "grid below the timeline" option: hosts that want a table render their own,
 as the website does.

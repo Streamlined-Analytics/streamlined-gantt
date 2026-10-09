@@ -14,6 +14,70 @@ A framework-free JavaScript Gantt and construction programme library by
 
 > **Status:** pre-release (0.x), private repository. Not yet published to npm.
 
+## Quick start
+
+### ES module
+
+```html
+<link rel="stylesheet" href="/static/streamlined-gantt/streamlined-gantt.css" />
+<div id="programme"></div>
+<script type="module">
+  import { Gantt } from "/static/streamlined-gantt/streamlined-gantt.js";
+
+  const data = await (await fetch("/jobs/42/programme.json")).json();
+  const gantt = new Gantt(document.getElementById("programme"), {
+    data,
+    zoom: "week",
+    fields: [
+      { key: "cost", label: "Cost", type: "currency", rollup: "sum", column: true },
+      { key: "charge", label: "Charge", type: "currency", rollup: "sum", column: true },
+    ],
+  });
+
+  // One event per committed edit (a drag and its cascade, an editor save, undo…).
+  gantt.on("change", (event) => console.log(event.cause, event.changes));
+</script>
+```
+
+### Script tag and htmx
+
+```html
+<link rel="stylesheet" href="/static/streamlined-gantt/streamlined-gantt.css" />
+<script src="/static/streamlined-gantt/streamlined-gantt.iife.min.js"></script>
+
+<streamlined-gantt src="/jobs/42/programme.json" zoom="week"></streamlined-gantt>
+```
+
+The element initialises when htmx swaps it in and destroys itself when it is swapped out. No
+`htmx:afterSwap` hook is needed. Events bubble as DOM `CustomEvent`s named `gantt:<event>`:
+
+```html
+<streamlined-gantt
+  src="/jobs/42/programme.json"
+  hx-post="/jobs/42/programme/changes/"
+  hx-trigger="gantt:change"
+  hx-vals="js:{changes: JSON.stringify(event.detail.changes)}"
+></streamlined-gantt>
+```
+
+### Server approval
+
+```js
+gantt.on("before-task-update", (event) => {
+  event.waitUntil(
+    fetch(`/jobs/42/tasks/${event.id}/`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+      body: JSON.stringify(event.changes),
+    }).then((response) => (response.ok ? response.json() : false)), // a changeset corrects the edit
+  );
+});
+```
+
+Dates are ISO `YYYY-MM-DD` calendar dates. **`finish` is inclusive** (the last working day) and
+`duration` counts working days. Money is integer pence. See `docs/` for the data format, the
+event catalogue and the integration guides.
+
 ## Licence and attribution
 
 streamlined-gantt is licensed under the [Apache License, Version 2.0](LICENSE).

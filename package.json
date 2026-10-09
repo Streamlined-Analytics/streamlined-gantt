@@ -75,7 +75,9 @@
     "serve": "node examples/server.mjs",
     "test:dom": "vitest run --project dom",
     "test:watch": "vitest",
-    "test:mutation": "stryker run"
+    "test:mutation": "stryker run",
+    "test:visual": "docker run --rm --network host --user \"$(id -u):$(id -g)\" -e HOME=/tmp -v \"$PWD\":/work:Z -w /work mcr.microsoft.com/playwright:v1.63.0-noble npx playwright test -c playwright.visual.config.js",
+    "test:visual:update": "docker run --rm --network host --user \"$(id -u):$(id -g)\" -e HOME=/tmp -v \"$PWD\":/work:Z -w /work mcr.microsoft.com/playwright:v1.63.0-noble npx playwright test -c playwright.visual.config.js --update-snapshots"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",

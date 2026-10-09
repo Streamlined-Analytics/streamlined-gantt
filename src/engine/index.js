@@ -39,7 +39,14 @@ export { analyse } from "./analysis.js";
 export { projectSummary, paymentSchedule, splitEvenly } from "./summary.js";
 export { checkProgramme, MAX_ACTIVITY_DAYS } from "./health.js";
 export { programmeToCSV, csvCell, minorToDecimal } from "./csv.js";
-export { formatDate, formatMoney, parseMoney, formatPercent, minorUnitScale } from "./format.js";
+export {
+  formatDate,
+  formatLongDate,
+  formatMoney,
+  parseMoney,
+  formatPercent,
+  minorUnitScale,
+} from "./format.js";
 
 /**
  * @param {Calendar|import("./calendar.js").CalendarDefinition|undefined} calendar

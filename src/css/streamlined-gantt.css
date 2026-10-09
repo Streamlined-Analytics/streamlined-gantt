@@ -3,6 +3,572 @@
 
 @layer streamlined-gantt {
   .sg-root {
-    display: block;
+    --sg-bg: var(--color-base-100, #ffffff);
+    --sg-fg: var(--color-base-content, #1f2937);
+    --sg-muted: color-mix(in oklab, var(--sg-fg) 78%, var(--sg-bg));
+    --sg-grid-line: var(--color-base-300, #e2e5ea);
+    --sg-header-bg: var(--color-base-200, #f4f5f7);
+    --sg-bar: var(--color-primary, #2563eb);
+    --sg-bar-progress: color-mix(in oklab, var(--sg-bar) 62%, #000000);
+    --sg-bar-critical: var(--color-error, #dc2626);
+    --sg-summary: color-mix(in oklab, var(--sg-fg) 80%, var(--sg-bg));
+    --sg-milestone: color-mix(in oklab, var(--sg-fg) 85%, var(--sg-bg));
+    --sg-payment: var(--color-warning, #d97706);
+    --sg-access: var(--color-info, #0e7490);
+    --sg-need-by: var(--color-accent, #7c3aed);
+    --sg-reference: color-mix(in oklab, var(--sg-fg) 40%, var(--sg-bg));
+    --sg-baseline: color-mix(in oklab, var(--sg-fg) 35%, var(--sg-bg));
+    --sg-link: color-mix(in oklab, var(--sg-fg) 60%, var(--sg-bg));
+    --sg-nonworking: color-mix(in oklab, var(--sg-grid-line) 55%, transparent);
+    --sg-holiday: color-mix(in oklab, var(--sg-payment) 16%, transparent);
+    --sg-today: var(--color-error, #dc2626);
+    --sg-data-date: var(--color-info, #0369a1);
+    --sg-completion: var(--color-success, #15803d);
+    --sg-key-date: var(--color-secondary, #9333ea);
+    --sg-selection: color-mix(in oklab, var(--sg-bar) 13%, var(--sg-bg));
+    --sg-focus: var(--color-primary, #2563eb);
+    --sg-delay: var(--color-warning, #d97706);
+    --sg-font: inherit;
+    --sg-font-size: 13px;
+    --sg-header-height: 48px;
+    --sg-height: 480px;
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: var(--sg-height);
+    min-height: 160px;
+    font-family: var(--sg-font);
+    font-size: var(--sg-font-size);
+    line-height: 1.3;
+    color: var(--sg-fg);
+    background: var(--sg-bg);
+    border: 1px solid var(--sg-grid-line);
+    border-radius: 6px;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .sg-root *,
+  .sg-root *::before,
+  .sg-root *::after {
+    box-sizing: border-box;
+  }
+
+  .sg-scroller {
+    position: relative;
+    flex: 1;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .sg-canvas {
+    display: flex;
+    align-items: flex-start;
+    min-height: 100%;
+  }
+
+  .sg-grid {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    flex: none;
+    width: var(--sg-grid-width);
+    min-height: 100%;
+    background: var(--sg-bg);
+    border-right: 1px solid var(--sg-grid-line);
+    outline: none;
+  }
+
+  .sg-grid:focus-visible {
+    outline: 2px solid var(--sg-focus);
+    outline-offset: -2px;
+  }
+
+  .sg-grid-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    height: var(--sg-header-height);
+    background: var(--sg-header-bg);
+    border-bottom: 1px solid var(--sg-grid-line);
+  }
+
+  .sg-row {
+    display: grid;
+    grid-template-columns: var(--sg-grid-columns);
+    align-items: stretch;
+  }
+
+  .sg-header-row {
+    height: 100%;
+  }
+
+  .sg-grid-body {
+    position: relative;
+  }
+
+  .sg-grid-body > .sg-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: var(--sg-row-height);
+    border-bottom: 1px solid var(--sg-grid-line);
+    cursor: default;
+  }
+
+  .sg-cell {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    padding: 0 6px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .sg-cell:focus,
+  .sg-cell:focus-visible {
+    outline: 2px solid var(--sg-focus);
+    outline-offset: -2px;
+  }
+
+  .sg-cell[aria-invalid="true"] {
+    box-shadow: inset 0 0 0 2px var(--sg-bar-critical);
+  }
+
+  .sg-cell-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sg-align-end {
+    justify-content: flex-end;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sg-header-cell {
+    align-items: flex-end;
+    padding-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .sg-tree-cell {
+    gap: 4px;
+    padding-left: calc(6px + var(--sg-level, 0) * 16px);
+  }
+
+  .sg-toggle {
+    flex: none;
+    width: 14px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .sg-type-icon {
+    flex: none;
+    width: 10px;
+    text-align: center;
+    font-size: 10px;
+  }
+
+  .sg-type-milestone::before,
+  .sg-type-payment::before {
+    content: "\25C6";
+  }
+
+  .sg-type-payment {
+    color: var(--sg-payment);
+  }
+
+  .sg-type-access::before,
+  .sg-type-need-by::before {
+    content: "\2691";
+  }
+
+  .sg-type-access {
+    color: var(--sg-access);
+  }
+
+  .sg-type-need-by {
+    color: var(--sg-need-by);
+  }
+
+  .sg-row-summary {
+    font-weight: 600;
+  }
+
+  .sg-grid-body > .sg-row.sg-selected {
+    background: var(--sg-selection);
+  }
+
+  .sg-row.sg-pending {
+    opacity: 0.7;
+  }
+
+  .sg-timeline {
+    position: relative;
+    flex: none;
+  }
+
+  .sg-scale {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    height: var(--sg-header-height);
+    background: var(--sg-header-bg);
+    border-bottom: 1px solid var(--sg-grid-line);
+    user-select: none;
+  }
+
+  .sg-root.sg-has-markers {
+    --sg-header-height: 66px;
+  }
+
+  .sg-scale-tier {
+    position: relative;
+    height: 24px;
+  }
+
+  .sg-scale-top {
+    border-bottom: 1px solid var(--sg-grid-line);
+    font-weight: 600;
+  }
+
+  .sg-tick {
+    position: absolute;
+    top: 0;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 4px;
+    overflow: hidden;
+    border-left: 1px solid var(--sg-grid-line);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .sg-scale-markers {
+    position: relative;
+    height: 18px;
+    border-top: 1px solid var(--sg-grid-line);
+    pointer-events: none;
+  }
+
+  .sg-marker-flag {
+    position: absolute;
+    top: 1px;
+    transform: translateX(-50%);
+    max-width: 160px;
+    padding: 0 4px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--sg-bg);
+    border: 1px solid currentColor;
+    font-size: 10px;
+    line-height: 14px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    pointer-events: auto;
+  }
+
+  .sg-marker-flag.sg-marker-today {
+    color: var(--sg-today);
+  }
+
+  .sg-marker-flag.sg-marker-data-date {
+    color: var(--sg-data-date);
+  }
+
+  .sg-marker-flag.sg-marker-completion {
+    color: var(--sg-completion);
+  }
+
+  .sg-timeline-body {
+    position: relative;
+  }
+
+  .sg-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: visible;
+    touch-action: pan-x pan-y;
+    user-select: none;
+  }
+
+  .sg-nonworking {
+    fill: var(--sg-nonworking);
+  }
+
+  .sg-nonworking-bank-holiday,
+  .sg-nonworking-shutdown {
+    fill: var(--sg-holiday);
+  }
+
+  .sg-gridline {
+    stroke: var(--sg-grid-line);
+    stroke-width: 1;
+  }
+
+  .sg-lookahead-window {
+    fill: color-mix(in oklab, var(--sg-data-date) 8%, transparent);
+  }
+
+  .sg-bar {
+    fill: var(--sg-task-color, var(--sg-bar));
+  }
+
+  .sg-progress {
+    fill: var(--sg-bar-progress);
+    pointer-events: none;
+  }
+
+  .sg-show-critical .sg-critical .sg-bar {
+    fill: var(--sg-bar-critical);
+    stroke: color-mix(in oklab, var(--sg-bar-critical) 55%, #000000);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 2;
+  }
+
+  .sg-show-critical .sg-critical .sg-progress {
+    fill: color-mix(in oklab, var(--sg-bar-critical) 60%, #000000);
+  }
+
+  .sg-critical-overlay {
+    pointer-events: none;
+  }
+
+  .sg-critical-pattern rect {
+    fill: rgb(255 255 255 / 0.28);
+  }
+
+  .sg-summary-shape {
+    fill: var(--sg-summary);
+  }
+
+  .sg-milestone {
+    fill: var(--sg-milestone);
+  }
+
+  .sg-show-critical .sg-critical .sg-milestone {
+    fill: var(--sg-bar-critical);
+  }
+
+  .sg-milestone.sg-payment {
+    fill: var(--sg-payment);
+    stroke: color-mix(in oklab, var(--sg-payment) 55%, #000000);
+    stroke-width: 1;
+  }
+
+  .sg-flag {
+    fill: var(--sg-access);
+    stroke: var(--sg-access);
+    stroke-width: 1.5;
+  }
+
+  .sg-flag.sg-need-by {
+    fill: var(--sg-need-by);
+    stroke: var(--sg-need-by);
+  }
+
+  .sg-bar.sg-reference {
+    fill: var(--sg-reference);
+  }
+
+  .sg-complete .sg-bar {
+    opacity: 0.85;
+  }
+
+  .sg-bar-label {
+    font-size: 11px;
+    fill: var(--sg-fg);
+    pointer-events: none;
+  }
+
+  .sg-link-line {
+    fill: none;
+    stroke: var(--sg-link);
+    stroke-width: 1.25;
+  }
+
+  .sg-link-hit {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 10;
+    pointer-events: stroke;
+    cursor: pointer;
+  }
+
+  .sg-arrow path {
+    fill: var(--sg-link);
+  }
+
+  .sg-show-critical .sg-link.sg-critical .sg-link-line {
+    stroke: var(--sg-bar-critical);
+  }
+
+  .sg-link.sg-selected .sg-link-line {
+    stroke: var(--sg-focus);
+    stroke-width: 2.5;
+  }
+
+  .sg-link-draft {
+    stroke: var(--sg-fg);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 3;
+    pointer-events: none;
+  }
+
+  .sg-link-draft.sg-valid {
+    stroke: var(--sg-completion);
+  }
+
+  .sg-baseline {
+    fill: var(--sg-baseline);
+  }
+
+  .sg-marker {
+    stroke-width: 1.5;
+    pointer-events: none;
+  }
+
+  .sg-marker-today {
+    stroke: var(--sg-today);
+    stroke-dasharray: 4 3;
+  }
+
+  .sg-marker-data-date {
+    stroke: var(--sg-data-date);
+  }
+
+  .sg-marker-completion {
+    stroke: var(--sg-completion);
+    stroke-width: 2;
+  }
+
+  .sg-marker-key-date {
+    stroke: var(--sg-key-date);
+    stroke-dasharray: 2 2;
+  }
+
+  .sg-delay {
+    opacity: 0.45;
+    cursor: pointer;
+  }
+
+  .sg-hatch rect {
+    fill: var(--sg-delay);
+  }
+
+  .sg-hit {
+    fill: transparent;
+    cursor: grab;
+  }
+
+  .sg-handle-resize {
+    fill: transparent;
+    cursor: ew-resize;
+  }
+
+  .sg-handle-progress {
+    fill: var(--sg-fg);
+    opacity: 0;
+    cursor: ew-resize;
+  }
+
+  .sg-handle-link {
+    fill: var(--sg-bg);
+    stroke: var(--sg-bar);
+    stroke-width: 1.5;
+    opacity: 0;
+    cursor: crosshair;
+  }
+
+  .sg-task:hover .sg-handle-link,
+  .sg-task.sg-selected .sg-handle-link {
+    opacity: 1;
+  }
+
+  .sg-task:hover .sg-handle-progress,
+  .sg-task.sg-selected .sg-handle-progress {
+    opacity: 0.75;
+  }
+
+  .sg-task.sg-selected .sg-shape {
+    stroke: var(--sg-focus);
+    stroke-width: 2;
+  }
+
+  .sg-task.sg-selected [data-handle] {
+    touch-action: none;
+  }
+
+  .sg-task.sg-pending .sg-shape {
+    opacity: 0.55;
+  }
+
+  .sg-task.sg-locked .sg-shape {
+    cursor: not-allowed;
+  }
+
+  .sg-previewing .sg-shape {
+    opacity: 0.9;
+  }
+
+  .sg-dragging,
+  .sg-dragging .sg-hit {
+    cursor: grabbing;
+    user-select: none;
+  }
+
+  .sg-readonly .sg-hit,
+  .sg-readonly .sg-shape {
+    cursor: default;
+  }
+
+  .sg-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sg-root *,
+    .sg-root *::before,
+    .sg-root *::after {
+      transition: none;
+      animation: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .sg-bar,
+    .sg-milestone,
+    .sg-summary-shape,
+    .sg-flag {
+      fill: CanvasText;
+      stroke: CanvasText;
+    }
+
+    .sg-progress {
+      fill: Highlight;
+    }
+
+    .sg-link-line,
+    .sg-marker {
+      stroke: CanvasText;
+    }
+
+    .sg-arrow path {
+      fill: CanvasText;
+    }
   }
 }

@@ -1,0 +1,33 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Streamlined Analytics Ltd and contributors -->
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flat roof programme · streamlined-gantt</title>
+    <link rel="stylesheet" href="/dist/streamlined-gantt.css" />
+    <link rel="stylesheet" href="/examples/examples.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Flat roof replacement, 14 Mill Lane</h1>
+      <p>
+        Drag a bar to move it, drag its ends to resize, drag the small triangle for progress, and
+        drag from a round handle to another bar to link them. Successors reschedule on working days.
+        Keyboard: arrow keys to move between rows, Alt and arrow keys to move a task.
+      </p>
+      <div class="toolbar" role="toolbar" aria-label="Programme view">
+        <button type="button" data-zoom="day">Day</button>
+        <button type="button" data-zoom="week">Week</button>
+        <button type="button" data-zoom="month">Month</button>
+        <button type="button" id="undo">Undo</button>
+        <button type="button" id="redo">Redo</button>
+      </div>
+      <div id="programme"></div>
+      <h2>Event log</h2>
+      <ol id="log" aria-live="off"></ol>
+    </main>
+    <script type="module" src="/examples/flat-roof.js"></script>
+  </body>
+</html>

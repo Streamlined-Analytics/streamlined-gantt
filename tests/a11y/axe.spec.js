@@ -1,0 +1,70 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Streamlined Analytics Ltd and contributors
+
+import AxeBuilder from "@axe-core/playwright";
+import { expect, test } from "@playwright/test";
+import { openHarness } from "../e2e/support/page.js";
+
+const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
+
+async function scan(page) {
+  const results = await new AxeBuilder({ page }).include(".sg-root").withTags(TAGS).analyze();
+  return results.violations.map(
+    (violation) =>
+      `${violation.id}: ${violation.nodes
+        .map((node) => node.target.join(" "))
+        .slice(0, 3)
+        .join(", ")}`,
+  );
+}
+
+test("no axe violations: default view", async ({ page }) => {
+  await openHarness(page, { fields: true, baseline: "bl1" });
+  expect(await scan(page)).toEqual([]);
+});
+
+test("no axe violations: read-only, day zoom", async ({ page }) => {
+  await openHarness(page, { readOnly: true, zoom: "day" });
+  expect(await scan(page)).toEqual([]);
+});
+
+test("no axe violations: 1,000 tasks scrolled to row 500", async ({ page }) => {
+  await openHarness(page, { fixture: "perf" });
+  await page.evaluate(() => {
+    window.gantt.scroller.scrollTop = 500 * 32;
+    window.gantt.render();
+  });
+  expect(await scan(page)).toEqual([]);
+});
+
+test("no axe violations: forced colours", async ({ page }) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await openHarness(page);
+  expect(await scan(page)).toEqual([]);
+});
+
+test("exactly one tab stop and treegrid ARIA", async ({ page }) => {
+  await openHarness(page);
+  await expect(page.locator(".sg-root [tabindex='0']")).toHaveCount(1);
+  const grid = page.getByRole("treegrid", { name: "Programme tasks" });
+  await expect(grid).toHaveAttribute("aria-rowcount", "14");
+  await expect(page.getByRole("row", { name: /Roofing works/ })).toHaveAttribute(
+    "aria-expanded",
+    "true",
+  );
+});
+
+test("drag handles are at least 24 px on touch screens (WCAG 2.5.8)", async ({ browser }) => {
+  const context = await browser.newContext({
+    hasTouch: true,
+    isMobile: true,
+    viewport: { width: 1024, height: 768 },
+  });
+  const page = await context.newPage();
+  await openHarness(page);
+  await page.locator('[data-task-id="t5"] .sg-hit').tap();
+  const box = await page.locator('[data-task-id="t5"] [data-handle="resize-end"]').boundingBox();
+  expect(box.width).toBeGreaterThanOrEqual(24);
+  expect(box.height).toBeGreaterThanOrEqual(24);
+  await context.close();
+});

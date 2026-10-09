@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Streamlined Analytics Ltd and contributors -->
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ES module build · streamlined-gantt</title>
+    <link rel="stylesheet" href="/dist/streamlined-gantt.css" />
+    <link rel="stylesheet" href="/examples/examples.css" />
+    <script type="importmap">
+      { "imports": { "streamlined-gantt": "/dist/streamlined-gantt.js" } }
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1>ES module build</h1>
+      <streamlined-gantt
+        id="job"
+        src="/examples/data/flat-roof.json"
+        height="420px"
+      ></streamlined-gantt>
+    </main>
+    <script type="module">
+      import { defineElement } from "streamlined-gantt";
+      defineElement();
+    </script>
+  </body>
+</html>

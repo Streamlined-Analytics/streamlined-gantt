@@ -39,8 +39,38 @@ export function formatDate(
   locale = "en-GB",
   options = { day: "2-digit", month: "2-digit", year: "numeric" },
 ) {
+  return dateFormatter(locale, options).format(dateNumber(day));
+}
+
+/**
+ * A long date such as "Friday 13 November 2026" (or "Friday 13 November"
+ * without the year). Built from parts so the result does not depend on the
+ * ICU version's punctuation, which differs between browsers and Node.
+ * @param {number} day
+ * @param {string} [locale]
+ * @param {{year?: boolean}} [options]
+ * @returns {string}
+ */
+export function formatLongDate(day, locale = "en-GB", options = {}) {
+  const parts = dateFormatter(locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    ...(options.year === false ? {} : { year: "numeric" }),
+  }).formatToParts(dateNumber(day));
+  return parts
+    .filter((part) => part.type !== "literal")
+    .map((part) => part.value)
+    .join(" ");
+}
+
+/**
+ * @param {number} day
+ * @returns {number} milliseconds for Intl, pinned to UTC
+ */
+function dateNumber(day) {
   const { year, month, day: dayOfMonth } = toYMD(day);
-  return dateFormatter(locale, options).format(Date.UTC(year, month - 1, dayOfMonth));
+  return Date.UTC(year, month - 1, dayOfMonth);
 }
 
 /**

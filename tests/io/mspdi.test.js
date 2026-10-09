@@ -5,9 +5,15 @@ import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import { collectProblems } from "../../src/engine/schema.js";
 import { MspdiParseError, fromMSPDI, toMSPDI } from "../../src/io/mspdi.js";
+import { readProgramme } from "../../src/io/mspdi-read.js";
 import { child, children, parseXml, textOf } from "../../src/io/xml.js";
 import { ewCalendar, loadFixture } from "../support/builders.js";
 import { lazy } from "../support/lazy.js";
+import {
+  XML_ILLEGAL_CLASSES,
+  assertWellFormedXml1,
+  illegalXmlCharacters,
+} from "../support/xml1.js";
 
 const FIXTURE_DIR = new URL("../fixtures/", import.meta.url);
 const foreignXml = lazy(() => ({
@@ -148,6 +154,83 @@ describe("round trip", () => {
   test("an empty programme round-trips", () => {
     const programme = { tasks: [] };
     expect(fromMSPDI(toMSPDI(programme)).programme).toEqual(programme);
+  });
+});
+
+describe("text XML 1.0 cannot carry (issue #9, ADR-0012)", () => {
+  test("the issue #9 repro: a task named U+FFFE round-trips", () => {
+    const programme = {
+      schema: "streamlined-gantt/1",
+      name: "R",
+      tasks: [{ id: "t6", name: "\ufffe", start: "2043-12-15", duration: 2 }],
+      links: [],
+    };
+    expect(fromMSPDI(toMSPDI(programme)).programme.tasks[0].name).toBe("\ufffe");
+  });
+
+  /**
+   * A programme with `text` in every text field the writer emits: project
+   * name and currency, calendar and exception names, task id, name, WBS,
+   * notes, trade, crew and custom fields, and link ids. The second task's
+   * residue overflows Text4, and its id collides with the first task's id
+   * once the illegal text is dropped.
+   */
+  const hostile = (text) => ({
+    schema: "streamlined-gantt/1",
+    name: `Programme ${text}`,
+    currency: `GBP${text}`,
+    calendars: [
+      {
+        ...ewCalendar(),
+        name: `Site ${text}`,
+        nonWorking: [{ date: "2043-12-25", name: `Christmas ${text}` }],
+      },
+    ],
+    tasks: [
+      {
+        id: `A${text}`,
+        name: `Strip ${text} out`,
+        wbs: `1.${text}`,
+        notes: `Note ${text}`,
+        trade: `M&E ${text}`,
+        crew: text,
+        fields: { [text]: text },
+        start: "2043-12-15",
+        duration: 2,
+      },
+      { id: "A", name: `${text}${"long ".repeat(60)}`, start: "2043-12-17", duration: 1 },
+    ],
+    links: [{ id: `l${text}`, from: `A${text}`, to: "A" }],
+  });
+
+  test.each(XML_ILLEGAL_CLASSES)(
+    "%s in every text field: well-formed XML, lossless round trip, stable re-export",
+    async (_label, text) => {
+      const programme = hostile(text);
+      expect(collectProblems(programme)).toEqual([]);
+      const xml = toMSPDI(programme);
+      expect(illegalXmlCharacters(xml)).toEqual([]);
+      await assertWellFormedXml1(xml);
+      const imported = fromMSPDI(xml);
+      expect(imported.programme).toEqual(programme);
+      expect(imported.warnings).toEqual([]);
+      expect(toMSPDI(imported.programme)).toBe(xml);
+    },
+  );
+
+  test("other tools see the text with the illegal characters dropped", () => {
+    const { programme } = readProgramme(toMSPDI(hostile("\ufffe\u0001\ud800")), false);
+    expect(programme.name).toBe("Programme");
+    expect(programme.tasks[0]).toMatchObject({ id: "A", name: "Strip  out", notes: "Note " });
+    expect(programme.tasks[1].id).toBe("t2");
+  });
+
+  test("a carriage return is written as a character reference so XML parsers keep it", () => {
+    const programme = small();
+    programme.tasks[0].notes = "Line 1\r\nLine 2\rLine 3";
+    const xml = toMSPDI(programme);
+    expect(xml).toContain("<Notes>Line 1&#13;\nLine 2&#13;Line 3</Notes>");
+    expect(fromMSPDI(xml).programme).toEqual(programme);
   });
 });
 

@@ -4,7 +4,7 @@
 import { Calendar } from "../engine/calendar.js";
 import { toDay, toISO } from "../engine/dates.js";
 import { readCalendars } from "./mspdi-calendar.js";
-import { applyPatch } from "./residue.js";
+import { applyPatch, isPlainObject } from "./residue.js";
 import { child, children, parseXml, textOf } from "./xml.js";
 
 /**
@@ -468,7 +468,7 @@ function parseResidue(text, warnings) {
   if (!text) return null;
   try {
     const value = JSON.parse(text);
-    return typeof value === "object" && value !== null && !Array.isArray(value) ? value : null;
+    return isPlainObject(value) ? value : null;
   } catch {
     warnings.push("Unreadable streamlined-gantt data ignored");
     return null;
@@ -507,7 +507,7 @@ function patchEntry(entry, patch) {
 function applyResidues(project, entries, projectTask, context) {
   const { warnings } = context;
   const projectPatch = projectResidue(projectTask, warnings);
-  const overflow = projectPatch?.x && typeof projectPatch.x === "object" ? projectPatch.x : {};
+  const overflow = isPlainObject(projectPatch?.x) ? projectPatch.x : {};
   for (const entry of entries) {
     const own = parseResidue(extendedValue(entry.element, context.fields.residue), warnings);
     patchEntry(

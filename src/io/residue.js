@@ -27,7 +27,7 @@ const PROTOTYPE_KEY = "__proto__";
  * @param {unknown} value
  * @returns {value is Record<string, unknown>}
  */
-function isPlainObject(value) {
+export function isPlainObject(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 

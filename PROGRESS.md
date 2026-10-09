@@ -14,6 +14,7 @@ Status of the streamlined-gantt MVP against the spec (§3.11) and the testing gu
 | M5 Print              | A3/A4 print, SVG and PNG export, title block, legend                                                                                                                           | Merged (#5) |
 | M6 MSPDI              | Lossless import and export, recurring calendars, XXE-safe parser, nightly MPXJ samples (ADR-0008)                                                                              | Merged (#5) |
 | Theming               | Tokens for every visual value, dark mode, per-item colour, JS theme API, playground (ADR-0009)                                                                                 | Merged (#5) |
+| Timeline layout       | `layout: "timeline"`, `fit: "width"`, exact scale start (opens at the first task) (ADR-0010)                                                                                   | PR open     |
 | Integration           | htmx save-back, fetch approval, mock backend, custom editor, read-only view, strict CSP                                                                                        | Merged (#5) |
 
 ## Acceptance criteria
@@ -22,6 +23,10 @@ Each line is checked by the tests named.
 
 ### Editing and integration
 
+- The timeline layout fills the width with labelled bars, keeps the keyboard model and passes
+  axe; fit-to-width refits on resize and after a drop, never mid-drag; every chart opens at the
+  first task: `tests/dom/timeline-layout.test.js`, `tests/e2e/timeline-layout.spec.js`,
+  `tests/a11y/axe.spec.js`, `tests/visual/visual.spec.js` (`timeline-fit-width.png`).
 - Dragging moves, resizes and links bars; successors reschedule on working days; one `change`
   per transaction: `tests/dom/drag.test.js`, `tests/e2e/drag-*.spec.js`.
 - Every drag has a keyboard alternative, the treegrid passes axe, and there is one tab stop:
@@ -67,19 +72,19 @@ Each line is checked by the tests named.
 
 ## Tests
 
-- Engine and IO (Node): 499, plus 6 nightly-only MPXJ checks.
-- Browser components (Vitest, Chromium): 166.
-- End-to-end, a11y, memory and print (Playwright, Chromium): 50. WebKit, iPad and Pixel run in CI.
-- Visual: 13 snapshots in the pinned Playwright image.
+- Engine and IO (Node): 508, plus 6 nightly-only MPXJ checks.
+- Browser components (Vitest, Chromium): 186.
+- End-to-end, a11y, memory and print (Playwright, Chromium): 54. WebKit, iPad and Pixel run in CI.
+- Visual: 14 snapshots in the pinned Playwright image.
 - Property tests run 1,000 times per property on PRs and 10,000 nightly. Mutation testing (Stryker) runs weekly.
 
 ## Measured
 
 |                                           | Value                            | Budget |
 | ----------------------------------------- | -------------------------------- | ------ |
-| Core ESM bundle                           | 43.52 KB gzip                    | 45 KB  |
-| Script-tag bundle (core, editor, toolbar) | 46.01 KB gzip                    | 48 KB  |
-| CSS                                       | 3.92 KB gzip                     | 6 KB   |
+| Core ESM bundle                           | 44.15 KB gzip                    | 45 KB  |
+| Script-tag bundle (core, editor, toolbar) | 46.63 KB gzip                    | 48 KB  |
+| CSS                                       | 4.02 KB gzip                     | 6 KB   |
 | MSPDI module                              | 9.98 KB gzip                     | 10 KB  |
 | First render, 1,000 tasks / 1,500 links   | 71 ms                            | 250 ms |
 | Scroll frame (p90)                        | 17.6 ms (about 57 fps)           | 55 fps |
@@ -88,8 +93,8 @@ Each line is checked by the tests named.
 
 ## Remaining
 
-- The core is at 43.52 of 45 KB after moving the editor dialog to an optional entry. Larger
-  core features will need a budget decision.
+- The core is at 44.15 of 45 KB after the timeline layout (ADR-0010). Larger core features
+  will need a budget decision.
 - Lookahead print layout and the warnings panel for `check()` (UI), which the spec lists after
   drag editing.
 - Solicitor review of `CLA.md`; confirm the code-of-conduct contact address.

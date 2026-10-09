@@ -7,6 +7,29 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-09
+
+### Added
+
+- `layout: "timeline"` (and the `layout` element attribute): no grid on the left, the timeline
+  takes the full width and task and milestone names are drawn as bar labels. A visually hidden
+  treegrid keeps the keyboard model and screen-reader names; the focused bar is outlined
+  (ADR-0010).
+- `fit: "width"` (and the `fit` attribute), `minDayWidth` and `setFit()`: the whole programme
+  fits the width, refitted on resize and after edits, never during a drag.
+- `TimeScale` `lead` and `trail` options for an exact range, and `zoomForDayWidth()`.
+
+### Fixed
+
+- The chart opened weeks (two months at month zoom) before the first task when the timeline
+  was too short to scroll. The scale now starts one or two days before the first task.
+- Bar labels near the right edge are drawn before the bar, or shortened with an ellipsis,
+  instead of being clipped.
+- The editor dialog stays centred when the host's CSS reset (Tailwind's preflight) zeroes
+  `dialog` margins.
+
+## [0.1.0] - 2026-10-09
+
 ### Added
 
 - DOM-free engine (`streamlined-gantt/engine`): day-number date arithmetic, working-day

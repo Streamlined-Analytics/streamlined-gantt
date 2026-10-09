@@ -41,6 +41,7 @@ const gantt = new Gantt(host, options);
 gantt.setTheme({ barCritical: "#be123c", rowAlt: null });
 gantt.setCategories({ roofing: null });
 gantt.on("change", (event) => event.type);
+new Gantt(host, { layout: "timeline", fit: "width", minDayWidth: 3 }).setFit(null);
 
 const csv: string = exportCSV(gantt);
 const findings = check(gantt).map((finding) => finding.code);
@@ -67,5 +68,7 @@ void [GanttValidationError, MspdiParseError];
 
 // @ts-expect-error colorScheme accepts only "auto", "light" or "dark"
 new Gantt(host, { colorScheme: "sepia" });
+// @ts-expect-error layout is "grid" or "timeline"
+new Gantt(host, { layout: "below" });
 // @ts-expect-error toolbar takes a factory, not an element
 new Gantt(host, { toolbar: document.createElement("div") });

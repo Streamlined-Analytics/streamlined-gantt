@@ -23,6 +23,12 @@ test("no axe violations: default view", async ({ page }) => {
   expect(await scan(page)).toEqual([]);
 });
 
+test("no axe violations: timeline layout fitted to the width", async ({ page }) => {
+  await openHarness(page, { layout: "timeline", fit: "width", fields: true });
+  await page.keyboard.press("Tab");
+  expect(await scan(page)).toEqual([]);
+});
+
 test("no axe violations: read-only, day zoom", async ({ page }) => {
   await openHarness(page, { readOnly: true, zoom: "day" });
   expect(await scan(page)).toEqual([]);

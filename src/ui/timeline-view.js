@@ -425,20 +425,30 @@ export class TimelineView {
    */
   labelElement(label, row, geometry) {
     const room = geometry.right - geometry.left - 12;
+    const width = label.length * LABEL_CHAR_WIDTH;
     const inside =
-      this.gantt.options.barLabels === "inside" &&
-      !row.milestone &&
-      !row.summary &&
-      label.length * LABEL_CHAR_WIDTH <= room;
+      this.gantt.options.barLabels === "inside" && !row.milestone && !row.summary && width <= room;
+    const after = this.gantt.scale.width - geometry.right - 6;
+    const before = !inside && width > after && geometry.left - 6 > after;
+    const space = before ? geometry.left - 6 : after;
+    const text =
+      inside || width <= space
+        ? label
+        : `${label.slice(0, Math.max(1, Math.floor(space / LABEL_CHAR_WIDTH) - 1))}…`;
     return svg(
       "text",
       {
-        class: inside ? "sg-bar-label sg-inside" : "sg-bar-label",
-        x: px(inside ? geometry.left + 6 : geometry.right + 6),
+        class: inside
+          ? "sg-bar-label sg-inside"
+          : before
+            ? "sg-bar-label sg-before"
+            : "sg-bar-label",
+        "text-anchor": before ? "end" : null,
+        x: px(inside ? geometry.left + 6 : before ? geometry.left - 6 : geometry.right + 6),
         y: px(geometry.y),
         "dominant-baseline": "central",
       },
-      [label],
+      [text],
     );
   }
 

@@ -29,6 +29,8 @@ const gantt = new Gantt(document.getElementById("programme"), {
   showBaseline: params.get("baseline"),
   height: params.get("height") ?? "520px",
   columns: params.get("columns")?.split(","),
+  layout: params.get("layout") ?? "grid",
+  fit: params.get("fit"),
   today: () => today,
   on: Object.fromEntries(
     EVENT_NAME_LIST.map((name) => [name, (event) => window.events.push(event)]),

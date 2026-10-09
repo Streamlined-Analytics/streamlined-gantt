@@ -227,6 +227,19 @@ export class PointerController {
     });
   }
 
+  /**
+   * Moves an active drag's timeline-pixel anchors when the scale grows to the
+   * left, so the dragged bar stays under the pointer.
+   * @param {number} dx
+   */
+  shiftOrigin(dx) {
+    const drag = this.drag;
+    if (!drag) return;
+    drag.startX += dx;
+    drag.origin.left += dx;
+    drag.origin.right += dx;
+  }
+
   /** Computes the proposed change for the current pointer position and previews it. */
   update() {
     const drag = this.drag;
@@ -505,7 +518,7 @@ export class PointerController {
     const gantt = this.gantt;
     if (taskId) {
       gantt.select([taskId], { additive: event.ctrlKey || event.metaKey });
-      gantt.focusTask(taskId, { scroll: false, focus: false });
+      gantt.focusTask(taskId, { scroll: false, focus: gantt.timelineOnly });
       const task = gantt.getTask(taskId);
       gantt.emit("task-click", { taskId, task, originalEvent: event });
       if (gantt.rowById(taskId)?.milestone)

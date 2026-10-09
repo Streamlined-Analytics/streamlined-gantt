@@ -178,9 +178,12 @@ export class ContextMenu {
   /** @returns {{x: number, y: number}} below the focused cell, for keyboard opening */
   focusAnchor() {
     const root = this.gantt.root.getBoundingClientRect();
-    const cell = this.gantt.grid
-      .cell(this.gantt.focus.taskId, this.gantt.focus.column)
-      ?.getBoundingClientRect();
+    const { grid, timeline, focus, timelineOnly } = this.gantt;
+    const cell = (
+      timelineOnly
+        ? timeline.tasks.get(focus.taskId)?.element
+        : grid.cell(focus.taskId, focus.column)
+    )?.getBoundingClientRect();
     return cell ? { x: cell.left - root.left + 8, y: cell.bottom - root.top } : { x: 8, y: 8 };
   }
 

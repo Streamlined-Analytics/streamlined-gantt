@@ -2,6 +2,7 @@
 // Copyright 2026 Streamlined Analytics Ltd and contributors
 
 import { Gantt } from "/dist/streamlined-gantt.js";
+import { builtinEditor } from "/dist/editor.js";
 
 /**
  * Server approval: `before-task-update` holds each edit until the backend
@@ -12,7 +13,11 @@ import { Gantt } from "/dist/streamlined-gantt.js";
 const JOB = "/api/jobs/fetch-demo";
 const status = document.getElementById("save-status");
 const data = await (await fetch(`${JOB}/programme`)).json();
-const gantt = new Gantt(document.getElementById("programme"), { data, height: "440px" });
+const gantt = new Gantt(document.getElementById("programme"), {
+  editor: builtinEditor,
+  data,
+  height: "440px",
+});
 window.gantt = gantt;
 
 /**

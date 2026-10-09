@@ -2,6 +2,7 @@ CHANGELOG.md
 LICENSE
 NOTICE
 README.md
+dist/editor.js
 dist/engine.js
 dist/events.js
 dist/health.js
@@ -14,6 +15,7 @@ dist/streamlined-gantt.css
 dist/streamlined-gantt.iife.min.js
 dist/streamlined-gantt.js
 dist/toolbar.js
+dist/types/editor.d.ts
 dist/types/element.d.ts
 dist/types/engine/analysis.d.ts
 dist/types/engine/calendar.d.ts
@@ -71,6 +73,7 @@ dist/types/version.d.ts
 package.json
 schema/programme.v1.json
 src/css/streamlined-gantt.css
+src/editor.js
 src/element.js
 src/engine/analysis.js
 src/engine/calendar.js

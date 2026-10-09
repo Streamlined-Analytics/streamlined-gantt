@@ -2,6 +2,7 @@
 // Copyright 2026 Streamlined Analytics Ltd and contributors
 
 import { Gantt } from "/dist/streamlined-gantt.js";
+import { builtinEditor } from "/dist/editor.js";
 
 /** Records CSP violations so the page (and its test) can show there are none. */
 const violations = [];
@@ -24,6 +25,7 @@ const gantt = new Gantt(document.getElementById("programme"), {
   categoryOf: (task) => task.trade,
   barLabels: "inside",
   theme: { barRadius: "0px" },
+  editor: builtinEditor,
 });
 window.gantt = gantt;
 document.body.dataset.ready = "true";

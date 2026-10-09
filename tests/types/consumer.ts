@@ -16,6 +16,7 @@ import {
 } from "streamlined-gantt";
 import { addWorkingDays, projectSummary } from "streamlined-gantt/engine";
 import { buildToolbar } from "streamlined-gantt/toolbar";
+import { builtinEditor } from "streamlined-gantt/editor";
 import { check } from "streamlined-gantt/health";
 import { exportCSV } from "streamlined-gantt/io/csv";
 import { fromMSPDI, toMSPDI, MspdiParseError } from "streamlined-gantt/io/mspdi";
@@ -33,6 +34,7 @@ const options: GanttOptions = {
   taskClass: (task) => (task.locked ? "locked" : null),
   taskStyle: () => ({ "--sg-task-color": "#9333ea" }),
   toolbar: buildToolbar,
+  editor: builtinEditor,
   barLabels: "inside",
 };
 const gantt = new Gantt(host, options);

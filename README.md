@@ -23,11 +23,13 @@ A framework-free JavaScript Gantt and construction programme library by
 <div id="programme"></div>
 <script type="module">
   import { Gantt } from "/static/streamlined-gantt/streamlined-gantt.js";
+  import { builtinEditor } from "/static/streamlined-gantt/editor.js"; // optional task dialog
 
   const data = await (await fetch("/jobs/42/programme.json")).json();
   const gantt = new Gantt(document.getElementById("programme"), {
     data,
     zoom: "week",
+    editor: builtinEditor,
     fields: [
       { key: "cost", label: "Cost", type: "currency", rollup: "sum", column: true },
       { key: "charge", label: "Charge", type: "currency", rollup: "sum", column: true },
@@ -127,9 +129,10 @@ The core bundle stays under 45 KB gzip. Everything else is a separate import:
 | `streamlined-gantt/io/csv`   | `exportCSV(gantt)`                                       |
 | `streamlined-gantt/health`   | `check(gantt)`: SCL/CIOB programme health check          |
 | `streamlined-gantt/toolbar`  | The built-in toolbar (`toolbar: buildToolbar`)           |
+| `streamlined-gantt/editor`   | The built-in task dialog (`editor: builtinEditor`)       |
 
-The script-tag build (`streamlined-gantt.iife.min.js`) includes the toolbar, so `toolbar: true`
-works there.
+The script-tag build (`streamlined-gantt.iife.min.js`) includes the toolbar and the editor dialog,
+so `toolbar: true` and the default `editor: "builtin"` work there and on `<streamlined-gantt>`.
 
 ## Licence and attribution
 

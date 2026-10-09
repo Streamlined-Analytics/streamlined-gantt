@@ -7,6 +7,7 @@
  * Every emitted event is recorded in window.events.
  */
 import { Gantt, EVENT_NAME_LIST } from "/dist/streamlined-gantt.js";
+import { builtinEditor } from "/dist/editor.js";
 import { FLAT_ROOF_FIELDS } from "/examples/fields.js";
 import { generatePerfProgramme } from "/tests/fixtures/perf/generate-perf-fixture.js";
 
@@ -18,6 +19,7 @@ window.events = [];
 
 const started = performance.now();
 const gantt = new Gantt(document.getElementById("programme"), {
+  editor: builtinEditor,
   data,
   fields: params.has("fields") ? FLAT_ROOF_FIELDS : [],
   zoom: params.get("zoom") ?? "week",

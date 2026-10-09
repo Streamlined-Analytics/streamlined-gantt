@@ -46,6 +46,10 @@
       "types": "./dist/types/print/index.d.ts",
       "default": "./dist/print.js"
     },
+    "./editor": {
+      "types": "./dist/types/editor.d.ts",
+      "default": "./dist/editor.js"
+    },
     "./toolbar": {
       "types": "./dist/types/toolbar.d.ts",
       "default": "./dist/toolbar.js"

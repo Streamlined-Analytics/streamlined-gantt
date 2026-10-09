@@ -102,6 +102,8 @@ send it in an `HX-Trigger` header.
 
 ## Custom editor, tooltip and menu
 
+- The built-in dialog is `editor: builtinEditor` from `streamlined-gantt/editor` (included and on
+  by default in the script-tag build).
 - `editor: (task, {gantt, readOnly}) => {...}` replaces the built-in dialog, for example to open
   your own modal or to load server-rendered HTML with htmx. Save through
   `gantt.updateTask(task.id, patch)`. `editor: "none"` disables editing in a dialog.

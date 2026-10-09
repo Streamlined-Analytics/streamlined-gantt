@@ -367,6 +367,20 @@ describe("tooltip", () => {
   });
 });
 
+describe("optional built-in editor", () => {
+  test('in the ES module build, editor: "builtin" opens nothing until the editor is registered', () => {
+    const { gantt, host } = mount(structuredClone(flatRoof), { editor: "builtin" });
+    expect(gantt.openEditor("t3")).toBe(false);
+    expect(host.querySelector(".sg-dialog")).toBeNull();
+  });
+
+  test("editor: builtinEditor opens the built-in dialog", () => {
+    const { gantt, host } = mount(structuredClone(flatRoof));
+    expect(gantt.openEditor("t3")).toBe(true);
+    expect(host.querySelector(".sg-dialog")).not.toBeNull();
+  });
+});
+
 describe("toolbar", () => {
   test("toolbar: true without a registered toolbar throws before touching the host", () => {
     const host = document.createElement("div");

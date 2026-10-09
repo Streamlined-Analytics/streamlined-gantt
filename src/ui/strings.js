@@ -9,7 +9,6 @@
  */
 export const DEFAULT_STRINGS = {
   gridLabel: "Programme tasks",
-  timelineLabel: "Programme timeline",
   columnWbs: "WBS",
   columnName: "Task",
   columnStart: "Start",
@@ -45,7 +44,6 @@ export const DEFAULT_STRINGS = {
   successorRescheduled: "1 other task rescheduled",
   progressSet: "{name} {percent} complete",
   linkCreated: "Linked {from} to {to} ({type})",
-  linkRemoved: "Link removed",
   undone: "Undone: {label}",
   redone: "Redone: {label}",
   nothingToUndo: "Nothing to undo",

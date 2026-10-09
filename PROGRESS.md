@@ -67,23 +67,23 @@ Each line is checked by the tests named.
 
 ## Measured
 
-|                                         | Value                            | Budget |
-| --------------------------------------- | -------------------------------- | ------ |
-| Core ESM bundle                         | 44.81 KB gzip                    | 45 KB  |
-| Script-tag bundle                       | 45.50 KB gzip                    | 46 KB  |
-| CSS                                     | 3.92 KB gzip                     | 6 KB   |
-| MSPDI module                            | 9.93 KB gzip                     | 10 KB  |
-| First render, 1,000 tasks / 1,500 links | 71 ms                            | 250 ms |
-| Scroll frame (p90)                      | 17.6 ms (about 57 fps)           | 55 fps |
-| Drag frame overhead (p90)               | 1.7 ms                           | 16 ms  |
-| `schedule()`, 1,000 tasks / 1,500 links | 3.0 ms (Node), 3.4 ms (Chromium) | 30 ms  |
+|                                           | Value                            | Budget |
+| ----------------------------------------- | -------------------------------- | ------ |
+| Core ESM bundle                           | 43.43 KB gzip                    | 45 KB  |
+| Script-tag bundle (core, editor, toolbar) | 45.92 KB gzip                    | 48 KB  |
+| CSS                                       | 3.92 KB gzip                     | 6 KB   |
+| MSPDI module                              | 9.93 KB gzip                     | 10 KB  |
+| First render, 1,000 tasks / 1,500 links   | 71 ms                            | 250 ms |
+| Scroll frame (p90)                        | 17.6 ms (about 57 fps)           | 55 fps |
+| Drag frame overhead (p90)                 | 1.7 ms                           | 16 ms  |
+| `schedule()`, 1,000 tasks / 1,500 links   | 3.0 ms (Node), 3.4 ms (Chromium) | 30 ms  |
 
 ## Remaining
 
 - Merge PR #3, then open the M3–M6 + theming + integration PR from `m4-editing` (rebased
   onto `main`).
-- The core is at 44.81 of 45 KB. The next core feature needs something else to move to an
-  optional entry, or a decision to raise the budget.
+- The core is at 43.43 of 45 KB after moving the editor dialog to an optional entry. Larger
+  core features will need a budget decision.
 - Lookahead print layout and the warnings panel for `check()` (UI), which the spec lists after
   drag editing.
 - Solicitor review of `CLA.md`; confirm the code-of-conduct contact address.

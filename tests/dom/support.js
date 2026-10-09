@@ -3,12 +3,14 @@
 
 import "../../src/css/streamlined-gantt.css";
 import { Gantt } from "../../src/index.js";
+import { builtinEditor } from "../../src/editor.js";
 
 /** @type {Gantt[]} */
 const mounted = [];
 
 /**
- * Mounts a Gantt in a sized host element.
+ * Mounts a Gantt in a sized host element, with the built-in editor (an
+ * optional entry for ES module users) unless the options say otherwise.
  * @param {object} data
  * @param {Record<string, unknown>} [options]
  * @returns {{gantt: Gantt, host: HTMLElement}}
@@ -17,7 +19,13 @@ export function mount(data, options = {}) {
   const host = document.createElement("div");
   host.style.width = options.width ?? "1200px";
   document.body.append(host);
-  const gantt = new Gantt(host, { data, height: "640px", today: () => "2026-11-09", ...options });
+  const gantt = new Gantt(host, {
+    data,
+    height: "640px",
+    today: () => "2026-11-09",
+    editor: builtinEditor,
+    ...options,
+  });
   mounted.push(gantt);
   return { gantt, host };
 }

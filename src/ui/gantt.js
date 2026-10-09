@@ -17,7 +17,6 @@ import { TimeScale, ZOOM_LEVELS, ZOOM_ORDER } from "./scale.js";
 import { DEFAULT_STRINGS, fill } from "./strings.js";
 import { startCellEdit } from "./cell-editor.js";
 import { confirmDialog } from "./dialog.js";
-import { openTaskEditor } from "./editor.js";
 import { ContextMenu } from "./menu.js";
 import { openLinkPicker } from "./picker.js";
 import { Tooltip } from "./tooltip.js";
@@ -59,7 +58,7 @@ import { TimelineView } from "./timeline-view.js";
  *   scrollTo?: "start"|"today"|string,
  *   height?: string,
  *   gridWidth?: number,
- *   editor?: "builtin"|"none"|((task: Readonly<Record<string, any>>, context: object) => void),
+ *   editor?: "builtin"|"none"|((task: Readonly<Record<string, any>>, context: {gantt: Gantt, readOnly: boolean}) => unknown),
  *   contextMenu?: false|{items?: object[]},
  *   tooltip?: false|((task: Readonly<Record<string, any>>, context: object) => unknown),
  *   toolbar?: boolean|((gantt: Gantt) => HTMLElement),
@@ -71,6 +70,19 @@ let instanceCounter = 0;
 
 /** @type {((gantt: Gantt) => HTMLElement)|null} */
 let defaultToolbar = null;
+
+/** @type {((gantt: Gantt, taskId: string) => boolean)|null} */
+let defaultEditor = null;
+
+/**
+ * Makes `editor: "builtin"` (the default) use this dialog. The script-tag
+ * build registers the built-in one; ES module users pass
+ * `editor: builtinEditor` from "streamlined-gantt/editor", or their own.
+ * @param {(gantt: Gantt, taskId: string) => boolean} open
+ */
+export function setDefaultEditor(open) {
+  defaultEditor = open;
+}
 
 /**
  * Makes `toolbar: true` use this toolbar. The script-tag build registers the
@@ -1318,8 +1330,8 @@ export class Gantt extends ProgrammeController {
    * @returns {boolean}
    */
   openBuiltInEditor(taskId) {
-    if (this.options.editor !== "builtin") return false;
-    return openTaskEditor(this, taskId);
+    if (this.options.editor !== "builtin" || !defaultEditor) return false;
+    return defaultEditor(this, taskId);
   }
 
   /**

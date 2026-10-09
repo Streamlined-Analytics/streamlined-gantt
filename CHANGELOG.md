@@ -30,6 +30,7 @@ All notable changes to this project are documented here. The format follows
 - MS Project XML (MSPDI) import and export with a lossless round trip
   (`streamlined-gantt/io/mspdi`, ADR-0008).
 - Optional entries `streamlined-gantt/io/csv` (`exportCSV`), `streamlined-gantt/health`
-  (`check`) and `streamlined-gantt/toolbar` (`buildToolbar`).
+  (`check`), `streamlined-gantt/toolbar` (`buildToolbar`) and `streamlined-gantt/editor`
+  (`builtinEditor`). The script-tag build includes the toolbar and the editor.
 - Repository scaffolding: Apache-2.0 licence, NOTICE, CLA (draft), contribution guide, code of
   conduct, security policy, CI, build pipeline with licence banners and size budgets.

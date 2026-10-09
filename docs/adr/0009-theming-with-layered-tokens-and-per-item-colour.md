@@ -48,6 +48,12 @@ core from 44.95 KB to 46.55 KB.
 
 The core is now 44.80 KB.
 
+**Later, the built-in editor dialog moved** to `streamlined-gantt/editor`
+(`editor: builtinEditor`). The engine fixes from PR #3 took the core back to 44.98 KB, and the
+dialog costs 1.6 KB. The spec allows a built-in, custom or server-rendered editor. The
+script-tag build registers the dialog, so `editor: "builtin"` (the default) still opens it there
+and on `<streamlined-gantt>`. The core is now 43.4 KB.
+
 ### Attempt 3: lazy-load the built-in editor ❌ rejected
 
 With esbuild code splitting, the eagerly loaded size fell by only about 0.7 KB, because shared
@@ -102,9 +108,9 @@ Pinned by:
 - **Breaking API moves before 1.0:**
   - `gantt.exportCSV()` is now `exportCSV(gantt)` from `io/csv`;
   - `gantt.check()` is now `check(gantt)` from `health`;
-  - ES module users pass `toolbar: buildToolbar`.
-- **The core is near its budget** (44.80 of 45 KB). New core features will need something else
-  to move out, or a decision to raise the budget.
+  - ES module users pass `toolbar: buildToolbar` and `editor: builtinEditor`.
+- **The core budget is tight** (43.4 of 45 KB after moving the editor). Large new core features
+  will need something else to move out, or a decision to raise the budget.
 - Automatic contrast covers hex colours only.
 - Geometry tokens changed by CSS outside `setTheme` need `refreshTheme()` before they take
   effect. Colours never do.

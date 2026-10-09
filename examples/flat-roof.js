@@ -2,6 +2,7 @@
 // Copyright 2026 Streamlined Analytics Ltd and contributors
 
 import { Gantt } from "/dist/streamlined-gantt.js";
+import { builtinEditor } from "/dist/editor.js";
 import { FLAT_ROOF_FIELDS } from "/examples/fields.js";
 
 const response = await fetch("/examples/data/flat-roof.json");
@@ -16,6 +17,7 @@ function record(text) {
 }
 
 const gantt = new Gantt(document.getElementById("programme"), {
+  editor: builtinEditor,
   data,
   fields: FLAT_ROOF_FIELDS,
   zoom: "week",

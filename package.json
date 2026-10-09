@@ -91,6 +91,8 @@
     "check:banner": "node scripts/check-banner.mjs",
     "check:size": "node scripts/check-size.mjs",
     "check:spdx": "node scripts/check-spdx.mjs",
+    "check:pack": "node scripts/pack-smoke.mjs",
+    "test:types": "npm run build:types && tsc -p tests/types/tsconfig.json",
     "check": "npm run lint && npm run typecheck && npm run check:spdx && npm run test:coverage && npm run build && npm run check:banner && npm run check:size",
     "serve": "node examples/server.mjs",
     "test:dom": "vitest run --project dom",

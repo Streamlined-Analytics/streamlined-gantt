@@ -16,6 +16,15 @@
  * @module streamlined-gantt
  */
 
+/** @typedef {import("./ui/gantt.js").GanttOptions} GanttOptions */
+/** @typedef {import("./engine/types.js").Programme} Programme */
+/** @typedef {import("./engine/types.js").Task} Task */
+/** @typedef {import("./engine/types.js").Link} Link */
+/** @typedef {import("./engine/types.js").Baseline} Baseline */
+/** @typedef {import("./engine/types.js").DelayEvent} DelayEvent */
+/** @typedef {import("./engine/calendar.js").CalendarDefinition} CalendarDefinition */
+/** @typedef {import("./ui/theme.js").CategoryColour} CategoryColour */
+
 export { VERSION } from "./version.js";
 export { Gantt } from "./ui/gantt.js";
 export { ProgrammeController } from "./model/controller.js";

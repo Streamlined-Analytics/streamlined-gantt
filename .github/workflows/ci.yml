@@ -134,6 +134,10 @@ jobs:
         run: npm run check:banner
       - name: Bundle size budget
         run: npm run check:size | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Declarations work for a TypeScript consumer
+        run: npx tsc -p tests/types/tsconfig.json
+      - name: Pack smoke (file list, publint, attw, no runtime dependencies)
+        run: npm run check:pack
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist

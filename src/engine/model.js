@@ -77,6 +77,11 @@ export function schedulingCalendar(programme) {
  * When both are stored, `duration` (working days, the planning quantity) wins
  * and `finish` is derived from it, so a calendar change moves the finish rather
  * than silently changing the duration, as in MS Project.
+ *
+ * A started, incomplete task is the exception: its stored `finish` is the
+ * forecast (remaining work rescheduled after the data date) and `duration`
+ * stays the task's work in working days, so rescheduling reaches a fixed point
+ * instead of growing the task on every run.
  * @param {import("./types.js").Task} task
  * @param {Calendar} calendar
  * @returns {ResolvedDates}
@@ -84,14 +89,12 @@ export function schedulingCalendar(programme) {
 export function resolveLeafDates(task, calendar) {
   const start = toDay(task.start);
   if (isMilestone(task)) return { start, finish: start, duration: 0, milestone: true };
-  if (task.finish && task.duration === undefined) {
+  const inProgress = isStarted(task) && !isComplete(task);
+  if (task.finish && (task.duration === undefined || inProgress)) {
     const finish = toDay(task.finish);
-    return {
-      start,
-      finish,
-      duration: calendar.workingDaysBetween(start, finish),
-      milestone: false,
-    };
+    const span = calendar.workingDaysBetween(start, finish);
+    const work = inProgress && task.duration !== undefined ? task.duration : span;
+    return { start, finish, duration: Math.max(1, work), milestone: false };
   }
   const duration = Math.max(1, task.duration ?? 1);
   const first = calendar.nextWorkingDay(start);

@@ -428,9 +428,7 @@ class Scheduler {
       const dates = kept
         ? { start: node.dates.start, finish: node.dates.finish }
         : this.datesOf(node);
-      const duration = node.dates.milestone
-        ? 0
-        : this.calendar.workingDaysBetween(dates.start, dates.finish);
+      const duration = this.reportedDuration(node, dates);
       const totalFloat = node.LS - node.ES;
       const isCritical = totalFloat <= this.threshold && !isComplete(node.task);
       if (isCritical) critical.push(id);
@@ -491,6 +489,19 @@ class Scheduler {
   }
 
   /**
+   * Working-day duration to report: the work for started tasks (their finish
+   * is a forecast), otherwise the span of the dates.
+   * @param {Node} node
+   * @param {{start: number, finish: number}} dates
+   * @returns {number}
+   */
+  reportedDuration(node, dates) {
+    if (node.dates.milestone) return 0;
+    if (isStarted(node.task) && !isComplete(node.task)) return node.duration;
+    return this.calendar.workingDaysBetween(dates.start, dates.finish);
+  }
+
+  /**
    * @param {number} projectFinish
    * @returns {number|null}
    */
@@ -512,8 +523,8 @@ class Scheduler {
     const finish = toISO(dates.finish);
     const unchanged =
       task.start === start &&
-      (task.finish ?? finish) === finish &&
-      (task.duration ?? duration) === duration;
+      toISO(node.dates.finish) === finish &&
+      (task.duration ?? node.dates.duration) === duration;
     if (unchanged) return;
     if (this.keepsStoredDates(node)) return;
     changed.push({ id: task.id, start, finish, duration });

@@ -64,6 +64,11 @@ for a date-only domain.
   `duration` wins and the finish is derived from it. A calendar change, such as a new weather
   day, therefore moves the finish rather than silently shortening the task, as in MS Project. A
   task stored with only `finish` derives its duration from the calendar.
+- **Started tasks are the exception.** For a task in progress, `duration` is its work in working
+  days and the stored `finish` is the forecast: remaining work, `duration × (1 − progress)`, is
+  rescheduled from the data date. Because the work quantity never changes, rescheduling reaches
+  a fixed point instead of growing the task on every run. MS Project gets the same effect by
+  splitting the task; there are no splits here, so the bar spans the gap.
 - **`addWorkingDays(date, 0)` returns the input unchanged,** even on a non-working day. Snapping
   is explicit through `nextWorkingDay` and `previousWorkingDay`. For n > 0 from a non-working day,
   the first working day after it counts as the first.

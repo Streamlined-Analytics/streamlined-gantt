@@ -307,11 +307,41 @@ describe("progress and the data date", () => {
       links: [],
       calendars: [ewCalendar()],
     });
-    expect(view.A).toMatchObject({ start: "2026-11-02", finish: "2026-11-10", duration: 7 });
+    expect(view.A).toMatchObject({ start: "2026-11-02", finish: "2026-11-10", duration: 3 });
     expect(view.B.finish).toBe("2026-11-20");
     expect(view.A.totalFloat).toBe(8);
     expect(view.A.lateStart).toBe("2026-11-12");
     expect(view.A.lateFinish).toBe("2026-11-20");
+  });
+
+  test("rescheduling a started task extended by the data date reaches a fixed point", () => {
+    const programme = {
+      dataDate: "2026-11-10",
+      tasks: [
+        { id: "A", name: "A", start: "2026-11-02", duration: 3, progress: 0.5 },
+        { id: "B", name: "B", start: "2026-11-05", duration: 2 },
+      ],
+      links: [{ id: "l", from: "A", to: "B" }],
+      calendars: [ewCalendar()],
+    };
+    const first = run(programme).result;
+    expect(first.changed.find((change) => change.id === "A")).toEqual({
+      id: "A",
+      start: "2026-11-02",
+      finish: "2026-11-10",
+      duration: 3,
+    });
+    const updated = {
+      ...programme,
+      tasks: programme.tasks.map((task) => ({
+        ...task,
+        ...first.changed.find((change) => change.id === task.id),
+      })),
+    };
+    const second = run(updated).result;
+    expect(second.changed).toEqual([]);
+    expect(second.tasks.get("A")).toMatchObject({ finish: "2026-11-10", duration: 3 });
+    expect(second.tasks.get("B").start).toBe("2026-11-11");
   });
 
   test("an actual start without progress counts as started", () => {

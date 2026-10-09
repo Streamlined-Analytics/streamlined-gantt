@@ -73,7 +73,7 @@ Each line is checked by the tests named.
 ## Tests
 
 - Engine and IO (Node): 508, plus 6 nightly-only MPXJ checks.
-- Browser components (Vitest, Chromium): 184.
+- Browser components (Vitest, Chromium): 185.
 - End-to-end, a11y, memory and print (Playwright, Chromium): 54. WebKit, iPad and Pixel run in CI.
 - Visual: 14 snapshots in the pinned Playwright image.
 - Property tests run 1,000 times per property on PRs and 10,000 nightly. Mutation testing (Stryker) runs weekly.

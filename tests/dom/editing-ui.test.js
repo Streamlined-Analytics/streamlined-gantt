@@ -459,3 +459,20 @@ describe("toolbar", () => {
     expect(gantt.lookahead.weeks).toBe(3);
   });
 });
+
+describe("dialog placement", () => {
+  test("the editor stays centred when the host's CSS reset zeroes dialog margins", async () => {
+    const reset = document.createElement("style");
+    reset.textContent = "@layer base { dialog { margin: 0; } }";
+    document.head.prepend(reset);
+    try {
+      const { gantt } = mount(structuredClone(flatRoof), { fields: FLAT_ROOF_FIELDS });
+      gantt.openEditor("t5");
+      const box = dialog().getBoundingClientRect();
+      expect(Math.abs(box.left - (innerWidth - box.right))).toBeLessThan(2);
+      dialog().close();
+    } finally {
+      reset.remove();
+    }
+  });
+});

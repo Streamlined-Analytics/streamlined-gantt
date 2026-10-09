@@ -25,6 +25,8 @@ All notable changes to this project are documented here. The format follows
   was too short to scroll. The scale now starts one or two days before the first task.
 - Bar labels near the right edge are drawn before the bar, or shortened with an ellipsis,
   instead of being clipped.
+- The editor dialog stays centred when the host's CSS reset (Tailwind's preflight) zeroes
+  `dialog` margins.
 
 ## [0.1.0] - 2026-10-09
 

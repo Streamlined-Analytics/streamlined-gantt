@@ -188,3 +188,23 @@ describe("splitEvenly", () => {
     expect(splitEvenly(amount, count)).toEqual(expected);
   });
 });
+
+describe("rolled-up progress", () => {
+  test("a task with an actual finish counts as complete", () => {
+    const data = {
+      tasks: [
+        {
+          id: "a",
+          name: "A",
+          start: "2026-11-02",
+          duration: 2,
+          progress: 0.5,
+          actualFinish: "2026-11-03",
+        },
+        { id: "b", name: "B", start: "2026-11-04", duration: 2 },
+      ],
+      links: [],
+    };
+    expect(projectSummary(analyse(data), data).progress).toBeCloseTo(0.5, 10);
+  });
+});

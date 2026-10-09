@@ -3,7 +3,13 @@
 
 import { toDay } from "./dates.js";
 import { leavesOf } from "./graph.js";
-import { indexTree, isMilestone, resolveLeafDates, schedulingCalendar } from "./model.js";
+import {
+  indexTree,
+  isComplete,
+  isMilestone,
+  resolveLeafDates,
+  schedulingCalendar,
+} from "./model.js";
 import { schedule } from "./scheduler.js";
 import { FieldRegistry } from "./fields.js";
 
@@ -71,11 +77,21 @@ export function weightedProgress(leaves, resolved) {
   for (const task of leaves) {
     const duration = resolved.get(task.id)?.duration ?? 0;
     weight += duration;
-    done += duration * (task.progress ?? 0);
+    done += duration * progressOf(task);
   }
   if (weight > 0) return done / weight;
   if (leaves.length === 0) return 0;
-  return leaves.reduce((sum, task) => sum + (task.progress ?? 0), 0) / leaves.length;
+  return leaves.reduce((sum, task) => sum + progressOf(task), 0) / leaves.length;
+}
+
+/**
+ * A task's progress as the scheduler sees it: complete (1) when it has an
+ * actual finish or 100%, else its stored fraction.
+ * @param {import("./types.js").Task} task
+ * @returns {number}
+ */
+export function progressOf(task) {
+  return isComplete(task) ? 1 : Math.min(Math.max(task.progress ?? 0, 0), 1);
 }
 
 /**

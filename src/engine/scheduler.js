@@ -124,6 +124,59 @@ function allowedFinish(edge, successor, duration) {
   return successor.LS - edge.lag;
 }
 
+const MAX_ENDPOINT_PASSES = 4;
+
+/**
+ * Day-number dates from a schedule result, for re-choosing summary endpoints.
+ * @param {ScheduleResult} result
+ * @returns {(id: string) => {start: number, finish: number}|undefined}
+ */
+function scheduledDates(result) {
+  return (id) => {
+    const schedule = result.tasks.get(id);
+    return schedule ? { start: toDay(schedule.start), finish: toDay(schedule.finish) } : undefined;
+  };
+}
+
+/**
+ * @param {import("./graph.js").Edge[]} first
+ * @param {import("./graph.js").Edge[]} second
+ * @returns {boolean}
+ */
+function sameEdges(first, second) {
+  const key = (edge) => `${edge.from}>${edge.to}:${edge.type}:${edge.lag}:${edge.linkId ?? ""}`;
+  return (
+    first.length === second.length && first.every((edge, index) => key(edge) === key(second[index]))
+  );
+}
+
+/**
+ * Whether the predecessor point a link measures from is the start of a day
+ * (a bar's start, or a start-anchored milestone) rather than the end of one.
+ * @param {import("./graph.js").Edge} edge
+ * @param {Node} predecessor
+ * @returns {boolean}
+ */
+function measuresFromStartOfDay(edge, predecessor) {
+  if (predecessor.dates.milestone) return predecessor.anchor === "start";
+  return edge.type === "SS" || edge.type === "SF";
+}
+
+/**
+ * Index offset for a link into a finish-anchored milestone. Such a milestone
+ * at index `i` is shown at the end of day `i - 1`, so when the link measures
+ * from the start of a day it must sit one index later, or it would be shown
+ * on the day before the point it depends on.
+ * @param {import("./graph.js").Edge} edge
+ * @param {Node} predecessor
+ * @param {Node} successor
+ * @returns {number}
+ */
+function anchorShift(edge, predecessor, successor) {
+  const finishAnchoredPoint = successor.dates.milestone && successor.anchor === "finish";
+  return finishAnchoredPoint && measuresFromStartOfDay(edge, predecessor) ? 1 : 0;
+}
+
 /**
  * Slack on one link given early dates, for free float.
  * @param {import("./graph.js").Edge} edge
@@ -132,6 +185,16 @@ function allowedFinish(edge, successor, duration) {
  * @returns {number}
  */
 function linkSlack(edge, predecessor, successor) {
+  return rawLinkSlack(edge, predecessor, successor) - anchorShift(edge, predecessor, successor);
+}
+
+/**
+ * @param {import("./graph.js").Edge} edge
+ * @param {Node} predecessor
+ * @param {Node} successor
+ * @returns {number}
+ */
+function rawLinkSlack(edge, predecessor, successor) {
   if (edge.type === "SS") return successor.ES - edge.lag - predecessor.ES;
   if (edge.type === "FF") return successor.EF - edge.lag - predecessor.EF;
   if (edge.type === "SF") return successor.EF - edge.lag - predecessor.ES;
@@ -166,24 +229,47 @@ class Scheduler {
     this.projectEarlyFinish = 0;
   }
 
-  /** @returns {ScheduleResult} */
+  /**
+   * Links to or from a summary resolve to one leaf (its earliest start or
+   * latest finish). The first pass picks that leaf from stored dates; when
+   * scheduling moves a different leaf into that role, the links are expanded
+   * again from the scheduled dates and the schedule rerun, until the choice
+   * settles (bounded, and never into a cycle).
+   * @returns {ScheduleResult}
+   */
   run() {
     const { tasks, links } = this.input;
     const { hierarchy, summaries } = indexTree(tasks);
     const byId = new Map(tasks.map((task) => [task.id, task]));
     const leaves = tasks.filter((task) => !summaries.has(task.id) && task.start);
-    const exactDates = (id) => {
+    const storedDates = (id) => {
       const task = byId.get(id);
       return task?.start && !summaries.has(id) ? resolveLeafDates(task, this.calendar) : undefined;
     };
-    const edges = expandLinks(tasks, links, hierarchy, exactDates).filter(
-      (edge) => edge.from !== edge.to,
-    );
+    const expand = (datesOf) =>
+      expandLinks(tasks, links, hierarchy, datesOf).filter((edge) => edge.from !== edge.to);
+    let edges = expand(storedDates);
+    let result = this.pass(leaves, edges);
+    for (let pass = 1; pass < MAX_ENDPOINT_PASSES; pass += 1) {
+      const rechosen = expand(scheduledDates(result));
+      if (sameEdges(rechosen, edges) || this.hasCycle(rechosen)) break;
+      edges = rechosen;
+      result = this.pass(leaves, edges);
+    }
+    return result;
+  }
+
+  /**
+   * One full CPM pass over a fixed set of leaf-to-leaf edges.
+   * @param {import("./types.js").Task[]} leaves
+   * @param {import("./graph.js").Edge[]} edges
+   * @returns {ScheduleResult}
+   */
+  pass(leaves, edges) {
+    this.violations = [];
+    this.nodes = new Map();
     this.buildNodes(leaves, edges);
-    const { order, blocked } = topologicalOrder(
-      [...this.nodes.keys()],
-      edges.filter((edge) => this.nodes.has(edge.from) && this.nodes.has(edge.to)),
-    );
+    const { order, blocked } = topologicalOrder([...this.nodes.keys()], this.nodeEdges(edges));
     if (blocked.length) throw new RangeError(`Dependency cycle through: ${blocked.join(", ")}`);
     this.assignAnchors(order);
     for (const id of order) this.forward(this.nodes.get(id));
@@ -193,6 +279,22 @@ class Scheduler {
       this.backward(this.nodes.get(order[position]), terminal);
     }
     return this.result(order);
+  }
+
+  /**
+   * @param {import("./graph.js").Edge[]} edges
+   * @returns {import("./graph.js").Edge[]}
+   */
+  nodeEdges(edges) {
+    return edges.filter((edge) => this.nodes.has(edge.from) && this.nodes.has(edge.to));
+  }
+
+  /**
+   * @param {import("./graph.js").Edge[]} edges
+   * @returns {boolean}
+   */
+  hasCycle(edges) {
+    return topologicalOrder([...this.nodes.keys()], this.nodeEdges(edges)).blocked.length > 0;
   }
 
   /**
@@ -247,8 +349,7 @@ class Scheduler {
   followsAFinish(node) {
     return node.incoming.some((edge) => {
       if (edge.type !== "FS" && edge.type !== "FF") return false;
-      const predecessor = this.nodes.get(edge.from);
-      return !predecessor.dates.milestone || predecessor.anchor === "finish";
+      return !measuresFromStartOfDay(edge, this.nodes.get(edge.from));
     });
   }
 
@@ -266,7 +367,8 @@ class Scheduler {
     let earliest = -Infinity;
     for (const edge of node.incoming) {
       const predecessor = this.nodes.get(edge.from);
-      earliest = Math.max(earliest, requiredStart(edge, predecessor, node.duration));
+      const shift = anchorShift(edge, predecessor, node);
+      earliest = Math.max(earliest, requiredStart(edge, predecessor, node.duration) + shift);
     }
     return earliest;
   }
@@ -362,7 +464,8 @@ class Scheduler {
     let lateFinish = terminal;
     for (const edge of node.outgoing) {
       const successor = this.nodes.get(edge.to);
-      lateFinish = Math.min(lateFinish, allowedFinish(edge, successor, node.EF - node.ES));
+      const shift = anchorShift(edge, node, successor);
+      lateFinish = Math.min(lateFinish, allowedFinish(edge, successor, node.EF - node.ES) - shift);
     }
     const constraint = node.task.constraint;
     if (constraint?.type === "FNLT") {

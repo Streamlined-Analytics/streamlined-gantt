@@ -575,6 +575,49 @@ describe("locked tasks, summaries and violations", () => {
     expect(view.c.start).toBe("2026-11-03");
   });
 
+  test("a summary endpoint is re-chosen when scheduling moves a different leaf to the front", () => {
+    const { view } = run({
+      tasks: [
+        { id: "X", name: "X", start: "2026-11-02", duration: 5 },
+        { id: "S1", name: "Phase 1", type: "summary" },
+        { id: "a", name: "a", parent: "S1", start: "2026-11-02", duration: 2 },
+        { id: "b", name: "b", parent: "S1", start: "2026-11-04", duration: 1 },
+        { id: "c", name: "c", start: "2026-11-02", duration: 1 },
+      ],
+      links: [
+        { id: "l1", from: "X", to: "a" },
+        { id: "l2", from: "S1", to: "c", type: "SS" },
+      ],
+      calendars: [ewCalendar()],
+    });
+    expect(view.a.start).toBe("2026-11-09");
+    expect(view.b.start).toBe("2026-11-04");
+    expect(view.c.start).toBe("2026-11-04");
+  });
+
+  test("a finish-anchored milestone is never shown before a start-linked predecessor starts", () => {
+    const { view } = run({
+      tasks: [
+        { id: "A", name: "A", start: "2026-11-02", duration: 3 },
+        { id: "B", name: "B", start: "2026-11-09", duration: 2 },
+        { id: "M", name: "Handover", type: "milestone", start: "2026-11-02" },
+        { id: "C", name: "C", start: "2026-11-02", duration: 1 },
+      ],
+      links: [
+        { id: "l1", from: "A", to: "M" },
+        { id: "l2", from: "B", to: "M", type: "SS" },
+        { id: "l3", from: "M", to: "C" },
+      ],
+      calendars: [ewCalendar()],
+    });
+    expect(view.M.anchor).toBe("finish");
+    expect(view.M.start).toBe("2026-11-09");
+    expect(view.C.start).toBe("2026-11-10");
+    expect(view.B.freeFloat).toBe(0);
+    expect(view.B.totalFloat).toBe(0);
+    expect(view.M.totalFloat).toBe(0);
+  });
+
   test("tasks on non-working days are reported", () => {
     const { result } = run(
       {

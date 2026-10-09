@@ -46,6 +46,9 @@ describe("formatting", () => {
     expect(parseMoney("0.005")).toBe(1);
     expect(parseMoney("-£3.10")).toBe(-310);
     expect(parseMoney("")).toBeNull();
+    expect(parseMoney("   ")).toBeNull();
+    for (const typo of ["£", " £ ", "abc", "-", ".", "-."])
+      expect(parseMoney(typo), typo).toBeNaN();
     expect(parseMoney("1.2.3")).toBeNaN();
     expect(parseMoney("1000", { currency: "JPY" })).toBe(1000);
     expect(parseMoney(".5")).toBe(50);

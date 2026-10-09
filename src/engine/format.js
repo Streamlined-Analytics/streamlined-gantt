@@ -112,15 +112,17 @@ export function formatMoney(minor, options = {}) {
 
 /**
  * Parses user input such as "£1,250.50" or "1250.5" into integer minor units.
- * Returns null for empty input and NaN for unparseable input.
+ * Returns null for blank input (clear the value) and NaN for anything else
+ * without a number, such as "£" or "abc", so a typo is reported rather than
+ * clearing the value.
  * @param {string} text
  * @param {{currency?: string}} [options]
  * @returns {number|null}
  */
 export function parseMoney(text, options = {}) {
+  if (String(text ?? "").trim() === "") return null;
   const cleaned = String(text).replace(/[^\d.-]/g, "");
-  if (cleaned === "") return null;
-  if (!/^-?\d*(\.\d*)?$/.test(cleaned)) return Number.NaN;
+  if (!/^-?\d*(\.\d*)?$/.test(cleaned) || !/\d/.test(cleaned)) return Number.NaN;
   const scale = minorUnitScale(options.currency ?? "GBP");
   const digits = Math.round(Math.log10(scale));
   const negative = cleaned.startsWith("-");

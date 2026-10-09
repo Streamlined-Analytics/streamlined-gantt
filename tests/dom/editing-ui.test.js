@@ -326,6 +326,21 @@ describe("link picker, delete confirmation and inline editing", () => {
     expect(errors[0]).toMatchObject({ taskId: "t5", field: "fields.cost" });
     press(input, "Escape");
   });
+
+  test("a money cell with only a currency symbol is an error, not a cleared value", async () => {
+    const { gantt, host } = mount(structuredClone(flatRoof), { fields: FLAT_ROOF_FIELDS });
+    const before = gantt.getTask("t5").fields.cost;
+    const costColumn = gantt.columns.findIndex((column) => column.id === "fields.cost");
+    gantt.focusTask("t5", { column: costColumn });
+    press(document.activeElement, "Enter");
+    const input = host.querySelector(".sg-cell-input");
+    input.value = "£";
+    press(input, "Enter");
+    await gantt.whenIdle();
+    expect(input.getAttribute("aria-invalid")).toBe("true");
+    expect(gantt.getTask("t5").fields.cost).toBe(before);
+    press(input, "Escape");
+  });
 });
 
 describe("tooltip", () => {

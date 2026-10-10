@@ -7,6 +7,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- The package is published to npm as `streamlined-gantt`. Pushing a `v*` tag runs a release
+  workflow that publishes with npm trusted publishing (ADR-0016).
+
 ### Fixed
 
 - In Firefox, the chart is a single tab stop again. Firefox made the scroll container an extra

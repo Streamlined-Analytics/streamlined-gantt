@@ -2,8 +2,8 @@
 // Copyright 2026 Streamlined Analytics Ltd and contributors
 
 /**
- * Checks what `npm pack` would publish (the package is private and is not
- * published; this keeps it publishable): the file list matches the committed
+ * Checks what `npm pack` would publish (the release workflow runs it before
+ * `npm publish`): the file list matches the committed
  * snapshot in tests/pack/files.txt, no runtime dependencies are declared, and
  * publint and attw (ESM-only profile; the CSS entry is not JavaScript) pass.
  * `--update` rewrites the snapshot.

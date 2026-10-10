@@ -9,10 +9,10 @@
 
 ## What problem were we trying to solve?
 
-The first consumer, the construction Gantt page on the Streamlined Analytics website, already
-shows its own live task table (name, days, cost, charge, margin). On that page the library's
-left-hand grid repeated the table and took about 470 px of a 1,100 px card, so the bars got less
-than 60% of the width and the programme needed horizontal scrolling. Ben asked for:
+The first host page already shows its own live task table (name, days, cost, charge, margin).
+On that page the library's left-hand grid repeated the table and took about 470 px of a 1,100 px
+card, so the bars got less than 60% of the width and the programme needed horizontal scrolling.
+We wanted:
 
 1. no grid on the left: the timeline takes the whole width, with task names on the bars;
 2. a zoom that fits the whole programme into the width, refitted when the page resizes;
@@ -82,7 +82,7 @@ the rounded scale.
 - Core 44.15 KB gzip (was 43.52), script-tag build 46.63 KB (was 46.01), CSS 4.02 KB (was 3.92).
 
 We did not add a "grid below the timeline" option: hosts that want a table render their own,
-as the website does.
+as that first host page does.
 
 ## What does this cost us?
 

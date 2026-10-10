@@ -17,7 +17,7 @@ Date handling causes more Gantt-library bugs than anything else. Frappe Gantt (#
 - daylight-saving changes dropping or doubling a day
 - floats counted in calendar days instead of working days
 
-We needed date semantics that UK site teams recognise, match MS Project and Asta, and cannot drift
+We needed date semantics that people reading a printed programme recognise, match MS Project, and cannot drift
 by time zone. They also have to be fixed before v0.1, because changing them later breaks every
 integrator's data.
 

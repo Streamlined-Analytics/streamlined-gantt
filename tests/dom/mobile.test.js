@@ -2,7 +2,7 @@
 // Copyright 2026 Streamlined Analytics Ltd and contributors
 
 import { afterEach, describe, expect, test, vi } from "vitest";
-import officeFitOut from "../fixtures/programmes/office-fit-out-sa446.json";
+import officeFitOut from "../fixtures/programmes/office-fit-out-sample.json";
 import { Gantt } from "../../src/index.js";
 import { defineElement } from "../../src/element.js";
 import { buildToolbar } from "../../src/toolbar.js";
@@ -15,7 +15,7 @@ afterEach(() => {
   document.documentElement.style.overflow = "";
 });
 
-/** Mounts the 14-row office fit-out in the timeline layout, as the website does. */
+/** Mounts the 14-row office fit-out in the timeline layout, fitted to the width. */
 /**
  * Whether this browser can build synthetic touches. Desktop Firefox has no
  * `TouchEvent` and desktop WebKit refuses `new Touch()`, so pinch zoom (which

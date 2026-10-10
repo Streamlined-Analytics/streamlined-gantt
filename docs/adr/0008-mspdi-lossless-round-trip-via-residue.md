@@ -9,7 +9,7 @@
 
 ## What problem were we trying to solve?
 
-Contractors receive and send programmes as MS Project files. The MVP has to read MS Project XML
+Teams receive and send programmes as MS Project files. The MVP has to read MS Project XML
 (MSPDI) from MS Project, Asta Powerproject, P6 and MPXJ, and write files those tools open. The
 round trip also has to be **lossless for supported fields**: exporting a programme and importing
 it again must give back exactly what we started with. That includes things MSPDI has no field

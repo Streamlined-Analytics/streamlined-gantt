@@ -9,9 +9,8 @@
 
 ## What problem were we trying to solve?
 
-Streamlined Analytics builds bespoke tools for UK construction subcontractors and trades on
-Django, htmx, hyperscript and Tailwind/DaisyUI. Those tools need an editable programme (Gantt)
-view that understands working-day calendars, UK bank holidays, critical path, negative float,
+Server-rendered web applications (Django, htmx, hyperscript and Tailwind/DaisyUI, in our case)
+need an editable programme (Gantt) view that understands working-day calendars, UK bank holidays, critical path, negative float,
 baselines and stage-payment milestones, and that can be driven entirely from a backend through
 events and JSON.
 
@@ -22,10 +21,9 @@ licence we control, and a size that suits script-tag use on htmx pages.
 
 ### Attempt 1 — DHTMLX Gantt Community 10 (MIT) ❌ failed in practice
 
-The proof page (`gantt-proof/index.html`, 9 October 2026) rendered the flat-roof job with
-DHTMLX. It looked like a proper programme, but the Community bundle stubs working-time
+A proof page (9 October 2026) rendered a sample programme with DHTMLX. It looked like a proper programme, but the Community bundle stubs working-time
 calendars, removes `addTaskLayer` (baselines) and keeps auto-scheduling, critical path and undo
-in the paid PRO tier. Those are exactly the construction-critical features. It is also 180 KB
+in the paid PRO tier. Those are exactly the features we needed. It is also 180 KB
 gzipped.
 
 ### Attempt 2 — Frappe Gantt 1.2 (MIT) ❌ failed in practice
@@ -36,8 +34,8 @@ a fork.
 
 ### Attempt 3 — commercial libraries (Bryntum, DHTMLX PRO, Highcharts Gantt) ❌ rejected up front
 
-Capable, but per-developer licences, client-specific licensing when clients own the IP, and no
-control over the roadmap. They also cannot be offered to the market as our own open-source
+Capable, but per-developer licences, licensing that gets complicated when someone else owns the
+application, and no control over the roadmap. They also cannot be offered to the market as our own open-source
 product.
 
 ### Attempt 4 — write it from scratch ✅ chosen
@@ -53,8 +51,8 @@ file in its own `@layer`. The engine (`src/engine/`) has no DOM imports so it ca
 property-tested in Node and moved to a worker later.
 
 The deciding reason: every free library deliberately omits the scheduling engine, and that
-engine is the product. Owning it lets us ship the construction-specific features nobody offers
-(payment milestones, access dates, lookahead, negative float) under our own licence.
+engine is the product. Owning it lets us ship the features nobody offers for free (payment
+milestones, lookahead, negative float) under our own licence.
 
 ## What does this cost us?
 

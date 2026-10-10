@@ -84,7 +84,7 @@ for (const preset of ["light", "dark", "brand"]) {
 }
 
 const PHONE_SAMPLE = {
-  fixture: "/tests/fixtures/programmes/office-fit-out-sa446.json",
+  fixture: "/tests/fixtures/programmes/office-fit-out-sample.json",
   layout: "timeline",
   fit: "width",
   height: "420px",

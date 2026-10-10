@@ -8,11 +8,11 @@ import { touchDrag } from "./support/touch.js";
 
 /**
  * The phone experience (ADR-0011) on the touch projects: Pixel 7 (Chromium),
- * iPhone 15 and iPad (WebKit). The sample is the website's 14-row office
+ * iPhone 15 and iPad (WebKit). The sample is a 14-row office
  * fit-out, in the timeline layout fitted to the width, embedded 420 px tall.
  */
 const SAMPLE = {
-  fixture: "/tests/fixtures/programmes/office-fit-out-sa446.json",
+  fixture: "/tests/fixtures/programmes/office-fit-out-sample.json",
   layout: "timeline",
   fit: "width",
   height: "420px",

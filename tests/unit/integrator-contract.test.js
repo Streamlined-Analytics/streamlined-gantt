@@ -13,13 +13,12 @@ import {
 import { loadFixture } from "../support/builders.js";
 
 /**
- * The sample programme served by the Streamlined Analytics website at
- * /construction-gantt-chart/programme.json (streamlined_analytics PR #446), produced by an
+ * A sample programme served by an integrating application, produced by an
  * independent Python scheduler. It pins the integrator data contract: camelCase, ISO dates,
  * inclusive finishes, working-day durations, pence, 0-1 percentages, FS/SS links with lag.
  */
-describe("integrator contract: SA website sample programme", () => {
-  const programme = () => loadFixture("programmes/office-fit-out-sa446.json");
+describe("integrator contract: sample programme from an integrating application", () => {
+  const programme = () => loadFixture("programmes/office-fit-out-sample.json");
 
   test("validates against the v1 format", () => {
     expect(() => validateProgramme(programme())).not.toThrow();

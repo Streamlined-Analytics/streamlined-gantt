@@ -10,7 +10,7 @@ import { openHarness, watchErrors } from "./support/page.js";
  * full-viewport dialog; Escape returns; the chart refits to the screen.
  */
 const SAMPLE = {
-  fixture: "/tests/fixtures/programmes/office-fit-out-sa446.json",
+  fixture: "/tests/fixtures/programmes/office-fit-out-sample.json",
   layout: "timeline",
   height: "420px",
   zoom: "day",

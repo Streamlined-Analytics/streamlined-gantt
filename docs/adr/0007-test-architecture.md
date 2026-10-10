@@ -37,7 +37,7 @@ unexamined. It was replaced by Stryker's command runner, which is slower but cor
 
 - **Engine (Node, no DOM globals):**
   - known-answer fixtures: N1, N1 with a deadline, N1 across Christmas, N2 with mixed links, the
-    England and Wales calendar table, and the website's sample programme for cross-implementation
+    England and Wales calendar table, and a sample programme from an integrating application, for cross-implementation
     agreement;
   - fast-check properties against naive day-walking and CPM oracles (1,000 runs on PRs, 10,000
     nightly);

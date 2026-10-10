@@ -9,14 +9,13 @@
 
 ## What problem were we trying to solve?
 
-The first real use of the library is the construction programme demo on the Streamlined
-Analytics website: 14 rows (10 tasks and 4 stage payments) over about ten weeks, in the
+The first real use of the library is a public demo page: 14 rows (10 tasks and 4 stage payments) over about ten weeks, in the
 timeline layout fitted to the width (ADR-0010). On a phone held upright it is embedded about
 420 px tall and 360 to 390 px wide. There, each week is about 35 px wide, bars and labels crowd
 each other, and the chart scrolls vertically inside a page that also scrolls, so a thumb
-dragging down the page gets caught in the chart. Ben asked for the chart to "work as well as
-possible on a phone and have a good UI around it, even if that means it only shows in
-landscape mode on phone".
+dragging down the page gets caught in the chart. The goal was a chart that works as well as
+possible on a phone, with a good UI around it, even if that means it only shows in landscape
+mode on phones.
 
 The core bundle had 0.85 KB of its 45 KB gzip budget left, and the script-tag build 1.4 KB of
 48 KB, so a phone experience of any size could not go into either.

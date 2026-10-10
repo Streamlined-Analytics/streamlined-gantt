@@ -19,7 +19,7 @@ The first version had 29 `--sg-*` colour tokens with DaisyUI fallbacks, `task.st
 - radii, stroke widths and font sizes;
 - white in the print and PNG output.
 
-There was also no way to colour by trade or subcontractor, no dark palette without DaisyUI, and
+There was also no way to colour by trade, team or owner, no dark palette without DaisyUI, and
 no way to theme from JavaScript.
 
 The core bundle must also stay at 45 KB gzip or less (spec), and it had 50 bytes of headroom.

@@ -131,9 +131,16 @@
  * `update` entries carry the id plus only the properties that change.
  *
  * @typedef {object} CollectionPatch
- * @property {object[]} [add]
- * @property {object[]} [update]
+ * @property {ChangesetEntry[]} [add]
+ * @property {ChangesetEntry[]} [update]
  * @property {string[]} [remove]
+ */
+
+/**
+ * One added or updated entry in a {@link CollectionPatch}: the entry's id plus
+ * the properties being set.
+ *
+ * @typedef {{id: string} & Record<string, unknown>} ChangesetEntry
  */
 
 /**

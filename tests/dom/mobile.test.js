@@ -16,6 +16,20 @@ afterEach(() => {
 });
 
 /** Mounts the 14-row office fit-out in the timeline layout, as the website does. */
+/**
+ * Whether this browser can build synthetic touches. Desktop Firefox has no
+ * `TouchEvent` and desktop WebKit refuses `new Touch()`, so pinch zoom (which
+ * listens for touch events) is only exercised where touches exist.
+ */
+function canConstructTouches() {
+  try {
+    new Touch({ identifier: 0, target: document.body });
+    return typeof TouchEvent === "function";
+  } catch {
+    return false;
+  }
+}
+
 function mountSample(options = {}) {
   return mount(structuredClone(officeFitOut), {
     layout: "timeline",
@@ -249,26 +263,29 @@ describe("full screen", () => {
     expect(gantt.zoom).toBe("day");
   });
 
-  test("a two-finger pinch zooms in, and the browser's own pinch is suppressed", async () => {
-    const { gantt } = mountSample({ width: "900px" });
-    const mobile = mobileView(gantt);
-    await mobile.open();
-    await settle();
-    const scroller = gantt.scroller;
-    const touch = (id, x) =>
-      new Touch({ identifier: id, target: scroller, clientX: x, clientY: 100 });
-    scroller.dispatchEvent(
-      new TouchEvent("touchstart", { touches: [touch(1, 100), touch(2, 140)], bubbles: true }),
-    );
-    const move = new TouchEvent("touchmove", {
-      touches: [touch(1, 60), touch(2, 200)],
-      bubbles: true,
-      cancelable: true,
-    });
-    scroller.dispatchEvent(move);
-    expect(move.defaultPrevented).toBe(true);
-    expect(gantt.fitWidth).toBe(false);
-  });
+  test.skipIf(!canConstructTouches())(
+    "a two-finger pinch zooms in, and the browser's own pinch is suppressed",
+    async () => {
+      const { gantt } = mountSample({ width: "900px" });
+      const mobile = mobileView(gantt);
+      await mobile.open();
+      await settle();
+      const scroller = gantt.scroller;
+      const touch = (id, x) =>
+        new Touch({ identifier: id, target: scroller, clientX: x, clientY: 100 });
+      scroller.dispatchEvent(
+        new TouchEvent("touchstart", { touches: [touch(1, 100), touch(2, 140)], bubbles: true }),
+      );
+      const move = new TouchEvent("touchmove", {
+        touches: [touch(1, 60), touch(2, 200)],
+        bubbles: true,
+        cancelable: true,
+      });
+      scroller.dispatchEvent(move);
+      expect(move.defaultPrevented).toBe(true);
+      expect(gantt.fitWidth).toBe(false);
+    },
+  );
 
   test("falls back to the full-viewport dialog when the Fullscreen API refuses", async () => {
     const { gantt } = mountSample({ width: "900px" });

@@ -44,7 +44,12 @@ test.describe("mouse drag on the flat-roof job", () => {
 
   test("releasing the mouse outside the window ends the drag and stops auto-scroll", async ({
     page,
+    browserName,
   }) => {
+    test.skip(
+      browserName === "firefox",
+      "Playwright's Firefox delivers no input at all outside the viewport, not even the captured pointerup",
+    );
     await openHarness(page, { zoom: "day" });
     const bar = page.locator('[data-task-id="t5"] .sg-hit');
     const box = await bar.boundingBox();

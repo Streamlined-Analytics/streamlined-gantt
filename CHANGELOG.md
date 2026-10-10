@@ -7,6 +7,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-10-10
+
 ### Added
 
 - The package is published to npm as `streamlined-gantt`. Pushing a `v*` tag runs a release

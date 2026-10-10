@@ -1,6 +1,6 @@
 {
   "name": "streamlined-gantt",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Framework-free JavaScript Gantt chart and scheduling library: working-day calendars, critical path, payment milestones, accessible editing and an event API built for backend integration.",
   "license": "Apache-2.0",
   "author": "Streamlined Analytics Ltd (https://streamlinedanalytics.co.uk)",

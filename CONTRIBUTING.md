@@ -92,8 +92,9 @@ cooldown. Runtime dependencies are not accepted.
 ## Releasing
 
 Releases are published to npm by `.github/workflows/release.yml`, using npm trusted publishing.
-No npm token is stored (see
-[ADR-0016](docs/adr/0016-publish-to-npm-from-a-tag-with-trusted-publishing.md)).
+No npm token is stored, and nothing goes live without a maintainer's approval (see
+[ADR-0016](docs/adr/0016-publish-to-npm-from-a-tag-with-trusted-publishing.md) and
+[ADR-0017](docs/adr/0017-stage-npm-releases-for-maintainer-approval.md)).
 
 1. Bump `version` in `package.json` and move the `[Unreleased]` entries in `CHANGELOG.md` under
    the new version.
@@ -102,9 +103,10 @@ No npm token is stored (see
    ```sh
    git tag vX.Y.Z && git push origin vX.Y.Z
    ```
-
-The workflow checks that the tag matches `package.json`, builds, runs lint, type-check, engine
-tests and the pack smoke check, then publishes.
+   The workflow checks that the tag matches `package.json`, builds, runs lint, type-check, engine
+   tests and the pack smoke check, then stages the release on npm.
+4. Approve the staged release with 2FA: on npmjs.com (the package's staged releases), or with
+   `npm stage list streamlined-gantt` and `npm stage approve <stage-id>` from a terminal.
 
 ## Reporting security issues
 

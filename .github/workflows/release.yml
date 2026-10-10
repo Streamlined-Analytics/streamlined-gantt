@@ -43,5 +43,5 @@ jobs:
       - run: npm test
       - name: Pack smoke (file list, publint, attw, no runtime dependencies)
         run: npm run check:pack
-      # Add --provenance once the repository is public.
-      - run: npm publish
+      # Staged: goes live only after a maintainer approves it on npmjs.com (ADR-0017).
+      - run: npm stage publish --provenance

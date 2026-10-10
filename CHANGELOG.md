@@ -7,6 +7,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-10-10
+
+### Changed
+
+- Releases are staged on npm and go live only after a maintainer approves them with 2FA
+  (ADR-0017).
+- The repository is public, and releases carry npm provenance attestations.
+
 ## [0.3.2] - 2026-10-10
 
 ### Added

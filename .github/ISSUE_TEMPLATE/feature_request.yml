@@ -5,8 +5,8 @@ body:
   - type: textarea
     id: workflow
     attributes:
-      label: Which construction or project workflow does this serve?
-      description: For example "subcontractor sends a 3-week lookahead to the main contractor every Friday".
+      label: Which project workflow does this serve?
+      description: For example "the team sends a 3-week lookahead to the client every Friday".
     validations:
       required: true
   - type: textarea

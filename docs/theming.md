@@ -120,15 +120,15 @@ Overrides you set (with CSS, or with `setTheme`) apply in both schemes; scope th
 
 ### Categories
 
-Colour bars by trade, phase or subcontractor. Give tasks a `category`, then map each category to
+Colour bars by team, phase or owner. Give tasks a `category`, then map each category to
 a colour:
 
 ```js
 const gantt = new Gantt(host, {
   data,
   categories: {
-    roofing: "#c2410c",
-    scaffold: { color: "#334155", text: "#f8fafc" },
+    design: "#c2410c",
+    testing: { color: "#334155", text: "#f8fafc" },
     "m-e": "#0369a1",
   },
 });
@@ -139,7 +139,7 @@ can set them too:
 
 ```css
 .sg-root {
-  --sg-category-roofing: #c2410c;
+  --sg-category-design: #c2410c;
 }
 ```
 
@@ -149,8 +149,8 @@ To colour by something other than `task.category`, use `categoryOf`:
 new Gantt(host, { data, categoryOf: (task) => task.trade });
 ```
 
-Keys are lower-cased, with runs of other characters turned into `-`. So "Roofing & leadwork"
-becomes `roofing-leadwork`. Each task's group also gets the class `sg-category-<key>`.
+Keys are lower-cased, with runs of other characters turned into `-`. So "Design & research"
+becomes `design-research`. Each task's group also gets the class `sg-category-<key>`.
 
 ### One task or link
 
@@ -194,7 +194,7 @@ const gantt = new Gantt(host, {
 
 gantt.setTheme({ bar: "#7c3aed", rowAlt: "#f5f3ff" }); // merge
 gantt.setTheme({ bar: null }); // remove an override; the CSS value applies again
-gantt.setCategories({ roofing: "#c2410c" });
+gantt.setCategories({ design: "#c2410c" });
 gantt.refreshTheme(); // after changing geometry tokens with your own CSS
 ```
 

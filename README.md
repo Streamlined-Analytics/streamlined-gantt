@@ -1,6 +1,6 @@
 # streamlined-gantt
 
-A framework-free JavaScript Gantt and construction programme library by
+A framework-free JavaScript Gantt chart and scheduling library by
 [Streamlined Analytics Ltd](https://streamlinedanalytics.co.uk).
 
 > **Status:** pre-release (0.x), private repository. Not yet published to npm.
@@ -15,12 +15,12 @@ A framework-free JavaScript Gantt and construction programme library by
 - Constraints, progress and a data date.
 - Three modes: push successors later, also pull them back, or report only.
 
-**Construction programmes**
+**Tracking**
 
-- Stage-payment milestones with values, and a payment schedule.
-- Custom fields (cost, charge, quantity, margin) with roll-ups.
-- Baselines, delay bands, a lookahead filter, and access and completion dates.
-- An SCL/CIOB programme health check.
+- Payment milestones with values, and a payment schedule.
+- Custom fields (cost, quantity, computed margin) with roll-ups.
+- Baselines, delay bands, a lookahead filter, and deadline markers.
+- A schedule health check.
 
 **Editing**
 
@@ -163,7 +163,7 @@ themes and dark mode automatically, and can be coloured from data:
 ```js
 new Gantt(host, {
   data,
-  categories: { roofing: "#c2410c", scaffold: "#334155" }, // task.category: "roofing"
+  categories: { design: "#c2410c", testing: "#334155" }, // task.category: "design"
   theme: { barCritical: "#be123c" },
 });
 gantt.setTheme({ bar: "#7c3aed" });
@@ -182,7 +182,7 @@ The core bundle stays under 45 KB gzip. Everything else is a separate import:
 | `streamlined-gantt/print`    | A3/A4 print, SVG and PNG export                                 |
 | `streamlined-gantt/io/mspdi` | MS Project XML import and export                                |
 | `streamlined-gantt/io/csv`   | `exportCSV(gantt)`                                              |
-| `streamlined-gantt/health`   | `check(gantt)`: SCL/CIOB programme health check                 |
+| `streamlined-gantt/health`   | `check(gantt)`: schedule health check                           |
 | `streamlined-gantt/toolbar`  | The built-in toolbar (`toolbar: buildToolbar`)                  |
 | `streamlined-gantt/editor`   | The built-in task dialog (`editor: builtinEditor`)              |
 | `streamlined-gantt/mobile`   | Full screen on every size, and the phone summary (`mobileView`) |

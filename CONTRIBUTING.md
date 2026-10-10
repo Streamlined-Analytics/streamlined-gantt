@@ -10,16 +10,15 @@ Thank you for your interest. Please read this page before opening an issue or pu
 
 ## Scope first
 
-streamlined-gantt is a framework-free Gantt and construction programme library for small and
-medium-sized contractors and trades. It is deliberately **not** Primavera P6 or Asta
-Powerproject. Every feature request must name the construction or project workflow it serves.
+streamlined-gantt is a framework-free Gantt chart and scheduling library for small and
+medium-sized teams. It is deliberately **not** Primavera P6 or Microsoft Project. Every feature
+request must name the project workflow it serves.
 
 **Non-goals** (pull requests adding these will be declined):
 
 - resource levelling, cost loading or earned value management
 - multi-project portfolio management
 - real-time multi-user co-editing (backends broadcast changes through `applyPatch()`)
-- BIM / 4D sequencing
 - runtime dependencies of any kind, including UI frameworks
 - network calls made by the library itself (the host page owns all I/O)
 

@@ -2,7 +2,7 @@
 // Copyright 2026 Streamlined Analytics Ltd and contributors
 
 /**
- * streamlined-gantt: framework-free Gantt and construction programme library.
+ * streamlined-gantt: framework-free Gantt chart and scheduling library.
  *
  * The core entry re-exports the engine API that integrations commonly need
  * (scheduling, calendars, dates, validation, formatting, summaries). CSV

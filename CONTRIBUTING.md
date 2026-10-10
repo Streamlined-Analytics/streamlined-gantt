@@ -89,6 +89,23 @@ Development dependencies are pinned to exact versions that were published at lea
 before they were added (`npm install --before=<date>`), and Dependabot runs with a seven-day
 cooldown. Runtime dependencies are not accepted.
 
+## Releasing
+
+Releases are published to npm by `.github/workflows/release.yml`, using npm trusted publishing.
+No npm token is stored (see
+[ADR-0016](docs/adr/0016-publish-to-npm-from-a-tag-with-trusted-publishing.md)).
+
+1. Bump `version` in `package.json` and move the `[Unreleased]` entries in `CHANGELOG.md` under
+   the new version.
+2. Merge to `main`.
+3. Tag the merge commit and push the tag:
+   ```sh
+   git tag vX.Y.Z && git push origin vX.Y.Z
+   ```
+
+The workflow checks that the tag matches `package.json`, builds, runs lint, type-check, engine
+tests and the pack smoke check, then publishes.
+
 ## Reporting security issues
 
 See [SECURITY.md](SECURITY.md). Do not open public issues for vulnerabilities.

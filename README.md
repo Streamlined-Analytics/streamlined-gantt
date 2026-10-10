@@ -3,7 +3,7 @@
 A framework-free JavaScript Gantt chart and scheduling library by
 [Streamlined Analytics Ltd](https://streamlinedanalytics.co.uk).
 
-> **Status:** pre-release (0.x), private repository. Not yet published to npm.
+> **Status:** pre-release (0.x). Published to npm as `streamlined-gantt`.
 
 ## Features
 
@@ -70,6 +70,13 @@ A framework-free JavaScript Gantt chart and scheduling library by
 - A schedule health check.
 
 ## Quick start
+
+```sh
+npm install streamlined-gantt
+```
+
+Import it as `streamlined-gantt` from a bundler, or serve `node_modules/streamlined-gantt/dist/`
+as static files, as the examples below do.
 
 ### ES module
 

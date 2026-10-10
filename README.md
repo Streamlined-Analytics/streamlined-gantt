@@ -3,16 +3,71 @@
 A framework-free JavaScript Gantt and construction programme library by
 [Streamlined Analytics Ltd](https://streamlinedanalytics.co.uk).
 
-- Plain ES2022 JavaScript, **zero runtime dependencies**, no framework.
-- Working-day calendars with bank holidays supplied as data, FS/SS/FF/SF links with lag, critical
-  path with total, free and **negative** float.
-- Construction concepts as first-class data: stage-payment milestones with values, access dates,
-  baselines, lookahead, delay bands and A3 print.
-- An integration API built for backends: typed events mirrored as DOM `CustomEvent`s, cancelable
-  `before-*` events with `event.waitUntil(promise)` for server approval, one `change` event per
-  transaction, undo/redo and `applyPatch()`.
-
 > **Status:** pre-release (0.x), private repository. Not yet published to npm.
+
+## Features
+
+**Scheduling**
+
+- Critical path scheduling: FS, SS, FF and SF links with lag and lead.
+- Total, free and **negative** float.
+- Working-day calendars, with bank holidays supplied as data.
+- Constraints, progress and a data date.
+- Three modes: push successors later, also pull them back, or report only.
+
+**Construction programmes**
+
+- Stage-payment milestones with values, and a payment schedule.
+- Custom fields (cost, charge, quantity, margin) with roll-ups.
+- Baselines, delay bands, a lookahead filter, and access and completion dates.
+- An SCL/CIOB programme health check.
+
+**Editing**
+
+- Drag to move or resize bars, and to draw links.
+- Inline cell editing, a task dialog and a context menu.
+- Undo and redo, with a full keyboard alternative to every drag.
+
+**Viewing**
+
+- Day, week, month and quarter zoom, and fit to width.
+- A grid-and-timeline layout, or a timeline-only layout.
+- Collapsible WBS outline.
+- Smooth with 1,000 tasks and 1,500 links (virtualised rows).
+
+**Phones and touch**
+
+- A readable summary in place of the chart on phones.
+- A full-screen chart with pinch zoom.
+- Touch-sized handles.
+
+**Integrating with your backend**
+
+- Typed events that are also DOM `CustomEvent`s.
+- Cancelable `before-*` events for server approval (`event.waitUntil`).
+- One `change` event per edit.
+- `applyPatch()` for corrections the server pushes back.
+- A `<streamlined-gantt>` element that works with htmx out of the box.
+
+**Import and export**
+
+- MS Project XML (MSPDI) import and export, with a lossless round trip.
+- CSV.
+- A3/A4 print, SVG and PNG.
+
+**Look and feel**
+
+- Every visual value is a `--sg-*` CSS token.
+- Follows DaisyUI themes and dark mode.
+- Colour bars by category from your data.
+
+**Built to be safe to adopt**
+
+- Plain ES2022 JavaScript, **zero runtime dependencies**, no framework.
+- Core bundle under 45 KB gzip; everything else is an optional import.
+- Built for WCAG 2.2 AA: a single tab stop, a screen-reader treegrid, and axe tests in CI.
+- Tested in Chromium, Firefox and WebKit, including mobile devices.
+- Apache-2.0 licensed.
 
 ## Quick start
 

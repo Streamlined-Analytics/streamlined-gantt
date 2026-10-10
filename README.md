@@ -7,21 +7,6 @@ A framework-free JavaScript Gantt chart and scheduling library by
 
 ## Features
 
-**Scheduling**
-
-- Critical path scheduling: FS, SS, FF and SF links with lag and lead.
-- Total, free and **negative** float.
-- Working-day calendars, with bank holidays supplied as data.
-- Constraints, progress and a data date.
-- Three modes: push successors later, also pull them back, or report only.
-
-**Tracking**
-
-- Payment milestones with values, and a payment schedule.
-- Custom fields (cost, quantity, computed margin) with roll-ups.
-- Baselines, delay bands, a lookahead filter, and deadline markers.
-- A schedule health check.
-
 **Editing**
 
 - Drag to move or resize bars, and to draw links.
@@ -68,6 +53,21 @@ A framework-free JavaScript Gantt chart and scheduling library by
 - Built for WCAG 2.2 AA: a single tab stop, a screen-reader treegrid, and axe tests in CI.
 - Tested in Chromium, Firefox and WebKit, including mobile devices.
 - Apache-2.0 licensed.
+
+**Scheduling**
+
+- Critical path scheduling: FS, SS, FF and SF links with lag and lead.
+- Total, free and **negative** float.
+- Working-day calendars, with bank holidays supplied as data.
+- Constraints, progress and a data date.
+- Three modes: push successors later, also pull them back, or report only.
+
+**Tracking**
+
+- Payment milestones with values, and a payment schedule.
+- Custom fields (cost, quantity, computed margin) with roll-ups.
+- Baselines, delay bands, a lookahead filter, and deadline markers.
+- A schedule health check.
 
 ## Quick start
 

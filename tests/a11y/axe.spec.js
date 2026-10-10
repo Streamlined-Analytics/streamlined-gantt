@@ -67,6 +67,15 @@ test("no axe violations: dark mode from the operating system", async ({ page }) 
 test("exactly one tab stop and treegrid ARIA", async ({ page }) => {
   await openHarness(page);
   await expect(page.locator(".sg-root [tabindex='0']")).toHaveCount(1);
+  await page.evaluate(() =>
+    document.body.append(
+      Object.assign(document.createElement("button"), { id: "after-chart", textContent: "After" }),
+    ),
+  );
+  await page.keyboard.press("Tab");
+  await expect(page.locator(".sg-root [tabindex='0']")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#after-chart")).toBeFocused();
   const grid = page.getByRole("treegrid", { name: "Programme tasks" });
   await expect(grid).toHaveAttribute("aria-rowcount", "14");
   await expect(page.getByRole("row", { name: /Roofing works/ })).toHaveAttribute(

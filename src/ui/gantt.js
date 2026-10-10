@@ -205,7 +205,7 @@ export class Gantt extends ProgrammeController {
     this.root = html("div", { class: "sg-root", "data-zoom": this.zoom, id: this.uid });
     if (this.options.height) this.root.style.setProperty("--sg-height", this.options.height);
     applyTheme(this.root, { ...categoryTokens(this.options.categories), ...this.options.theme });
-    this.scroller = html("div", { class: "sg-scroller" });
+    this.scroller = html("div", { class: "sg-scroller", tabindex: "-1" });
     this.canvas = html("div", { class: "sg-canvas" });
     this.scroller.append(this.canvas);
     this.live = html("div", { class: "sg-sr-only", "aria-live": "polite", "aria-atomic": "true" });

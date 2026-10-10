@@ -7,6 +7,18 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- In Firefox, the chart is a single tab stop again. Firefox made the scroll container an extra
+  stop before the grid (ADR-0013).
+- When the built-in editor saves, `editor-close` now fires right after `editor-save` in every
+  browser. It used to arrive later in Firefox and WebKit. Any dialog closed from code now
+  settles immediately (ADR-0014).
+- The JSDoc types now pass TypeScript 7. `CollectionPatch` entries are typed as
+  `ChangesetEntry` (an `id` plus the properties to set) instead of `object`.
+- The nightly CI passes in Chromium, Firefox and WebKit. Timed performance budgets now run
+  only in their own job (ADR-0015).
+
 ## [0.3.1] - 2026-10-09
 
 ### Fixed

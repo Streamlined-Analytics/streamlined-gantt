@@ -24,6 +24,12 @@ let dialogCounter = 0;
 
 /**
  * Opens a modal dialog inside `parent`.
+ *
+ * `close()` settles the dialog at once instead of waiting for the `close`
+ * event, which browsers queue as a task and deliver at different points
+ * relative to animation frames, so `closed` (and `editor-close`) would
+ * otherwise arrive late in Firefox and WebKit. Esc and other native closes
+ * still settle on that event.
  * @param {HTMLElement} parent
  * @param {{title: string, className?: string, describedBy?: string}} options
  * @returns {DialogHandle}
@@ -43,17 +49,18 @@ export function openDialog(parent, options) {
   const actions = html("div", { class: "sg-dialog-actions" });
   dialog.append(title, body, actions);
   parent.append(dialog);
+  let settled = false;
+  let settle = () => {};
   const closed = new Promise((resolve) => {
-    dialog.addEventListener(
-      "close",
-      () => {
-        resolve(dialog.returnValue);
-        dialog.remove();
-        if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
-      },
-      { once: true },
-    );
+    settle = () => {
+      if (settled) return;
+      settled = true;
+      resolve(dialog.returnValue);
+      dialog.remove();
+      if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
+    };
   });
+  dialog.addEventListener("close", settle, { once: true });
   dialog.showModal();
   return {
     dialog,
@@ -61,7 +68,9 @@ export function openDialog(parent, options) {
     actions,
     closed,
     close: (value = "") => {
-      if (dialog.open) dialog.close(value);
+      if (!dialog.open) return;
+      dialog.close(value);
+      settle();
     },
   };
 }

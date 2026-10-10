@@ -8,15 +8,17 @@ import { openHarness } from "../e2e/support/page.js";
  * Timed performance budgets on the 1,000-task / 1,500-link fixture (spec #16):
  * first render under 250 ms, scrolling at 55 fps or more, a drag frame under
  * 16 ms and a full schedule() under 30 ms on a mid-range laptop. CI machines
- * vary, so the assertions are twice those budgets and run nightly (or with
- * SG_PERF=1); the measured numbers are printed for the job summary.
+ * vary, so the assertions are twice those budgets and run only with SG_PERF=1:
+ * the nightly performance job sets it and runs this spec alone, because the
+ * full browser matrix runs tests in parallel and would time contended frames.
+ * The measured numbers are printed for the job summary.
  */
 
-const timed = process.env.SG_NIGHTLY === "1" || process.env.SG_PERF === "1";
+const timed = process.env.SG_PERF === "1";
 const BUDGET = { firstRender: 500, scrollFrame: 1000 / 27.5, dragFrame: 32, schedule: 60 };
 
 test.describe("performance budgets (1,000 tasks, 1,500 links)", () => {
-  test.skip(!timed, "timed budgets run nightly; set SG_PERF=1 to run locally");
+  test.skip(!timed, "timed budgets run in the nightly performance job; set SG_PERF=1 to run");
 
   test("first render, scroll, drag and reschedule", async ({ page }) => {
     await openHarness(page, { fixture: "perf", height: "800px" });

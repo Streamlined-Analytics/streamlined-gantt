@@ -1093,7 +1093,7 @@ export class ProgrammeController {
 
   /**
    * @param {Promise<unknown>[]} pending
-   * @returns {Promise<{outcome: "accept"|"veto"|"error"|"timeout"|"replace", changesets: object[], error?: unknown}>}
+   * @returns {Promise<{outcome: "accept"|"veto"|"error"|"timeout"|"replace", changesets: import("../engine/types.js").Changeset[], error?: unknown}>}
    */
   settleApprovals(pending) {
     let timer;
@@ -1119,7 +1119,7 @@ export class ProgrammeController {
         (result) => /** @type {PromiseFulfilledResult<unknown>} */ (result).value,
       );
       if (values.some((value) => value === false)) return { outcome: "veto", changesets: [] };
-      const changesets = values.filter((value) => value !== null && typeof value === "object");
+      const changesets = values.filter(isChangeset);
       return { outcome: changesets.length ? "replace" : "accept", changesets };
     });
   }
@@ -1711,4 +1711,14 @@ function pickDates(patch) {
   const dates = {};
   for (const key of DATE_KEYS) if (patch[key] !== undefined) dates[key] = patch[key];
   return dates;
+}
+
+/**
+ * Whether an approval handler resolved with a changeset to apply in place of
+ * the edit, rather than `true`, `false` or nothing.
+ * @param {unknown} value
+ * @returns {value is import("../engine/types.js").Changeset}
+ */
+function isChangeset(value) {
+  return value !== null && typeof value === "object";
 }
